@@ -12,7 +12,7 @@ class Applicant(models.Model):
     links = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.user.__str__() + f", {self.first_name} {self.last_name}"
     
 class Recruiter(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, 
@@ -22,4 +22,5 @@ class Recruiter(models.Model):
     company_name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.company_name
+        return self.user.__str__() + ", " + str(self.company_name)
+

@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 class JobPosting(models.Model):
+    id = models.AutoField(primary_key = True)
     title = models.CharField(max_length=100)
     description = models.TextField()
     skills_required = models.TextField()
@@ -13,4 +14,15 @@ class JobPosting(models.Model):
     recruiter = models.ForeignKey('accounts.Recruiter', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return "id: " + str(self.id) + ", " + str(self.recruiter.company_name) + ", " + str(self.title)
+    
+
+class Application(models.Model):
+    id = models.AutoField(primary_key = True)
+    applicant = models.OneToOneField('accounts.Applicant', on_delete = models.CASCADE)
+    # Basically all applicant information will be pulled from here
+    listing = models.ForeignKey('jobs.JobPosting', on_delete = models.CASCADE)
+    message = models.TextField(blank = True)
+
+    def __str__(self):
+        return "id: " + str(self.id) + ", applicant: " + self.applicant.__str__() + ", listing: " + self.listing.__str__()
