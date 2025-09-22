@@ -1,23 +1,22 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  entry: './assets/index.js',  // path to our input file
+  mode: "development",
+  entry: "./assets/index.js",
   output: {
-    filename: 'index-bundle.js',  // output bundle file name
-    path: path.resolve(__dirname, './static'),  // path to our Django static directory
+    path: path.resolve(__dirname, "static"),
+    filename: "index-bundle.js",
+    clean: false,
   },
   module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
-        loader: "babel-loader",
-        options: { presets: ["@babel/preset-env", "@babel/preset-react"] }
+        use: { loader: "babel-loader", options: { presets: ["@babel/preset-env", "@babel/preset-react"] } },
       },
-      {
-        test: /\.css$/, // This regex matches files ending with .css
-        use: ['style-loader', 'css-loader'], // Apply style-loader and css-loader
-      },
-    ]
-  }
+    ],
+  },
+  resolve: { extensions: [".js", ".jsx"] },
+  devtool: "source-map",
 };
