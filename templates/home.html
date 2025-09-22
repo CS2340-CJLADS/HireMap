@@ -4,99 +4,14 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
 <div class="container">
   <div class="hero">
-    <h1>HireMap</h1>
-    <p class="lede muted">Explore roles on the map, manage your applications, and stay on top of messages.</p>
+    <h1>Find Your Dream Job</h1>
+    <p class="lede muted">Discover opportunities on our interactive map, manage applications, and connect with top employers.</p>
+    <div class="hero-actions">
+      <a href="/login/" class="btn">Log In</a>
+      <a href="/signup/" class="btn">Sign Up</a>
+    </div>
   </div>
-
-  <!-- Triad: Quick Actions | Mini Map | Quick Create/Links -->
-  <section class="section">
-    <div class="hero-triad">
-      <div class="card">
-        <h3>Quick Actions</h3>
-        <div class="form" style="margin-top:.5rem">
-          <a class="btn" href="/jobs/">Browse Jobs</a>
-          <div class="form-actions">
-            <a class="btn secondary" href="/saved-searches/">Saved Searches</a>
-            <a class="btn secondary" href="/recruiter/jobs/">Recruiter</a>
-          </div>
-        </div>
-        <p class="small muted" style="margin-top:.5rem">Manage your search from one place.</p>
-      </div>
-
-      <div class="mini-map" id="miniMap">
-        <div class="mini-map-overlay">View full map →</div>
-      </div>
-
-      <div class="tile">
-        <h3>Post a Job</h3>
-        <p>Recruiters can add new roles and review applicants.</p>
-        <div>
-          <a class="btn secondary" href="/recruiter/jobs/">Recruiter Jobs</a>
-          <a class="btn" style="margin-left:.5rem" href="/recruiter/jobs/new/">New Job</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Sections: Jobs preview, Applications board teaser -->
-  <section class="section">
-    <div class="grid-3">
-      <div class="card">
-        <h3>Featured Roles</h3>
-        <ul class="list">
-          <li>Frontend Engineer — Remote</li>
-          <li>Backend Engineer — Onsite</li>
-          <li>Product Designer — Hybrid</li>
-        </ul>
-        <a class="btn secondary" href="/jobs/" style="margin-top:.5rem">See all jobs</a>
-      </div>
-      <div class="card">
-        <h3>Your Applications</h3>
-        <p class="small muted">Track progress across stages.</p>
-        <div class="kanban" style="grid-template-columns:repeat(3,1fr)">
-          <div class="kanban-col">
-            <div class="kanban-col-head">Applied</div>
-            <div class="kanban-col-body"><div class="card small">FE @ Acme</div></div>
-          </div>
-          <div class="kanban-col">
-            <div class="kanban-col-head">Screen</div>
-            <div class="kanban-col-body"><div class="card small">BE @ Globex</div></div>
-          </div>
-          <div class="kanban-col">
-            <div class="kanban-col-head">Onsite</div>
-            <div class="kanban-col-body"></div>
-          </div>
-        </div>
-        <a class="btn secondary" href="/applications/" style="margin-top:.5rem">Open board</a>
-      </div>
-      <div class="card">
-        <h3>Inbox</h3>
-        <p class="small muted">Recent messages</p>
-        <div class="bubble other">Hi! Are you open to chat?</div>
-        <div class="bubble me">Yes, this week works.</div>
-        <a class="btn secondary" href="/messages/" style="margin-top:.5rem">Go to messages</a>
-      </div>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <p class="small muted">You can customize this page at templates/home.html</p>
-  </footer>
 </div>
-
-<!-- Leaflet assets for the mini map (loaded inline for this page) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script>
-  (function(){
-    try{
-      var map = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([37.7749, -122.4194], 11);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      L.marker([37.7749, -122.4194]).addTo(map).bindPopup('Featured Roles Nearby');
-      document.getElementById('miniMap').addEventListener('click', function(){ window.location.href = '/map/'; });
-    }catch(e){ /* ignore init errors in SSR */ }
-  })();
-  </script>
 {% endblock content %}
 
 

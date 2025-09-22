@@ -21,6 +21,13 @@
   margin: 0 auto 2rem;
 }
 
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
 .hero-triad {
   margin: 2rem 0;
 }

@@ -3,6 +3,9 @@ from django.views.generic import TemplateView
 
 app_name = "home"
 HOME = TemplateView.as_view(template_name="home.html")
+LOGIN = TemplateView.as_view(template_name="login.html")
+SIGNUP = TemplateView.as_view(template_name="signup.html")
+DASHBOARD = TemplateView.as_view(template_name="dashboard.html")
 JOBS_LIST = TemplateView.as_view(template_name="jobs_list.html")
 JOB_DETAIL = TemplateView.as_view(template_name="job_detail.html")
 APPLICATIONS = TemplateView.as_view(template_name="applications_board.html")
@@ -15,6 +18,9 @@ MAP = TemplateView.as_view(template_name="map.html")
 
 urlpatterns = [
     path("", HOME, name="index"),
+    path("login/", LOGIN, name="login"),
+    path("signup/", SIGNUP, name="signup"),
+    path("dashboard/", DASHBOARD, name="dashboard"),
     path("jobs/", JOBS_LIST, name="jobs_list"),
     path("jobs/<int:pk>/", JOB_DETAIL, name="job_detail"),
     path("applications/", APPLICATIONS, name="applications_board"),

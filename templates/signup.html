@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+<style>
+.signup-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.signup-step {
+  display: none;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.signup-step.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  margin: 0 8px;
+  transition: background 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--primary);
+}
+
+.step-dot.completed {
+  background: var(--success);
+}
+
+.user-type-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.user-type-card {
+  padding: 1.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-type-card:hover {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.user-type-card.selected {
+  border-color: var(--primary);
+  background: var(--brand-accent);
+}
+
+.user-type-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary);
+}
+
+.user-type-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.btn-nav {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-nav:disabled:hover {
+  background: var(--background);
+  color: var(--primary);
+}
+</style>
+
+<div class="container">
+  <div class="hero">
+    <h1>Join HireMap</h1>
+    <p class="lede muted">Create your account to start your journey.</p>
+  </div>
+
+  <section class="section">
+    <div class="card signup-container">
+      <form class="form" method="post" id="signupForm">
+        {% csrf_token %}
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step-dot active" id="step1-dot"></div>
+          <div class="step-dot" id="step2-dot"></div>
+          <div class="step-dot" id="step3-dot"></div>
+        </div>
+
+        <!-- Step 1: User Type Selection -->
+        <div class="signup-step active" id="step1">
+          <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">I am a...</h2>
+          
+          <div class="user-type-selection">
+            <div class="user-type-card" onclick="selectUserType('applicant')" id="applicant-card">
+              <h3>Job Seeker</h3>
+              <p>Looking for opportunities</p>
+            </div>
+            <div class="user-type-card" onclick="selectUserType('recruiter')" id="recruiter-card">
+              <h3>Recruiter</h3>
+              <p>Hiring talent</p>
+            </div>
+          </div>
+          
+          <input type="hidden" name="user_type" id="user_type" value="">
+          
+          <div class="nav-buttons">
+            <div></div>
+            <button type="button" class="btn-nav" onclick="nextStep()" id="step1-next" disabled>Next</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Email and Password -->
+        <div class="signup-step" id="step2">
+          <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">Account Details</h2>
+          
+          <div class="form-group">
+            <label class="label">Email</label>
+            <input type="email" name="email" id="email" placeholder="Enter your email" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="label">Password</label>
+            <input type="password" name="password" id="password" placeholder="Create a password" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="label">Confirm Password</label>
+            <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm your password" required>
+          </div>
+          
+          <div class="nav-buttons">
+            <button type="button" class="btn-nav" onclick="prevStep()">Back</button>
+            <button type="button" class="btn-nav" onclick="nextStep()">Next</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Dynamic Forms -->
+        <div class="signup-step" id="step3">
+          <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">Complete Your Profile</h2>
+          
+          <!-- Applicant Form -->
+          <div id="applicant-form" style="display: none;">
+            <div class="form-group">
+              <label class="label">Full Name</label>
+              <input type="text" name="full_name" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Headline/Description</label>
+              <textarea name="headline" placeholder="Brief description of yourself" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Skills</label>
+              <input type="text" name="skills" placeholder="e.g., Python, JavaScript, Project Management">
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Education</label>
+              <input type="text" name="education" placeholder="e.g., Bachelor's in Computer Science">
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Work Experience</label>
+              <textarea name="work_experience" placeholder="Describe your work experience" rows="4"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Links (Portfolio, LinkedIn, etc.)</label>
+              <input type="url" name="links" placeholder="https://your-portfolio.com">
+            </div>
+          </div>
+          
+          <!-- Recruiter Form -->
+          <div id="recruiter-form" style="display: none;">
+            <div class="form-group">
+              <label class="label">Full Name</label>
+              <input type="text" name="full_name" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Company Name</label>
+              <input type="text" name="company_name" placeholder="Enter your company name" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Work Email</label>
+              <input type="email" name="work_email" placeholder="your.email@company.com" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Location</label>
+              <input type="text" name="location" placeholder="City, State/Country" required>
+            </div>
+          </div>
+          
+          <div class="nav-buttons">
+            <button type="button" class="btn-nav" onclick="prevStep()">Back</button>
+            <button type="submit" class="btn">Create Account</button>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1rem;">
+          <a href="/login/" class="btn secondary">Already have an account?</a>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1rem;">
+          <a href="/" class="link-back">← Back to Home</a>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedUserType = '';
+
+function nextStep() {
+  if (currentStep < 3) {
+    // Validate current step
+    if (currentStep === 1) {
+      if (!selectedUserType) {
+        alert('Please select your user type');
+        return;
+      }
+    }
+    
+    if (currentStep === 2) {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      
+      if (!email || !password || !confirmPassword) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+    }
+    
+    // Hide current step
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    document.getElementById(`step${currentStep}-dot`).classList.remove('active');
+    document.getElementById(`step${currentStep}-dot`).classList.add('completed');
+    
+    // Show next step
+    currentStep++;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    document.getElementById(`step${currentStep}-dot`).classList.add('active');
+    
+    // Show appropriate form based on user type
+    if (currentStep === 3) {
+      if (selectedUserType === 'applicant') {
+        document.getElementById('applicant-form').style.display = 'block';
+        document.getElementById('recruiter-form').style.display = 'none';
+      } else {
+        document.getElementById('recruiter-form').style.display = 'block';
+        document.getElementById('applicant-form').style.display = 'none';
+      }
+    }
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    // Hide current step
+    document.getElementById(`step${currentStep}`).classList.remove('active');
+    document.getElementById(`step${currentStep}-dot`).classList.remove('active');
+    
+    // Show previous step
+    currentStep--;
+    document.getElementById(`step${currentStep}`).classList.add('active');
+    document.getElementById(`step${currentStep}-dot`).classList.add('active');
+  }
+}
+
+function selectUserType(type) {
+  selectedUserType = type;
+  document.getElementById('user_type').value = type;
+  
+  // Update visual selection
+  document.querySelectorAll('.user-type-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  document.getElementById(`${type}-card`).classList.add('selected');
+  
+  // Enable next button
+  document.getElementById('step1-next').disabled = false;
+}
+</script>
+{% endblock content %}
+
