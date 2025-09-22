@@ -14,9 +14,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/dist/index.js");
-/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/dist/index.js");
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/dist/index.js");
+/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/dist/index.js");
 var _excluded = ["variant"];
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -25,61 +24,248 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 function _objectWithoutProperties(e, t) { if (null == e) return {}; var o, r, i = _objectWithoutPropertiesLoose(e, t); if (Object.getOwnPropertySymbols) { var n = Object.getOwnPropertySymbols(e); for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]); } return i; }
 function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t = {}; for (var n in r) if ({}.hasOwnProperty.call(r, n)) { if (-1 !== e.indexOf(n)) continue; t[n] = r[n]; } return t; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 
 
 
-/* ---------- Shared shell ---------- */
+/* =========================================================================
+   Data loading (front-end only; no backend changes required)
+   ========================================================================= */
+
+var JOBS_URLS_TRY = ["/api/jobs/", "/jobs/data/", "/jobs/json/", "/jobs/list/"];
+function getInitialJobsFromDOM() {
+  // If your backend injects jobs as JSON into the page:
+  var el = document.getElementById("jobs-data");
+  if (!el) return null;
+  try {
+    var parsed = JSON.parse(el.textContent || "null");
+    if (Array.isArray(parsed)) return parsed;
+  } catch (_unused) {}
+  return null;
+}
+function tryLoadJobsFromServer() {
+  return _tryLoadJobsFromServer.apply(this, arguments);
+}
+/* =========================================================================
+   Auth state (front-end only)
+   - If backend injects <script id="auth-user">{"name": "...", "avatar": "..."}</script>
+     we’ll show that avatar and link to /profile/.
+   - Otherwise, we show a default avatar and link to /accounts/login/.
+   ========================================================================= */
+function _tryLoadJobsFromServer() {
+  _tryLoadJobsFromServer = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
+    var _iterator3, _step3, url, res, data, _t6, _t7;
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.p = _context6.n) {
+        case 0:
+          _iterator3 = _createForOfIteratorHelper(JOBS_URLS_TRY);
+          _context6.p = 1;
+          _iterator3.s();
+        case 2:
+          if ((_step3 = _iterator3.n()).done) {
+            _context6.n = 10;
+            break;
+          }
+          url = _step3.value;
+          _context6.p = 3;
+          _context6.n = 4;
+          return fetch(url, {
+            credentials: "same-origin"
+          });
+        case 4:
+          res = _context6.v;
+          if (res.ok) {
+            _context6.n = 5;
+            break;
+          }
+          return _context6.a(3, 9);
+        case 5:
+          _context6.n = 6;
+          return res.json();
+        case 6:
+          data = _context6.v;
+          if (!Array.isArray(data)) {
+            _context6.n = 7;
+            break;
+          }
+          return _context6.a(2, data);
+        case 7:
+          _context6.n = 9;
+          break;
+        case 8:
+          _context6.p = 8;
+          _t6 = _context6.v;
+        case 9:
+          _context6.n = 2;
+          break;
+        case 10:
+          _context6.n = 12;
+          break;
+        case 11:
+          _context6.p = 11;
+          _t7 = _context6.v;
+          _iterator3.e(_t7);
+        case 12:
+          _context6.p = 12;
+          _iterator3.f();
+          return _context6.f(12);
+        case 13:
+          return _context6.a(2, []);
+      }
+    }, _callee6, null, [[3, 8], [1, 11, 12, 13]]);
+  }));
+  return _tryLoadJobsFromServer.apply(this, arguments);
+}
+function getAuthUserFromDOM() {
+  var el = document.getElementById("auth-user");
+  if (!el) return null;
+  try {
+    var parsed = JSON.parse(el.textContent || "null");
+    if (parsed && _typeof(parsed) === "object") return parsed;
+  } catch (_unused2) {}
+  return null;
+}
+
+/* =========================================================================
+   Geocoding (address -> coords) using Nominatim; cached in localStorage
+   ========================================================================= */
+function geocodeAddress(_x) {
+  return _geocodeAddress.apply(this, arguments);
+}
+/* =========================================================================
+   Layout
+   ========================================================================= */
+function _geocodeAddress() {
+  _geocodeAddress = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(address) {
+    var key, cached, url, res, data, _data$, lat, lon, result, _t8, _t9;
+    return _regenerator().w(function (_context7) {
+      while (1) switch (_context7.p = _context7.n) {
+        case 0:
+          key = "hm:geocode:".concat(address);
+          cached = localStorage.getItem(key);
+          if (!cached) {
+            _context7.n = 3;
+            break;
+          }
+          _context7.p = 1;
+          return _context7.a(2, JSON.parse(cached));
+        case 2:
+          _context7.p = 2;
+          _t8 = _context7.v;
+        case 3:
+          url = "https://nominatim.openstreetmap.org/search?format=json&q=".concat(encodeURIComponent(address), "&limit=1");
+          _context7.p = 4;
+          _context7.n = 5;
+          return fetch(url);
+        case 5:
+          res = _context7.v;
+          if (res.ok) {
+            _context7.n = 6;
+            break;
+          }
+          return _context7.a(2, null);
+        case 6:
+          _context7.n = 7;
+          return res.json();
+        case 7:
+          data = _context7.v;
+          if (!(Array.isArray(data) && data.length > 0)) {
+            _context7.n = 9;
+            break;
+          }
+          _data$ = data[0], lat = _data$.lat, lon = _data$.lon;
+          result = {
+            lat: parseFloat(lat),
+            lng: parseFloat(lon)
+          };
+          localStorage.setItem(key, JSON.stringify(result));
+          _context7.n = 8;
+          return new Promise(function (r) {
+            return setTimeout(r, 200);
+          });
+        case 8:
+          return _context7.a(2, result);
+        case 9:
+          _context7.n = 11;
+          break;
+        case 10:
+          _context7.p = 10;
+          _t9 = _context7.v;
+        case 11:
+          return _context7.a(2, null);
+      }
+    }, _callee7, null, [[4, 10], [1, 2]]);
+  }));
+  return _geocodeAddress.apply(this, arguments);
+}
 function Shell(_ref) {
   var children = _ref.children;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Header, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("main", null, children), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Footer, null));
 }
+function AvatarButton() {
+  var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_1__.useNavigate)();
+  var user = getAuthUserFromDOM(); // { name, avatar } or null
+  var isAuthed = !!user;
+  var onClick = function onClick() {
+    if (isAuthed) navigate("/profile/");else navigate("/accounts/login/"); // change to your sign-up/login as needed
+  };
+
+  // default placeholder avatar (SVG)
+  var fallback = "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>\n        <circle cx='32' cy='24' r='14' fill='#dfeeea' stroke='#2a6f6a' stroke-width='2'/>\n        <path d='M8 58c4-12 16-18 24-18s20 6 24 18' fill='#dfeeea' stroke='#2a6f6a' stroke-width='2'/>\n      </svg>");
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+    className: "avatar-btn",
+    onClick: onClick,
+    title: isAuthed ? "Your profile" : "Sign in / Create account"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("img", {
+    className: "avatar",
+    src: user && user.avatar || fallback,
+    alt: isAuthed ? user.name || "Account" : "Sign in",
+    referrerPolicy: "no-referrer"
+  }));
+}
 function Header() {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("header", {
     className: "container nav"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/",
     className: "brand"
   }, "HireMap"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("nav", {
     className: "nav-actions"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/jobs/"
-  }, "Jobs"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, "Jobs"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/applications/"
-  }, "Applications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, "Applications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/map/"
-  }, "Map"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, "Map"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/recruiter/jobs/"
-  }, "Recruiter"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, "Recruiter"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/profile/"
-  }, "Profile"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, "Profile"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/messages/"
-  }, "Messages"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-    href: "/admin/",
-    className: "btn secondary"
-  }, "Admin")));
+  }, "Messages"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(AvatarButton, null)));
 }
 function Footer() {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("footer", {
     className: "container footer"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("small", null, "\xA9 ", new Date().getFullYear(), " HireMap \u2014 React front-end; data from Django Admin via /api/."));
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("small", null, "\xA9 ", new Date().getFullYear(), " HireMap \u2014  All rights not reserved."));
 }
-function Badge(_ref2) {
-  var children = _ref2.children;
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-    className: "badge"
-  }, children);
-}
-function Button(_ref3) {
-  var _ref3$variant = _ref3.variant,
-    variant = _ref3$variant === void 0 ? "primary" : _ref3$variant,
-    props = _objectWithoutProperties(_ref3, _excluded);
+function Button(_ref2) {
+  var _ref2$variant = _ref2.variant,
+    variant = _ref2$variant === void 0 ? "primary" : _ref2$variant,
+    props = _objectWithoutProperties(_ref2, _excluded);
   var c = "btn";
   if (variant === "secondary") c += " secondary";
   if (variant === "danger") c += " danger";
@@ -87,15 +273,137 @@ function Button(_ref3) {
     className: c
   }));
 }
-function Card(_ref4) {
-  var children = _ref4.children;
+function Card(_ref3) {
+  var children = _ref3.children;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("article", {
     className: "card"
   }, children);
 }
+function Badge(_ref4) {
+  var children = _ref4.children;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+    className: "badge"
+  }, children);
+}
 
-/* ---------- Home ---------- */
+/* =========================================================================
+   Home with Mini Map centered between “Log in” and “Create account”
+   ========================================================================= */
+function HomeMiniMap(_ref5) {
+  var jobs = _ref5.jobs;
+  var mapRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_1__.useNavigate)();
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    if (!window.L || mapRef.current) return;
+    var map = window.L.map("home-mini-map", {
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+      dragging: true
+    }).setView([33.7490, -84.3880], 11);
+    mapRef.current = map;
+    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19
+    }).addTo(map);
+  }, []);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var subset, _iterator, _step, _j$title, _j$company, j, addr, coords, m, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            if (!(!jobs || !mapRef.current || !window.L)) {
+              _context.n = 1;
+              break;
+            }
+            return _context.a(2);
+          case 1:
+            subset = jobs.slice(0, 20);
+            _iterator = _createForOfIteratorHelper(subset);
+            _context.p = 2;
+            _iterator.s();
+          case 3:
+            if ((_step = _iterator.n()).done) {
+              _context.n = 8;
+              break;
+            }
+            j = _step.value;
+            addr = j.location || j.address;
+            if (addr) {
+              _context.n = 4;
+              break;
+            }
+            return _context.a(3, 7);
+          case 4:
+            _context.n = 5;
+            return geocodeAddress(addr);
+          case 5:
+            coords = _context.v;
+            if (coords) {
+              _context.n = 6;
+              break;
+            }
+            return _context.a(3, 7);
+          case 6:
+            m = window.L.marker([coords.lat, coords.lng]).addTo(mapRef.current);
+            m.bindPopup("<strong>".concat((_j$title = j.title) !== null && _j$title !== void 0 ? _j$title : "Job", "</strong><br/>").concat((_j$company = j.company) !== null && _j$company !== void 0 ? _j$company : "", "<br/>").concat(addr));
+          case 7:
+            _context.n = 3;
+            break;
+          case 8:
+            _context.n = 10;
+            break;
+          case 9:
+            _context.p = 9;
+            _t = _context.v;
+            _iterator.e(_t);
+          case 10:
+            _context.p = 10;
+            _iterator.f();
+            return _context.f(10);
+          case 11:
+            return _context.a(2);
+        }
+      }, _callee, null, [[2, 9, 10, 11]]);
+    }))();
+  }, [jobs]);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    id: "home-mini-map",
+    className: "mini-map",
+    role: "button",
+    title: "Open full map",
+    onClick: function onClick() {
+      return navigate("/map/");
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "mini-map-overlay"
+  }, "Open Map"));
+}
 function HomePage() {
+  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState2 = _slicedToArray(_useState, 2),
+    jobs = _useState2[0],
+    setJobs = _useState2[1];
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    var injected = getInitialJobsFromDOM();
+    if (injected) {
+      setJobs(injected);
+      return;
+    }
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+      var _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.n) {
+          case 0:
+            _t2 = setJobs;
+            _context2.n = 1;
+            return tryLoadJobsFromServer();
+          case 1:
+            return _context2.a(2, _t2(_context2.v));
+        }
+      }, _callee2);
+    }))();
+  }, []);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "hero"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -103,91 +411,85 @@ function HomePage() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, "Your Launchpad to the Future"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
     className: "lede"
   }, "We take care of the hard parts of your job search so you can focus on building your path to success."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "hero-cta"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
-    to: "/jobs/",
+    className: "hero-triad"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Welcome back"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
+    className: "muted"
+  }, "Already have an account?"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
+    to: "/accounts/login/",
     className: "btn"
-  }, "Get Started"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-    href: "#",
+  }, "Log In")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(HomeMiniMap, {
+    jobs: jobs || []
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "New here?"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
+    className: "muted"
+  }, "Create a free account to get started."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
+    to: "/accounts/register/",
     className: "btn secondary"
-  }, "Log In")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "hero-illustration"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }, "Create Account"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "pills"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "Find Jobs Faster"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "Boost Application Tracking")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "section"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "container grid-3"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Scholarship Help"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Connect funding to opportunity.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "College Applications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Keep essays, deadlines, and lists in one dashboard.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Test Prep"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Track practice scores and improve steadily.")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
-    className: "section"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "container grid-3"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "tile"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Roadmap Builder"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Plan goals and milestones so your path is clear and organized."))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "tile"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Extracurriculars"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Discover curated programs tailored to your passions."))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "tile"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Jobs Near You"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Explore openings on an interactive map."))))));
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Scholarship Help"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Connect funding to opportunity.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "College Applications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Keep essays, deadlines, and lists in one dashboard.")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Test Prep"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Track practice scores and improve steadily.")))));
 }
 
-/* ---------- Jobs List (fetch from /api/jobs/) ---------- */
+/* =========================================================================
+   Jobs (front-end only; no hard-coded entries)
+   ========================================================================= */
 function useQuery() {
-  var _useLocation = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_2__.useLocation)(),
+  var _useLocation = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_1__.useLocation)(),
     search = _useLocation.search;
-  return react__WEBPACK_IMPORTED_MODULE_0___default().useMemo(function () {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return new URLSearchParams(search);
   }, [search]);
 }
 function JobsListPage() {
   var params = useQuery();
-  var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       q: params.get("q") || "",
       skills: params.get("skills") || "",
       location: params.get("location") || "",
-      work_type: params.get("work_type") || "",
-      visa: params.get("visa") || ""
+      work_type: params.get("work_type") || ""
     }),
-    _useState2 = _slicedToArray(_useState, 2),
-    query = _useState2[0],
-    setQuery = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState4 = _slicedToArray(_useState3, 2),
-    jobs = _useState4[0],
-    setJobs = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    filters = _useState4[0],
+    setFilters = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
     _useState6 = _slicedToArray(_useState5, 2),
-    loading = _useState6[0],
-    setLoading = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
-    _useState8 = _slicedToArray(_useState7, 2),
-    applyOpen = _useState8[0],
-    setApplyOpen = _useState8[1];
+    jobs = _useState6[0],
+    setJobs = _useState6[1];
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    setLoading(true);
-    // Simple fetch; you can later expand filters server-side
-    fetch("/api/jobs/").then(function (r) {
-      return r.ok ? r.json() : Promise.reject(r);
-    }).then(setJobs)["catch"](function () {
-      return setJobs([]);
-    })["finally"](function () {
-      return setLoading(false);
-    });
-  }, []);
-  function saveSearch() {
-    var sp = new URLSearchParams(query).toString();
-    var saved = JSON.parse(localStorage.getItem("hm:savedSearches") || "[]");
-    var name = window.prompt("Name this search:", sp || "All jobs");
-    if (name) {
-      saved.push({
-        name: name,
-        query: sp,
-        ts: Date.now()
-      });
-      localStorage.setItem("hm:savedSearches", JSON.stringify(saved));
-      alert("Saved! View at /saved-searches/");
+    var injected = getInitialJobsFromDOM();
+    if (injected) {
+      setJobs(injected);
+      return;
     }
-  }
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+      var _t3;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.n) {
+          case 0:
+            _t3 = setJobs;
+            _context3.n = 1;
+            return tryLoadJobsFromServer();
+          case 1:
+            return _context3.a(2, _t3(_context3.v));
+        }
+      }, _callee3);
+    }))();
+  }, []);
+  var list = (jobs || []).filter(function (j) {
+    var _j$title2, _j$company2, _j$summary, _j$description, _j$skills, _ref9, _j$location, _j$work_type;
+    var q = filters.q.trim().toLowerCase();
+    var s = filters.skills.trim().toLowerCase();
+    var loc = filters.location.trim().toLowerCase();
+    var wt = filters.work_type.trim().toLowerCase();
+    var hay = "".concat((_j$title2 = j.title) !== null && _j$title2 !== void 0 ? _j$title2 : "", " ").concat((_j$company2 = j.company) !== null && _j$company2 !== void 0 ? _j$company2 : "", " ").concat((_j$summary = j.summary) !== null && _j$summary !== void 0 ? _j$summary : "", " ").concat((_j$description = j.description) !== null && _j$description !== void 0 ? _j$description : "").toLowerCase();
+    var skills = "".concat((_j$skills = j.skills) !== null && _j$skills !== void 0 ? _j$skills : "").toLowerCase();
+    var jLoc = "".concat((_ref9 = (_j$location = j.location) !== null && _j$location !== void 0 ? _j$location : j.address) !== null && _ref9 !== void 0 ? _ref9 : "").toLowerCase();
+    var jWT = "".concat((_j$work_type = j.work_type) !== null && _j$work_type !== void 0 ? _j$work_type : "").toLowerCase();
+    return (!q || hay.includes(q)) && (!s || skills.includes(s)) && (!loc || jLoc.includes(loc)) && (!wt || jWT === wt);
+  });
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "container section"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", {
@@ -198,33 +500,33 @@ function JobsListPage() {
       return e.preventDefault();
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-    placeholder: "Search by title or company",
-    value: query.q,
+    placeholder: "Search",
+    value: filters.q,
     onChange: function onChange(e) {
-      return setQuery(_objectSpread(_objectSpread({}, query), {}, {
+      return setFilters(_objectSpread(_objectSpread({}, filters), {}, {
         q: e.target.value
       }));
     }
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
     placeholder: "Skills (comma separated)",
-    value: query.skills,
+    value: filters.skills,
     onChange: function onChange(e) {
-      return setQuery(_objectSpread(_objectSpread({}, query), {}, {
+      return setFilters(_objectSpread(_objectSpread({}, filters), {}, {
         skills: e.target.value
       }));
     }
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
     placeholder: "Location",
-    value: query.location,
+    value: filters.location,
     onChange: function onChange(e) {
-      return setQuery(_objectSpread(_objectSpread({}, query), {}, {
+      return setFilters(_objectSpread(_objectSpread({}, filters), {}, {
         location: e.target.value
       }));
     }
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-    value: query.work_type,
+    value: filters.work_type,
     onChange: function onChange(e) {
-      return setQuery(_objectSpread(_objectSpread({}, query), {}, {
+      return setFilters(_objectSpread(_objectSpread({}, filters), {}, {
         work_type: e.target.value
       }));
     }
@@ -236,224 +538,103 @@ function JobsListPage() {
     value: "onsite"
   }, "On-site"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
     value: "hybrid"
-  }, "Hybrid")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
-    value: query.visa,
-    onChange: function onChange(e) {
-      return setQuery(_objectSpread(_objectSpread({}, query), {}, {
-        visa: e.target.value
-      }));
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
-    value: ""
-  }, "Visa: Any"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
-    value: "sponsor"
-  }, "Offers Sponsorship"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
-    value: "no"
-  }, "No Sponsorship")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, null, "Search"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    variant: "secondary",
-    type: "button",
-    onClick: saveSearch
-  }, "Save Search")), loading && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
+  }, "Hybrid")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, null, "Search")), jobs === null && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
     className: "muted"
-  }, "Loading\u2026"), !loading && jobs.length === 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No jobs yet. Create some in ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-    href: "/admin/"
-  }, "Django Admin"), ".")), !loading && jobs.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }, "Loading\u2026"), jobs && list.length === 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No jobs to show yet. Once your backend provides data (via injected JSON or an existing JSON endpoint), they\u2019ll appear here automatically.")), jobs && list.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     className: "jobs-grid"
-  }, jobs.map(function (j) {
+  }, list.map(function (j, idx) {
+    var _j$id, _j$id2, _j$id3;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("article", {
       className: "job-card",
-      key: j.id
+      key: (_j$id = j.id) !== null && _j$id !== void 0 ? _j$id : "".concat(idx, "-").concat(j.title, "-").concat(j.company)
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "job-card-top"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
-      to: "/jobs/".concat(j.id, "/")
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
+      to: "/jobs/".concat((_j$id2 = j.id) !== null && _j$id2 !== void 0 ? _j$id2 : "")
     }, j.title)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Badge, null, j.work_type || "—")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
       className: "muted"
-    }, j.company, j.location ? " \u2014 ".concat(j.location) : ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, j.summary || " "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    }, [j.company, j.location || j.address].filter(Boolean).join(" — ")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, j.summary || j.description || ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "job-meta"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "Salary: ", j.salary || "—"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "Skills: ", j.skills || "—")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "job-actions"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
       className: "btn",
-      to: "/jobs/".concat(j.id, "/")
-    }, "View"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-      variant: "secondary",
-      onClick: function onClick() {
-        return setApplyOpen(true);
-      }
-    }, "Quick Apply")));
-  }))), applyOpen && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Modal, {
-    title: "Apply with One Click",
-    onClose: function onClose() {
-      return setApplyOpen(false);
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
-    className: "muted"
-  }, "Attach your default resume and add an optional tailored note."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
-    className: "label"
-  }, "Note to recruiter (optional)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("textarea", {
-    rows: 5,
-    placeholder: "Briefly explain why you're a great fit\u2026"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
-    className: "checkbox"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-    type: "checkbox",
-    defaultChecked: true
-  }), " Use default resume on file"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "modal-actions"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    onClick: function onClick() {
-      alert("Sent (demo).");
-      setApplyOpen(false);
-    }
-  }, "Send Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    variant: "secondary",
-    onClick: function onClick() {
-      return setApplyOpen(false);
-    }
-  }, "Cancel"))));
+      to: "/jobs/".concat((_j$id3 = j.id) !== null && _j$id3 !== void 0 ? _j$id3 : "")
+    }, "View")));
+  }))));
 }
-function Modal(_ref5) {
-  var title = _ref5.title,
-    onClose = _ref5.onClose,
-    children = _ref5.children;
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    var onEsc = function onEsc(e) {
-      return e.key === "Escape" && onClose();
-    };
-    window.addEventListener("keydown", onEsc);
-    return function () {
-      return window.removeEventListener("keydown", onEsc);
-    };
-  }, [onClose]);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "modal",
-    role: "dialog",
-    "aria-modal": "true"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "modal-dialog"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
-    className: "modal-close",
-    onClick: onClose
-  }, "\xD7"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, title), children));
-}
-
-/* ---------- Job Detail (fetch /api/jobs/:pk/) ---------- */
 function JobDetailPage() {
-  var _job$responsibilities, _job$qualifications;
-  var _useParams = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_2__.useParams)(),
+  var _useParams = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_1__.useParams)(),
     pk = _useParams.pk;
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState8 = _slicedToArray(_useState7, 2),
+    job = _useState8[0],
+    setJob = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("loading"),
     _useState0 = _slicedToArray(_useState9, 2),
-    job = _useState0[0],
-    setJob = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
-    _useState10 = _slicedToArray(_useState1, 2),
-    open = _useState10[0],
-    setOpen = _useState10[1];
+    status = _useState0[0],
+    setStatus = _useState0[1]; // loading | empty | ok
+
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    fetch("/api/jobs/".concat(pk, "/")).then(function (r) {
-      return r.ok ? r.json() : Promise.reject(r);
-    }).then(setJob)["catch"](function () {
-      return setJob(null);
-    });
+    var injected = getInitialJobsFromDOM();
+    if (injected && pk) {
+      var match = injected.find(function (j) {
+        return String(j.id) === String(pk);
+      });
+      if (match) {
+        setJob(match);
+        setStatus("ok");
+        return;
+      }
+    }
+    setStatus("empty"); // no detail endpoint used here
   }, [pk]);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "container section"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/jobs/",
     className: "link-back"
-  }, "\u2190 Back to Jobs"), !job && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "That job isn\u2019t available. Try the ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
-    to: "/jobs/"
-  }, "jobs list"), ".")), job && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("header", {
-    className: "job-header"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, job.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Badge, null, job.work_type || "—"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    variant: "secondary",
-    onClick: function onClick() {
-      var saved = JSON.parse(localStorage.getItem("hm:savedJobs") || "[]");
-      saved.push({
-        id: job.id,
-        title: job.title,
-        company: job.company
-      });
-      localStorage.setItem("hm:savedJobs", JSON.stringify(saved));
-      alert("Saved (demo).");
-    }
-  }, "Save"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    onClick: function onClick() {
-      return setOpen(true);
-    }
-  }, "Apply"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
+  }, "\u2190 Back to Jobs"), status === "loading" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
     className: "muted"
-  }, job.company, job.location ? " \u2014 ".concat(job.location) : "", job.salary ? " \u2022 ".concat(job.salary) : "", job.skills ? " \u2022 ".concat(job.skills) : ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "About the role"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, job.description || job.summary || " "), (_job$responsibilities = job.responsibilities) !== null && _job$responsibilities !== void 0 && _job$responsibilities.length ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Responsibilities"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
+  }, "Loading\u2026"), status === "empty" && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "That job isn\u2019t available yet. Once the backend exposes it, this page will populate automatically.")), status === "ok" && job && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("header", {
+    className: "job-header"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, job.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Badge, null, job.work_type || "—")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
+    className: "muted"
+  }, [job.company, job.location || job.address, job.salary].filter(Boolean).join(" • ")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "About the role"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, job.description || job.summary || ""), Array.isArray(job.responsibilities) && job.responsibilities.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Responsibilities"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
     className: "list"
   }, job.responsibilities.map(function (r, i) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("li", {
       key: i
     }, r);
-  }))) : null, (_job$qualifications = job.qualifications) !== null && _job$qualifications !== void 0 && _job$qualifications.length ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Qualifications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
+  }))), Array.isArray(job.qualifications) && job.qualifications.length > 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, "Qualifications"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
     className: "list"
   }, job.qualifications.map(function (q, i) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("li", {
       key: i
     }, q);
-  }))) : null))), open && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Modal, {
-    title: "Apply to ".concat((job === null || job === void 0 ? void 0 : job.title) || "this job"),
-    onClose: function onClose() {
-      return setOpen(false);
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
-    className: "muted"
-  }, "One-click apply with an optional tailored note."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
-    className: "label"
-  }, "Note to recruiter (optional)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("textarea", {
-    rows: 5,
-    placeholder: "Why you\u2019re a match\u2026"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
-    className: "checkbox"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
-    type: "checkbox",
-    defaultChecked: true
-  }), " Use default resume on file"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "modal-actions"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    onClick: function onClick() {
-      alert("Sent (demo).");
-      setOpen(false);
-    }
-  }, "Send Application"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-    variant: "secondary",
-    onClick: function onClick() {
-      return setOpen(false);
-    }
-  }, "Cancel"))));
+  })))))));
 }
 
-/* ---------- Applications (UI only for now) ---------- */
+/* =========================================================================
+   Applications / Profile / Recruiter / Messages — UI only
+   ========================================================================= */
 function ApplicationsBoardPage() {
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([{
-      key: "applied",
-      title: "Applied",
-      cards: []
-    }, {
-      key: "review",
-      title: "Review",
-      cards: []
-    }, {
-      key: "interview",
-      title: "Interview",
-      cards: []
-    }, {
-      key: "offer",
-      title: "Offer",
-      cards: []
-    }, {
-      key: "closed",
-      title: "Closed",
-      cards: []
-    }]),
-    _useState12 = _slicedToArray(_useState11, 1),
-    cols = _useState12[0];
+  var cols = [{
+    key: "applied",
+    title: "Applied"
+  }, {
+    key: "review",
+    title: "Review"
+  }, {
+    key: "interview",
+    title: "Interview"
+  }, {
+    key: "offer",
+    title: "Offer"
+  }, {
+    key: "closed",
+    title: "Closed"
+  }];
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "container section"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", {
@@ -468,13 +649,9 @@ function ApplicationsBoardPage() {
       className: "kanban-col-head"
     }, col.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "kanban-col-body"
-    }, col.cards.length === 0 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No applications in this stage yet."))));
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
-    className: "muted small"
-  }, "Wire to real data later if needed.")));
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No applications in this stage yet."))));
+  }))));
 }
-
-/* ---------- Profile / Recruiter / Messages (UI placeholders; no seeded data) ---------- */
 function ProfilePage() {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "container section"
@@ -541,12 +718,10 @@ function RecruiterJobsPage() {
     className: "page-head"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", {
     className: "page-title"
-  }, "Your Job Posts"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
+  }, "Your Job Posts"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Link, {
     to: "/recruiter/jobs/new/",
     className: "btn"
-  }, "Post a Job")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No job posts yet. Create your first job in ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-    href: "/admin/"
-  }, "Admin"), " or build a form/API later."))));
+  }, "Post a Job")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "This UI is ready. When your backend exposes endpoints, this page will use them with no hard-coded entries."))));
 }
 function RecruiterJobFormPage() {
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
@@ -570,7 +745,7 @@ function RecruiterJobFormPage() {
     placeholder: ""
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
     className: "label"
-  }, "Location"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+  }, "Location (Address)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
     type: "text",
     placeholder: ""
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
@@ -607,9 +782,35 @@ function MessagesPage() {
   }, "Messages"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No messages yet."))));
 }
 
-/* ---------- Map (fetch /api/jobs/?has_location=true) ---------- */
+/* =========================================================================
+   Full Map — address-based markers
+   ========================================================================= */
 function MapPage() {
   var mapRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState10 = _slicedToArray(_useState1, 2),
+    jobs = _useState10[0],
+    setJobs = _useState10[1];
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    var injected = getInitialJobsFromDOM();
+    if (injected) {
+      setJobs(injected);
+      return;
+    }
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4() {
+      var _t4;
+      return _regenerator().w(function (_context4) {
+        while (1) switch (_context4.n) {
+          case 0:
+            _t4 = setJobs;
+            _context4.n = 1;
+            return tryLoadJobsFromServer();
+          case 1:
+            return _context4.a(2, _t4(_context4.v));
+        }
+      }, _callee4);
+    }))();
+  }, []);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     if (!window.L || mapRef.current) return;
     var map = window.L.map("leaflet-map").setView([33.7490, -84.3880], 12);
@@ -618,110 +819,117 @@ function MapPage() {
       maxZoom: 19,
       attribution: "&copy; OpenStreetMap"
     }).addTo(map);
-    fetch("/api/jobs/?has_location=true").then(function (r) {
-      return r.ok ? r.json() : Promise.reject(r);
-    }).then(function (list) {
-      list.forEach(function (j) {
-        if (j.lat != null && j.lng != null) {
-          var _j$company;
-          var m = window.L.marker([j.lat, j.lng]).addTo(map);
-          m.bindPopup("<strong>".concat(j.title, "</strong><br/>").concat((_j$company = j.company) !== null && _j$company !== void 0 ? _j$company : ""));
-        }
-      });
-    })["catch"](function () {});
   }, []);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5() {
+      var _iterator2, _step2, _j$title3, _j$company3, j, addr, coords, m, _t5;
+      return _regenerator().w(function (_context5) {
+        while (1) switch (_context5.p = _context5.n) {
+          case 0:
+            if (!(!jobs || !mapRef.current || !window.L)) {
+              _context5.n = 1;
+              break;
+            }
+            return _context5.a(2);
+          case 1:
+            _iterator2 = _createForOfIteratorHelper(jobs);
+            _context5.p = 2;
+            _iterator2.s();
+          case 3:
+            if ((_step2 = _iterator2.n()).done) {
+              _context5.n = 8;
+              break;
+            }
+            j = _step2.value;
+            addr = j.location || j.address;
+            if (addr) {
+              _context5.n = 4;
+              break;
+            }
+            return _context5.a(3, 7);
+          case 4:
+            _context5.n = 5;
+            return geocodeAddress(addr);
+          case 5:
+            coords = _context5.v;
+            if (coords) {
+              _context5.n = 6;
+              break;
+            }
+            return _context5.a(3, 7);
+          case 6:
+            m = window.L.marker([coords.lat, coords.lng]).addTo(mapRef.current);
+            m.bindPopup("<strong>".concat((_j$title3 = j.title) !== null && _j$title3 !== void 0 ? _j$title3 : "Job", "</strong><br/>").concat((_j$company3 = j.company) !== null && _j$company3 !== void 0 ? _j$company3 : "", "<br/>").concat(addr));
+          case 7:
+            _context5.n = 3;
+            break;
+          case 8:
+            _context5.n = 10;
+            break;
+          case 9:
+            _context5.p = 9;
+            _t5 = _context5.v;
+            _iterator2.e(_t5);
+          case 10:
+            _context5.p = 10;
+            _iterator2.f();
+            return _context5.f(10);
+          case 11:
+            return _context5.a(2);
+        }
+      }, _callee5, null, [[2, 9, 10, 11]]);
+    }))();
+  }, [jobs]);
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
     className: "container section"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", {
     className: "page-title"
   }, "Jobs Near You"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
     className: "muted"
-  }, "Add latitude/longitude to job records in Admin to see markers."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  }, "Markers are based on each job\u2019s ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("strong", null, "address"), " (not lat/lng). We geocode in the browser and cache results locally."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     id: "leaflet-map",
     className: "map"
   })));
 }
 
-/* ---------- Router ---------- */
+/* =========================================================================
+   Router
+   ========================================================================= */
 function App() {
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.BrowserRouter, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Routes, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.BrowserRouter, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Routes, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(HomePage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/jobs/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(JobsListPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/jobs/:pk/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(JobDetailPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/applications/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(ApplicationsBoardPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/profile/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(ProfilePage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/recruiter/jobs/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(RecruiterJobsPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/recruiter/jobs/new/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(RecruiterJobFormPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
-    path: "/saved-searches/",
-    element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(SavedSearchesPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/messages/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(MessagesPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "/map/",
     element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(MapPage, null)
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Route, {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Route, {
     path: "*",
-    element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_2__.Navigate, {
+    element: /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Navigate, {
       to: "/",
       replace: true
     })
   })));
-}
-
-/* ---------- Saved Searches (localStorage only) ---------- */
-function SavedSearchesPage() {
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
-    _useState14 = _slicedToArray(_useState13, 2),
-    saved = _useState14[0],
-    setSaved = _useState14[1];
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    setSaved(JSON.parse(localStorage.getItem("hm:savedSearches") || "[]"));
-  }, []);
-  function del(ts) {
-    var next = saved.filter(function (s) {
-      return String(s.ts) !== String(ts);
-    });
-    localStorage.setItem("hm:savedSearches", JSON.stringify(next));
-    setSaved(next);
-  }
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Shell, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("section", {
-    className: "container section"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", {
-    className: "page-title"
-  }, "Saved Searches"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-    className: "grid-3"
-  }, saved.length === 0 ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No saved searches yet.")) : saved.map(function (s) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Card, {
-      key: s.ts
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h3", null, s.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", {
-      className: "muted"
-    }, new Date(s.ts).toLocaleString()), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "job-actions"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(react_router_dom__WEBPACK_IMPORTED_MODULE_1__.Link, {
-      className: "btn",
-      to: "/jobs/?".concat(s.query)
-    }, "Run"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(Button, {
-      variant: "secondary",
-      onClick: function onClick() {
-        return del(s.ts);
-      }
-    }, "Delete")));
-  }))));
 }
 
 /***/ }),
