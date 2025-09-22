@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/messages.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Messages</h2>
+    <a class="link-back" href="/">← Home</a>
+  </div>
+  <div class="messages">
+    <div class="thread-list">
+      <input class="thread-search" type="text" placeholder="Search messages" />
+      <ul>
+        <li class="active">Recruiter • Frontend Role</li>
+        <li>Hiring Manager • Screening</li>
+      </ul>
+    </div>
+    <div class="thread-body">
+      <div class="bubble other">Hi! Are you open to chat?</div>
+      <div class="bubble me">Yes, this week works.</div>
+      <div class="chat-input">
+        <input class="thread-search" type="text" placeholder="Type a message" />
+        <button class="btn">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+

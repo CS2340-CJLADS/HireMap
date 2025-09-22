@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/recruiter.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">New Job</h2>
+    <a class="link-back" href="/recruiter/jobs/">← Back to jobs</a>
+  </div>
+  <form class="form" method="post">
+    {% csrf_token %}
+    <label class="label">Title</label>
+    <input type="text" placeholder="e.g., Frontend Engineer" />
+    <label class="label">Location</label>
+    <input type="text" placeholder="Remote" />
+    <label class="label">Description</label>
+    <textarea rows="6" placeholder="Role description..."></textarea>
+    <div class="form-actions">
+      <button class="btn" type="submit">Create</button>
+      <a class="btn secondary" href="/recruiter/jobs/">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock content %}
+
+

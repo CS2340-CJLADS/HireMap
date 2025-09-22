@@ -1,0 +1,154 @@
+/* Applications board specific styles */
+.applications-header {
+  background: var(--white);
+  padding: 2rem 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 2rem;
+}
+
+.applications-header h1 {
+  color: var(--brand);
+  margin-bottom: 0.5rem;
+}
+
+.applications-subtitle {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kanban-col {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #e0e0e0;
+  min-height: 400px;
+}
+
+.kanban-col-head {
+  background: var(--brand);
+  color: var(--white);
+  padding: 1rem;
+  border-radius: 12px 12px 0 0;
+  font-weight: 700;
+  text-align: center;
+  position: relative;
+}
+
+.kanban-col-head::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--brand);
+}
+
+.kanban-col-body {
+  padding: 1rem;
+  min-height: 300px;
+}
+
+.application-card {
+  background: var(--white);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.application-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.application-title {
+  font-weight: 700;
+  color: var(--brand);
+  margin-bottom: 0.5rem;
+}
+
+.application-company {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.application-date {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.application-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.application-actions .btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.status-applied {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-screening {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-onsite {
+  background: #e8f5e8;
+  color: #388e3c;
+}
+
+.status-offer {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-rejected {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.empty-column {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem;
+  font-style: italic;
+}
+
+.drag-handle {
+  cursor: move;
+  color: var(--muted);
+  margin-right: 0.5rem;
+}
+
+.drag-handle:hover {
+  color: var(--brand);
+}
