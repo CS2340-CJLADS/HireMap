@@ -2,10 +2,13 @@ from django.contrib import admin
 from .models import Job
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 # Register your models here.
 from .models import JobPosting
 admin.site.register(JobPosting)
 =======
+=======
+>>>>>>> Stashed changes
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
     list_display = ("title", "company", "location", "work_type", "created_at")
@@ -16,4 +19,7 @@ class JobAdmin(admin.ModelAdmin):
         ("Details", {"fields": ("description", "responsibilities", "qualifications")}),
         ("Map", {"fields": ("lat", "lng")}),
     )
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
