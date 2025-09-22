@@ -24,3 +24,9 @@ class Recruiter(models.Model):
     def __str__(self):
         return self.user.__str__() + ", " + str(self.company_name)
 
+
+# To figure out whether a user is an applicant or recruiter, take the request, take the user from the request, and use hasattr. For example:
+# def someFunction(request):
+#    user = request.user
+#    if hasattr(user, 'applicant'):
+#       do something here knowing we have an applicant
