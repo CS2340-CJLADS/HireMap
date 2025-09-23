@@ -25,4 +25,4 @@ class Application(models.Model):
     message = models.TextField(blank = True)
 
     def __str__(self):
-        return "id: " + str(self.id) + ", applicant: " + self.applicant.__str__() + ", listing: " + self.listing.__str__()
+        return str(self.id) + " - applicant: " + self.applicant.__str__() + ", listing: " + self.listing.__str__()

@@ -1,73 +1,52 @@
-from django.shortcuts import render
-from .forms import RecruiterCreationForm, ApplicantCreationForm
-from .models import Recruiter, Applicant
+from django.shortcuts import render, redirect
+from .forms import RecruiterCreationForm, ApplicantCreationForm, CustomUserCreationForm
+from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 # Create your views here.
 def index(request):
     template_data = {}
     template_data['title'] = 'HireMap - Accounts'
     return render(request, 'accounts/index.html', {'template_data': template_data})
-
-
-#Note that the page it's trying to redirect to is called accounts/RecruiterSignup, let David know if this should be updated.
-#Otherwise it's mostly the same as the movies store with some extended help from GPT.
-def RecruiterSignup(request):
+        
+def signup(request):
     template_data = {}
-    template_data['title'] = 'Signup (Recruiter)'
+    template_data['title'] = 'HireMap - Signup'
     if request.method == 'GET':
-        template_data['form'] = RecruiterCreationForm()
-        return render(request, 'accounts/RecruiterSignup.html', {'template_data' : template_data})
-    elif request.method == 'POST':
-        form = RecruiterCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            Recruiter.objects.create(user = user, 
-                                    first_name = form.cleaned_data['first_name'],
-                                    last_name = form.cleaned_data['last_name'],
-                                    company_name = form.cleaned_data['company_name']
-            )
-            messages.success(request, "Recruiter account created successfully.")         
-            return redirect('accounts.RecruiterLogin')
+        return render(request, 'accounts/signup.html', {'template_data' : template_data})    
+    if request.method == 'POST':
+        user_form = CustomUserCreationForm(request.POST, prefix='user')
+        applicant_form = ApplicantCreationForm(request.POST, prefix='applicant')
+        recruiter_form = RecruiterCreationForm(request.POST, prefix='recruiter')
+
+        if user_form.is_valid():
+            if recruiter_form.is_valid():
+                user = user_form.save()
+                recruiter = recruiter_form.save(commit=False)
+                recruiter.user = user
+                recruiter.save()
+                return redirect('accounts.login')
+            elif applicant_form.is_valid():
+                user = user_form.save()
+                applicant = applicant_form.save(commit=False)
+                applicant.user = user
+                applicant.save()
+                return redirect('accounts.login')
+            else:
+                return render(request, 'accounts/signup.html')
         else:
-            template_data['form'] = form
-            return render(request, 'accounts/RecruiterSignup.html', {'template_data' : template_data})
-
-def ApplicantSignup(request):
-    template_data = {}
-    template_data['title'] = 'Signup (Applicant)'
-
-    if request.method == 'GET':
-        template_data['form'] = ApplicantCreationForm()
-        return render(request, 'accounts/ApplicantSignup.html', {'template_data': template_data})
-
-    elif request.method == 'POST':
-        form = ApplicantCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            Applicant.objects.create(
-                user=user,
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-                skills=form.cleaned_data.get('skills', ''),
-                education=form.cleaned_data.get('education', ''),
-                experience=form.cleaned_data.get('experience', ''),
-                links=form.cleaned_data.get('links', '')
-            )
-            messages.success(request, "Applicant account created successfully.")
-            return redirect('accounts.login')
-        else:
-            template_data['form'] = form
-            return render(request, 'accounts/applicant_signup.html', {'template_data': template_data})
+            return render(request, 'accounts/signup.html')
 
 def login(request):
     template_data = {}
-    template_data['title'] = 'Login'
+    template_data['title'] = 'HireMap - Login'
     if request.method == 'GET':
         return render(request, 'accounts/login.html', {'template_data' : template_data})
     elif request.method == 'POST':
         user = authenticate(request, username = request.POST['username'], password = request.POST['password'])
         if user is None:
-            template_data['error'] = 'The username or password is incorrect.'
+            template_data['error'] = 'The email or password is incorrect.'
             return render(request, 'accounts/login.html', {'template_data' : template_data})
         else: 
             auth_login(request, user)
