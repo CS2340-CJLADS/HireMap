@@ -1,0 +1,777 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+<style>
+.search-candidates-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.search-section {
+  background: #FFFFFA;
+  border: 1px solid #2A5155;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.candidate-card {
+  background: #FFFFFA;
+  border: 1px solid #2A5155;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.candidate-card:hover {
+  box-shadow: 0 4px 12px rgba(42, 81, 85, 0.1);
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.candidate-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #2A5155;
+  font-size: 1.25rem;
+}
+
+.candidate-details {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.skill-tag {
+  background: #e8f4f4;
+  color: #2A5155;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.candidate-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.candidate-actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.availability-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.available {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.open-to-work {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.not-looking {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.search-results-info {
+  margin-bottom: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+</style>
+
+<div class="search-candidates-container">
+  <div class="page-head">
+    <h2 class="page-title">Search Candidates</h2>
+    <a class="link-back" href="/dashboard/recruiter/">← Recruiter Dashboard</a>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-section">
+    <h3 style="margin: 0 0 1rem 0; color: #2A5155;">Find Talent</h3>
+    
+    <!-- Main Search -->
+    <div style="margin-bottom: 1rem;">
+      <input type="text" id="candidate-search" placeholder="Search by name, title, or keywords..." style="width: 100%; padding: 0.75rem; border: 1px solid #2A5155; border-radius: 4px; font-size: 1rem;">
+    </div>
+
+    <!-- Advanced Filters -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Skills</label>
+        <input type="text" id="skills-filter" placeholder="React, Python, etc." style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Location</label>
+        <select id="location-filter" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+          <option value="">All Locations</option>
+          <option value="san-francisco">San Francisco, CA</option>
+          <option value="new-york">New York, NY</option>
+          <option value="remote">Remote</option>
+          <option value="seattle">Seattle, WA</option>
+          <option value="austin">Austin, TX</option>
+          <option value="boston">Boston, MA</option>
+          <option value="chicago">Chicago, IL</option>
+          <option value="denver">Denver, CO</option>
+        </select>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Experience Level</label>
+        <select id="experience-filter" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+          <option value="">All Levels</option>
+          <option value="entry">Entry Level (0-2 years)</option>
+          <option value="mid">Mid Level (2-5 years)</option>
+          <option value="senior">Senior Level (5+ years)</option>
+        </select>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Projects</label>
+        <input type="text" id="projects-filter" placeholder="Portfolio, GitHub, etc." style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+      </div>
+    </div>
+
+    <!-- Additional Filters -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Availability</label>
+        <select id="availability-filter" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+          <option value="">All Availability</option>
+          <option value="available">Available Now</option>
+          <option value="open-to-work">Open to Work</option>
+          <option value="not-looking">Not Looking</option>
+      </select>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Education</label>
+        <select id="education-filter" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+          <option value="">All Education</option>
+          <option value="bachelor">Bachelor's Degree</option>
+          <option value="master">Master's Degree</option>
+          <option value="phd">PhD</option>
+          <option value="bootcamp">Bootcamp/Certificate</option>
+      </select>
+      </div>
+    </div>
+
+    <!-- Filter Actions -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+      <button onclick="searchCandidates()" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Search Candidates</button>
+      <button onclick="clearSearch()" style="padding: 0.75rem 1.5rem; background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer;">Clear Filters</button>
+    </div>
+  </div>
+
+  <!-- Search Results -->
+  <div id="search-results-info" class="search-results-info">Found 12 candidates</div>
+
+  <!-- Candidates List -->
+  <div id="candidates-list">
+    <!-- Frontend Developers -->
+    <div class="candidate-card" data-skills="react,typescript,javascript,css,html" data-location="san-francisco" data-experience="senior" data-projects="portfolio,github" data-availability="available" data-education="bachelor">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Jessica Martinez</h3>
+          <div class="candidate-details">
+            📧 jessica.martinez@email.com • 📱 (555) 111-2222
+          </div>
+          <div class="candidate-details">
+            🎓 Computer Science, Stanford • 💼 6 years experience • Frontend Engineer
+          </div>
+          <div class="candidate-details">
+            📍 San Francisco, CA • Last active: 2 days ago
+          </div>
+        </div>
+        <span class="availability-badge available">Available Now</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">React</span>
+        <span class="skill-tag">TypeScript</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">CSS</span>
+        <span class="skill-tag">HTML</span>
+        <span class="skill-tag">Next.js</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior frontend engineer with expertise in React and modern JavaScript. I've built scalable web applications for startups and enterprise companies. Passionate about creating intuitive user experiences."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Backend Developers -->
+    <div class="candidate-card" data-skills="python,django,postgresql,aws,docker" data-location="remote" data-experience="senior" data-projects="github,portfolio" data-availability="open-to-work" data-education="master">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Robert Chen</h3>
+          <div class="candidate-details">
+            📧 robert.chen@email.com • 📱 (555) 333-4444
+          </div>
+          <div class="candidate-details">
+            🎓 Software Engineering, MIT • 💼 8 years experience • Backend Engineer
+          </div>
+          <div class="candidate-details">
+            📍 Remote • Last active: 1 day ago
+          </div>
+        </div>
+        <span class="availability-badge open-to-work">Open to Work</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">Django</span>
+        <span class="skill-tag">PostgreSQL</span>
+        <span class="skill-tag">AWS</span>
+        <span class="skill-tag">Docker</span>
+        <span class="skill-tag">Kubernetes</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Experienced backend engineer specializing in Python and cloud architecture. I've designed and implemented scalable systems for high-traffic applications. Looking for new challenges in a dynamic environment."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Full Stack Developers -->
+    <div class="candidate-card" data-skills="nodejs,react,mongodb,express" data-location="new-york" data-experience="mid" data-projects="github,portfolio,blog" data-availability="available" data-education="bachelor">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Amanda Foster</h3>
+          <div class="candidate-details">
+            📧 amanda.foster@email.com • 📱 (555) 555-6666
+          </div>
+          <div class="candidate-details">
+            🎓 Computer Science, NYU • 💼 4 years experience • Full Stack Developer
+          </div>
+          <div class="candidate-details">
+            📍 New York, NY • Last active: 3 hours ago
+          </div>
+        </div>
+        <span class="availability-badge available">Available Now</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Node.js</span>
+        <span class="skill-tag">React</span>
+        <span class="skill-tag">MongoDB</span>
+        <span class="skill-tag">Express</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">GraphQL</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Full stack developer with strong experience in JavaScript ecosystem. I enjoy building end-to-end solutions and have worked on both frontend and backend projects. Always learning new technologies."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Data Scientists -->
+    <div class="candidate-card" data-skills="python,machine-learning,tensorflow,pandas" data-location="seattle" data-experience="senior" data-projects="github,portfolio,research" data-availability="open-to-work" data-education="phd">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Dr. Marcus Johnson</h3>
+          <div class="candidate-details">
+            📧 marcus.johnson@email.com • 📱 (555) 777-8888
+          </div>
+          <div class="candidate-details">
+            🎓 PhD in Machine Learning, UW • 💼 10 years experience • Data Scientist
+          </div>
+          <div class="candidate-details">
+            📍 Seattle, WA • Last active: 1 week ago
+          </div>
+        </div>
+        <span class="availability-badge open-to-work">Open to Work</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">Machine Learning</span>
+        <span class="skill-tag">TensorFlow</span>
+        <span class="skill-tag">Pandas</span>
+        <span class="skill-tag">Scikit-learn</span>
+        <span class="skill-tag">Deep Learning</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior data scientist with PhD in machine learning. I've published research papers and built ML models for various industries. Passionate about applying AI to solve real-world problems."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- UI/UX Designers -->
+    <div class="candidate-card" data-skills="figma,sketch,prototyping,user-research" data-location="austin" data-experience="mid" data-projects="portfolio,behance,dribbble" data-availability="available" data-education="bachelor">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Sophie Williams</h3>
+          <div class="candidate-details">
+            📧 sophie.williams@email.com • 📱 (555) 999-0000
+          </div>
+          <div class="candidate-details">
+            🎓 Design, UT Austin • 💼 5 years experience • UI/UX Designer
+          </div>
+          <div class="candidate-details">
+            📍 Austin, TX • Last active: 4 hours ago
+          </div>
+        </div>
+        <span class="availability-badge available">Available Now</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Figma</span>
+        <span class="skill-tag">Sketch</span>
+        <span class="skill-tag">Prototyping</span>
+        <span class="skill-tag">User Research</span>
+        <span class="skill-tag">Wireframing</span>
+        <span class="skill-tag">Design Systems</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Creative UI/UX designer with a focus on user-centered design. I've worked on mobile apps, web platforms, and design systems. Love creating beautiful and functional user experiences."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- DevOps Engineers -->
+    <div class="candidate-card" data-skills="kubernetes,docker,aws,terraform" data-location="boston" data-experience="senior" data-projects="github,portfolio" data-availability="not-looking" data-education="master">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Kevin Park</h3>
+          <div class="candidate-details">
+            📧 kevin.park@email.com • 📱 (555) 111-3333
+          </div>
+          <div class="candidate-details">
+            🎓 Computer Engineering, MIT • 💼 7 years experience • DevOps Engineer
+          </div>
+          <div class="candidate-details">
+            📍 Boston, MA • Last active: 2 weeks ago
+          </div>
+        </div>
+        <span class="availability-badge not-looking">Not Looking</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Kubernetes</span>
+        <span class="skill-tag">Docker</span>
+        <span class="skill-tag">AWS</span>
+        <span class="skill-tag">Terraform</span>
+        <span class="skill-tag">Jenkins</span>
+        <span class="skill-tag">Linux</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior DevOps engineer with expertise in cloud infrastructure and automation. I've built CI/CD pipelines and managed large-scale deployments. Currently employed but open to interesting opportunities."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Mobile Developers -->
+    <div class="candidate-card" data-skills="react-native,swift,kotlin,ios,android" data-location="chicago" data-experience="mid" data-projects="github,portfolio,app-store" data-availability="available" data-education="bachelor">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Rachel Green</h3>
+          <div class="candidate-details">
+            📧 rachel.green@email.com • 📱 (555) 222-4444
+          </div>
+          <div class="candidate-details">
+            🎓 Computer Science, Northwestern • 💼 3 years experience • Mobile Developer
+          </div>
+          <div class="candidate-details">
+            📍 Chicago, IL • Last active: 6 hours ago
+          </div>
+        </div>
+        <span class="availability-badge available">Available Now</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">React Native</span>
+        <span class="skill-tag">Swift</span>
+        <span class="skill-tag">Kotlin</span>
+        <span class="skill-tag">iOS</span>
+        <span class="skill-tag">Android</span>
+        <span class="skill-tag">Flutter</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Mobile developer with experience in both iOS and Android development. I've built cross-platform apps using React Native and native apps. Passionate about creating smooth mobile experiences."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Product Managers -->
+    <div class="candidate-card" data-skills="product-management,agile,scrum,analytics" data-location="denver" data-experience="senior" data-projects="portfolio,case-studies" data-availability="open-to-work" data-education="master">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>James Rodriguez</h3>
+          <div class="candidate-details">
+            📧 james.rodriguez@email.com • 📱 (555) 333-5555
+          </div>
+          <div class="candidate-details">
+            🎓 MBA, Wharton • 💼 9 years experience • Product Manager
+          </div>
+          <div class="candidate-details">
+            📍 Denver, CO • Last active: 1 day ago
+          </div>
+        </div>
+        <span class="availability-badge open-to-work">Open to Work</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Product Management</span>
+        <span class="skill-tag">Agile</span>
+        <span class="skill-tag">Scrum</span>
+        <span class="skill-tag">Analytics</span>
+        <span class="skill-tag">Strategy</span>
+        <span class="skill-tag">Leadership</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior product manager with extensive experience in B2B and B2C products. I've led cross-functional teams and launched successful products. Looking for opportunities to drive product innovation."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- QA Engineers -->
+    <div class="candidate-card" data-skills="testing,selenium,cypress,automation" data-location="remote" data-experience="mid" data-projects="github,portfolio" data-availability="available" data-education="bachelor">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Maria Santos</h3>
+          <div class="candidate-details">
+            📧 maria.santos@email.com • 📱 (555) 444-6666
+          </div>
+          <div class="candidate-details">
+            🎓 Software Engineering, UC Berkeley • 💼 4 years experience • QA Engineer
+          </div>
+          <div class="candidate-details">
+            📍 Remote • Last active: 5 hours ago
+          </div>
+        </div>
+        <span class="availability-badge available">Available Now</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Testing</span>
+        <span class="skill-tag">Selenium</span>
+        <span class="skill-tag">Cypress</span>
+        <span class="skill-tag">Automation</span>
+        <span class="skill-tag">Jest</span>
+        <span class="skill-tag">Python</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "QA engineer with strong background in test automation and quality assurance. I've built comprehensive testing frameworks and worked on both web and mobile applications."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Cybersecurity Specialists -->
+    <div class="candidate-card" data-skills="cybersecurity,penetration-testing,security-audit" data-location="seattle" data-experience="senior" data-projects="github,portfolio,research" data-availability="open-to-work" data-education="master">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Alex Thompson</h3>
+          <div class="candidate-details">
+            📧 alex.thompson@email.com • 📱 (555) 555-7777
+          </div>
+          <div class="candidate-details">
+            🎓 Cybersecurity, UW • 💼 6 years experience • Security Engineer
+          </div>
+          <div class="candidate-details">
+            📍 Seattle, WA • Last active: 3 days ago
+          </div>
+        </div>
+        <span class="availability-badge open-to-work">Open to Work</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Cybersecurity</span>
+        <span class="skill-tag">Penetration Testing</span>
+        <span class="skill-tag">Security Audit</span>
+        <span class="skill-tag">Network Security</span>
+        <span class="skill-tag">Incident Response</span>
+        <span class="skill-tag">Compliance</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior security engineer with expertise in cybersecurity and penetration testing. I've conducted security audits for various organizations and have experience in incident response."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Blockchain Developers -->
+    <div class="candidate-card" data-skills="blockchain,solidity,ethereum,web3" data-location="austin" data-experience="mid" data-projects="github,portfolio,defi" data-availability="available" data-education="bachelor">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>David Kim</h3>
+          <div class="candidate-details">
+            📧 david.kim@email.com • 📱 (555) 666-8888
+          </div>
+          <div class="candidate-details">
+            🎓 Computer Science, UT Austin • 💼 3 years experience • Blockchain Developer
+          </div>
+          <div class="candidate-details">
+            📍 Austin, TX • Last active: 1 day ago
+          </div>
+        </div>
+        <span class="availability-badge available">Available Now</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">Blockchain</span>
+        <span class="skill-tag">Solidity</span>
+        <span class="skill-tag">Ethereum</span>
+        <span class="skill-tag">Web3</span>
+        <span class="skill-tag">Smart Contracts</span>
+        <span class="skill-tag">DeFi</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Blockchain developer with experience in smart contracts and DeFi protocols. I've built several dApps and have a strong understanding of the Ethereum ecosystem."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+
+    <!-- Cloud Architects -->
+    <div class="candidate-card" data-skills="aws,azure,gcp,cloud-architecture" data-location="remote" data-experience="senior" data-projects="github,portfolio,case-studies" data-availability="not-looking" data-education="master">
+      <div class="candidate-header">
+        <div class="candidate-info">
+          <h3>Sarah Wilson</h3>
+          <div class="candidate-details">
+            📧 sarah.wilson@email.com • 📱 (555) 777-9999
+          </div>
+          <div class="candidate-details">
+            🎓 Computer Science, Carnegie Mellon • 💼 8 years experience • Cloud Architect
+          </div>
+          <div class="candidate-details">
+            📍 Remote • Last active: 1 week ago
+          </div>
+        </div>
+        <span class="availability-badge not-looking">Not Looking</span>
+      </div>
+      
+      <div class="candidate-skills">
+        <span class="skill-tag">AWS</span>
+        <span class="skill-tag">Azure</span>
+        <span class="skill-tag">GCP</span>
+        <span class="skill-tag">Cloud Architecture</span>
+        <span class="skill-tag">Microservices</span>
+        <span class="skill-tag">Serverless</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior cloud architect with expertise in multi-cloud environments. I've designed scalable architectures for enterprise clients and have deep knowledge of cloud best practices."
+      </p>
+      
+      <div class="candidate-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Send Message</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Save Candidate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function searchCandidates() {
+  const searchTerm = document.getElementById('candidate-search').value.toLowerCase();
+  const skillsFilter = document.getElementById('skills-filter').value.toLowerCase();
+  const locationFilter = document.getElementById('location-filter').value;
+  const experienceFilter = document.getElementById('experience-filter').value;
+  const projectsFilter = document.getElementById('projects-filter').value.toLowerCase();
+  const availabilityFilter = document.getElementById('availability-filter').value;
+  const educationFilter = document.getElementById('education-filter').value;
+  
+  const candidates = document.querySelectorAll('.candidate-card');
+  let visibleCount = 0;
+  
+  candidates.forEach(candidate => {
+    let showCard = true;
+    
+    // Search by name, title, or keywords
+    if (searchTerm) {
+      const name = candidate.querySelector('h3').textContent.toLowerCase();
+      const title = candidate.querySelector('.candidate-details').textContent.toLowerCase();
+      const description = candidate.querySelector('p').textContent.toLowerCase();
+      
+      if (!name.includes(searchTerm) && !title.includes(searchTerm) && !description.includes(searchTerm)) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by skills
+    if (skillsFilter && showCard) {
+      const skills = candidate.dataset.skills.toLowerCase();
+      const searchSkills = skillsFilter.split(',').map(s => s.trim().toLowerCase());
+      const hasMatchingSkill = searchSkills.some(skill => skills.includes(skill));
+      
+      if (!hasMatchingSkill) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by location
+    if (locationFilter && showCard) {
+      if (candidate.dataset.location !== locationFilter) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by experience level
+    if (experienceFilter && showCard) {
+      if (candidate.dataset.experience !== experienceFilter) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by projects
+    if (projectsFilter && showCard) {
+      const projects = candidate.dataset.projects.toLowerCase();
+      const searchProjects = projectsFilter.split(',').map(p => p.trim().toLowerCase());
+      const hasMatchingProject = searchProjects.some(project => projects.includes(project));
+      
+      if (!hasMatchingProject) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by availability
+    if (availabilityFilter && showCard) {
+      if (candidate.dataset.availability !== availabilityFilter) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by education
+    if (educationFilter && showCard) {
+      if (candidate.dataset.education !== educationFilter) {
+        showCard = false;
+      }
+    }
+    
+    if (showCard) {
+      candidate.style.display = 'block';
+      visibleCount++;
+    } else {
+      candidate.style.display = 'none';
+    }
+  });
+  
+  // Update results count
+  document.getElementById('search-results-info').textContent = `Found ${visibleCount} candidate${visibleCount !== 1 ? 's' : ''}`;
+}
+
+function clearSearch() {
+  document.getElementById('candidate-search').value = '';
+  document.getElementById('skills-filter').value = '';
+  document.getElementById('location-filter').value = '';
+  document.getElementById('experience-filter').value = '';
+  document.getElementById('projects-filter').value = '';
+  document.getElementById('availability-filter').value = '';
+  document.getElementById('education-filter').value = '';
+  
+  // Show all candidates
+  const candidates = document.querySelectorAll('.candidate-card');
+  candidates.forEach(candidate => {
+    candidate.style.display = 'block';
+  });
+  
+  // Update results count
+  document.getElementById('search-results-info').textContent = `Found ${candidates.length} candidates`;
+}
+
+// Add click handlers for action buttons
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.candidate-actions .btn').forEach(btn => {
+    if (btn.textContent.includes('View Profile')) {
+      btn.addEventListener('click', function() {
+        alert('View Profile clicked! (Frontend only - backend integration needed)');
+      });
+    } else if (btn.textContent.includes('Send Message')) {
+      btn.addEventListener('click', function() {
+        alert('Send Message clicked! (Frontend only - backend integration needed)');
+      });
+    } else if (btn.textContent.includes('Save Candidate')) {
+      btn.addEventListener('click', function() {
+        alert('Candidate saved! (Frontend only - backend integration needed)');
+      });
+    }
+  });
+});
+</script>
+{% endblock content %}

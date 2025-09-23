@@ -1,26 +1,204 @@
 {% extends 'base.html' %}
 {% block content %}
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
-<div class="container">
-  <div class="page-head">
-    <h2 class="page-title">Edit Profile</h2>
-    <a class="link-back" href="/">← Home</a>
+<div class="container" style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+  <div style="margin-bottom: 2rem;">
+    <h2>Profile</h2>
+    <a href="/dashboard/applicant/">← Applicant Dashboard</a>
   </div>
-  <form class="form" method="post">
-    {% csrf_token %}
-    <label class="label">Name</label>
-    <input type="text" placeholder="Your name" />
-    <label class="label">Title</label>
-    <input type="text" placeholder="e.g., Product Designer" />
-    <label class="label">About</label>
-    <textarea rows="4" placeholder="Short bio"></textarea>
-    <div class="form-actions">
-      <button class="btn" type="submit">Save</button>
-      <a class="btn secondary" href="/">Cancel</a>
+
+  <!-- Profile View Mode -->
+  <div id="profile-view">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+      <div style="width: 60px; height: 60px; background: #eee; border-radius: 50%;"></div>
+      <div style="flex: 1;">
+        <h1 style="margin: 0 0 0.5rem 0;">John Doe</h1>
+        <p style="margin: 0 0 0.25rem 0; color: #666;">Frontend Engineer with 3+ years experience</p>
+        <p style="margin: 0; color: #999; font-size: 0.9rem;">San Francisco, CA</p>
+      </div>
+      <button onclick="toggleEditMode()" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer;">Edit Profile</button>
     </div>
-  </form>
+
+    <!-- Skills Section -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Skills</h3>
+        <button onclick="editSection('skills')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
+      </div>
+      <div>
+        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">React</span>
+        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">JavaScript</span>
+        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">TypeScript</span>
+        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">CSS</span>
+        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">HTML</span>
+        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">Node.js</span>
+      </div>
+    </div>
+
+    <!-- Education Section -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Education</h3>
+        <button onclick="editSection('education')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
+      </div>
+      <div>
+        <h4 style="margin: 0 0 0.25rem 0;">Bachelor of Computer Science</h4>
+        <p style="margin: 0 0 0.25rem 0; color: #666;">University of California, Berkeley</p>
+        <p style="margin: 0; color: #999; font-size: 0.9rem;">2018 - 2022</p>
+      </div>
+    </div>
+
+    <!-- Experience Section -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Experience</h3>
+        <button onclick="editSection('experience')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
+      </div>
+      <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0;">
+        <h4 style="margin: 0 0 0.25rem 0;">Frontend Engineer</h4>
+        <p style="margin: 0 0 0.25rem 0; color: #666;">TechCorp Inc</p>
+        <p style="margin: 0 0 0.5rem 0; color: #999; font-size: 0.9rem;">2022 - Present</p>
+        <p style="margin: 0; color: #555; font-size: 0.9rem;">Building responsive web applications using React and modern JavaScript frameworks.</p>
+      </div>
+      <div>
+        <h4 style="margin: 0 0 0.25rem 0;">Junior Developer</h4>
+        <p style="margin: 0 0 0.25rem 0; color: #666;">StartupXYZ</p>
+        <p style="margin: 0 0 0.5rem 0; color: #999; font-size: 0.9rem;">2021 - 2022</p>
+        <p style="margin: 0; color: #555; font-size: 0.9rem;">Developed user interfaces and collaborated with design team.</p>
+      </div>
+    </div>
+
+    <!-- Links Section -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">Links</h3>
+        <button onclick="editSection('links')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
+      </div>
+      <div>
+        <div style="margin-bottom: 0.5rem;"><a href="https://github.com/johndoe" target="_blank" style="color: #2A5155; text-decoration: none;">GitHub</a></div>
+        <div style="margin-bottom: 0.5rem;"><a href="https://linkedin.com/in/johndoe" target="_blank" style="color: #2A5155; text-decoration: none;">LinkedIn</a></div>
+        <div><a href="https://johndoe.dev" target="_blank" style="color: #2A5155; text-decoration: none;">Portfolio</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Edit Mode -->
+  <div id="profile-edit" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h1 style="margin: 0;">Edit Profile</h1>
+      <div>
+        <button onclick="saveProfile()" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; margin-right: 0.5rem;">Save Changes</button>
+        <button onclick="cancelEdit()" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; opacity: 0.7;">Cancel</button>
+      </div>
+    </div>
+
+    <form>
+      <!-- Basic Info -->
+      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+        <h3 style="margin: 0 0 1rem 0;">Basic Information</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">First Name</label>
+          <input type="text" value="John" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Last Name</label>
+          <input type="text" value="Doe" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Headline</label>
+          <input type="text" value="Frontend Engineer with 3+ years experience" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+        <h3 style="margin: 0 0 1rem 0;">Skills</h3>
+        <div>
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Skills (comma separated)</label>
+          <input type="text" value="React, JavaScript, TypeScript, CSS, HTML, Node.js" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+      </div>
+
+      <!-- Education -->
+      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+        <h3 style="margin: 0 0 1rem 0;">Education</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Degree</label>
+          <input type="text" value="Bachelor of Computer Science" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Institution</label>
+          <input type="text" value="University of California, Berkeley" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Dates</label>
+          <input type="text" value="2018 - 2022" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+        <h3 style="margin: 0 0 1rem 0;">Experience</h3>
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Job Title</label>
+            <input type="text" value="Frontend Engineer" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Company</label>
+            <input type="text" value="TechCorp Inc" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Dates</label>
+            <input type="text" value="2022 - Present" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Description</label>
+            <textarea rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">Building responsive web applications using React and modern JavaScript frameworks.</textarea>
+          </div>
+        </div>
+        <button type="button" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; opacity: 0.7;">Add Another Experience</button>
+      </div>
+
+      <!-- Links -->
+      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
+        <h3 style="margin: 0 0 1rem 0;">Links</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">GitHub</label>
+          <input type="url" value="https://github.com/johndoe" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">LinkedIn</label>
+          <input type="url" value="https://linkedin.com/in/johndoe" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Portfolio</label>
+          <input type="url" value="https://johndoe.dev" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
+
+<script>
+function toggleEditMode() {
+  document.getElementById('profile-view').style.display = 'none';
+  document.getElementById('profile-edit').style.display = 'block';
+}
+
+function cancelEdit() {
+  document.getElementById('profile-view').style.display = 'block';
+  document.getElementById('profile-edit').style.display = 'none';
+}
+
+function saveProfile() {
+  alert('Profile saved! (Frontend only - backend integration needed)');
+  cancelEdit();
+}
+
+function editSection(section) {
+  alert('Edit ' + section + ' section (Frontend only - backend integration needed)');
+}
+</script>
 {% endblock content %}
 
 

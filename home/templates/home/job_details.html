@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/jobs.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Job Details</h2>
+    <a class="link-back" href="/job-search/">← Back to Search</a>
+  </div>
+
+  <div class="job-detail-card">
+    <h1 class="job-title">Frontend Engineer</h1>
+    <p class="company">Acme Inc</p>
+    <p class="location">San Francisco, CA</p>
+    <p class="job-type">Full-time</p>
+    
+    <div class="job-description">
+      <h3>Description</h3>
+      <p>We're looking for a talented Frontend Engineer to join our team and help build amazing user interfaces that millions of users will interact with daily.</p>
+      
+      <h3>Requirements</h3>
+      <ul>
+        <li>3+ years of React experience</li>
+        <li>Strong JavaScript/TypeScript skills</li>
+        <li>Experience with CSS and responsive design</li>
+        <li>Familiarity with modern build tools</li>
+      </ul>
+      
+      <h3>Benefits</h3>
+      <ul>
+        <li>Competitive salary</li>
+        <li>Health insurance</li>
+        <li>401k matching</li>
+        <li>Flexible work hours</li>
+      </ul>
+    </div>
+
+    <div class="apply-section">
+      <h3>Apply for this position</h3>
+      <form class="apply-form">
+        <textarea placeholder="Add a note to your application (optional)" rows="4"></textarea>
+        <button type="submit" class="btn btn-primary">Submit Application</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}
