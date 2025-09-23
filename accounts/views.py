@@ -14,7 +14,7 @@ def signup(request):
     template_data = {}
     template_data['title'] = 'HireMap - Signup'
     if request.method == 'GET':
-        return render(request, '../templates/signup.html', {'template_data' : template_data})    
+        return render(request, 'accounts/signup.html', {'template_data' : template_data})    
 
     if request.method == 'POST':
         # Debug print to see what data we're getting
@@ -57,22 +57,22 @@ def signup(request):
                 elif user_type == 'applicant':
                     print("Applicant form errors:", applicant_form.errors)
                 template_data['error'] = 'Please fill in all required fields correctly.'
-                return render(request, '../templates/signup.html', {'template_data': template_data})
+                return render(request, 'accounts/signup.html', {'template_data': template_data})
         else:
             print("User form is invalid:", user_form.errors)
             template_data['error'] = 'Please check your email and password fields. Error: ' + str(user_form.errors)
-            return render(request, '../templates/signup.html', {'template_data': template_data})
+            return render(request, 'accounts/signup.html', {'template_data': template_data})
 
 def login(request):
     template_data = {}
     template_data['title'] = 'HireMap - Login'
     if request.method == 'GET':
-        return render(request, '../templates/login.html', {'template_data' : template_data})
+        return render(request, 'accounts/login.html', {'template_data' : template_data})
     elif request.method == 'POST':
         user = authenticate(request, username = request.POST['username'], password = request.POST['password'])
         if user is None:
             template_data['error'] = 'The email or password is incorrect.'
-            return render(request, '../templates/login.html', {'template_data' : template_data})
+            return render(request, 'accounts/login.html', {'template_data' : template_data})
         else: 
             auth_login(request, user)
             return redirect('home.index')

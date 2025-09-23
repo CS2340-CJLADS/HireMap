@@ -1,4 +1,59 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/jobs.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Jobs</h2>
+    <a class="link-back" href="/">← Home</a>
+  </div>
+
+  <div class="filters">
+    <input type="text" placeholder="Search jobs" />
+    <select>
+      <option>Location</option>
+      <option>Remote</option>
+      <option>Onsite</option>
+    </select>
+    <select>
+      <option>Type</option>
+      <option>Full-time</option>
+      <option>Contract</option>
+    </select>
+    <button class="btn">Filter</button>
+  </div>
+
+  <div class="jobs-grid">
+    <div class="job-card">
+      <div class="job-card-top">
+        <strong>Frontend Engineer</strong>
+        <span class="badge">New</span>
+      </div>
+      <div class="job-meta">
+        <span>Acme Inc</span>
+        <span>Remote</span>
+      </div>
+      <div class="job-actions">
+        <a class="btn secondary" href="/jobs/1/">View</a>
+        <button class="btn">Apply</button>
+      </div>
+    </div>
+    <div class="job-card">
+      <div class="job-card-top">
+        <strong>Backend Engineer</strong>
+        <span class="badge">Hot</span>
+      </div>
+      <div class="job-meta">
+        <span>Globex</span>
+        <span>Onsite</span>
+      </div>
+      <div class="job-actions">
+        <a class="btn secondary" href="/jobs/2/">View</a>
+        <button class="btn">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock content %}
+
+

@@ -13,6 +13,9 @@ urlpatterns = [
     # Accounts (authentication)
     path("accounts/", include(("accounts.urls", "accounts"), namespace="accounts")),
 
+    # Jobs
+    path("jobs/", include(("jobs.urls", "jobs"), namespace="jobs")),
+
     # React SPA routes (explicit)
     path("", include(("home.urls", "home"), namespace="home")),
 ]

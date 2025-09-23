@@ -7,8 +7,8 @@
     <h1>Find Your Dream Job</h1>
     <p class="lede muted">Discover opportunities on our interactive map, manage applications, and connect with top employers.</p>
     <div class="hero-actions">
-      <a href="/login/" class="btn">Log In</a>
-      <a href="/signup/" class="btn">Sign Up</a>
+      <a href="{% url 'accounts:accounts.login' %}" class="btn">Log In</a>
+      <a href="{% url 'accounts:accounts.signup' %}" class="btn">Sign Up</a>
     </div>
   </div>
 </div>

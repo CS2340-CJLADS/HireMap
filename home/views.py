@@ -4,4 +4,4 @@ from django.shortcuts import render
 def index(request):
     template_data = {}
     template_data['title'] = 'HireMap - Home'
-    return render(request, '../templates/index.html', {'template_data': template_data})
+    return render(request, 'home/index.html', {'template_data': template_data})
