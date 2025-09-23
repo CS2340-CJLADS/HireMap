@@ -81,11 +81,16 @@ def login(request):
             return render(request, 'accounts/login.html', {'template_data' : template_data})
         else: 
             auth_login(request, user)
-            user_type = request.POST.get('user_type')
-            if (user_type == 'recruiter'):
-                return redirect('recruiter.index')
+            # Determine user type by checking which profile exists
+            if hasattr(user, 'recruiter'):
+                print("Redirecting to recruiter dashboard")
+                return redirect('home:recruiter')  # currently a placeholder
+            elif hasattr(user, 'applicant'):
+                print("Redirecting to applicant dashboard")
+                return redirect('home:applicant')  # currently a placeholder
             else:
-                return redirect('applicant.index')
+                # Fallback if no profile exists
+                return redirect('home:index')
 
 @login_required
 def logout(request):
