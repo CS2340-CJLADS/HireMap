@@ -81,7 +81,11 @@ def login(request):
             return render(request, 'accounts/login.html', {'template_data' : template_data})
         else: 
             auth_login(request, user)
-            return redirect('home.index')
+            user_type = request.POST.get('user_type')
+            if (user_type == 'recruiter'):
+                return redirect('recruiter.index')
+            else:
+                return redirect('applicant.index')
 
 @login_required
 def logout(request):
