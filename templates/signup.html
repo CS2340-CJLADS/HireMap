@@ -112,17 +112,46 @@
   background: var(--background);
   color: var(--primary);
 }
+
+/* Required field styling */
+.form-group input[required], .form-group textarea[required] {
+  border-left: 3px solid var(--primary);
+}
+
+.form-group input:invalid, .form-group textarea:invalid {
+  border-color: #ef4444;
+}
+
+.form-group input:valid, .form-group textarea:valid {
+  border-color: #10b981;
+}
+
+/* Visual indicator for required fields */
+.form-group label::after {
+  content: "";
+}
+
+.form-group:has(input[required]) label::after,
+.form-group:has(textarea[required]) label::after {
+  content: " *";
+  color: #ef4444;
+}
 </style>
 
 <div class="container">
   <div class="hero">
     <h1>Join HireMap</h1>
     <p class="lede muted">Create your account to start your journey.</p>
+    {% if template_data.error %}
+      <div style="background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+        {{ template_data.error }}
+      </div>
+    {% endif %}
   </div>
 
   <section class="section">
     <div class="card signup-container">
-      <form class="form" method="post" id="signupForm">
+      <form class="form" method="post" action="{% url 'accounts:accounts.signup' %}" id="signupForm">
         {% csrf_token %}
         
         <!-- Step Indicator -->
@@ -161,17 +190,17 @@
           
           <div class="form-group">
             <label class="label">Email</label>
-            <input type="email" name="email" id="email" placeholder="Enter your email" required>
+            <input type="email" name="user-username" id="user-username" placeholder="Enter your email">
           </div>
           
           <div class="form-group">
             <label class="label">Password</label>
-            <input type="password" name="password" id="password" placeholder="Create a password" required>
+            <input type="password" name="user-password1" id="user-password1" placeholder="Create a password" minlength="8">
           </div>
           
           <div class="form-group">
             <label class="label">Confirm Password</label>
-            <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm your password" required>
+            <input type="password" name="user-password2" id="user-password2" placeholder="Confirm your password" minlength="8">
           </div>
           
           <div class="nav-buttons">
@@ -187,51 +216,56 @@
           <!-- Applicant Form -->
           <div id="applicant-form" style="display: none;">
             <div class="form-group">
-              <label class="label">Full Name</label>
-              <input type="text" name="full_name" placeholder="Enter your full name" required>
+              <label class="label">First Name</label>
+              <input type="text" name="applicant-first_name" placeholder="Enter your first name" data-required="true">
             </div>
-            
+
             <div class="form-group">
-              <label class="label">Headline/Description</label>
-              <textarea name="headline" placeholder="Brief description of yourself" rows="3"></textarea>
+              <label class="label">Last Name</label>
+              <input type="text" name="applicant-last_name" placeholder="Enter your last name" data-required="true">
             </div>
             
             <div class="form-group">
               <label class="label">Skills</label>
-              <input type="text" name="skills" placeholder="e.g., Python, JavaScript, Project Management">
+              <input type="text" name="applicant-skills" placeholder="e.g., Python, JavaScript, Project Management">
             </div>
             
             <div class="form-group">
               <label class="label">Education</label>
-              <input type="text" name="education" placeholder="e.g., Bachelor's in Computer Science">
+              <input type="text" name="applicant-education" placeholder="e.g., Bachelor's in Computer Science">
             </div>
             
             <div class="form-group">
               <label class="label">Work Experience</label>
-              <textarea name="work_experience" placeholder="Describe your work experience" rows="4"></textarea>
+              <textarea name="applicant-experience" placeholder="Describe your work experience" rows="4"></textarea>
             </div>
             
             <div class="form-group">
               <label class="label">Links (Portfolio, LinkedIn, etc.)</label>
-              <input type="url" name="links" placeholder="https://your-portfolio.com">
+              <input type="url" name="applicant-links" placeholder="https://your-portfolio.com">
             </div>
           </div>
           
           <!-- Recruiter Form -->
           <div id="recruiter-form" style="display: none;">
             <div class="form-group">
-              <label class="label">Full Name</label>
-              <input type="text" name="full_name" placeholder="Enter your full name" required>
+              <label class="label">First Name</label>
+              <input type="text" name="recruiter-first_name" placeholder="Enter your first name" data-required="true">
             </div>
             
+            <div class="form-group">
+              <label class="label">Last Name</label>
+              <input type="text" name="recruiter-last_name" placeholder="Enter your last name" data-required="true">
+            </div>
+
             <div class="form-group">
               <label class="label">Company Name</label>
-              <input type="text" name="company_name" placeholder="Enter your company name" required>
+              <input type="text" name="recruiter-company_name" placeholder="Enter your company name" data-required="true">
             </div>
-            
+
             <div class="form-group">
               <label class="label">Location</label>
-              <input type="text" name="location" placeholder="City, State/Country" required>
+              <input type="text" name="recruiter-location" placeholder="City, State/Country" data-required="true">
             </div>
           </div>
           
@@ -257,39 +291,91 @@
 let currentStep = 1;
 let selectedUserType = '';
 
+// Function to set required attributes dynamically
+function setRequiredFields(stepNumber, userType = null) {
+  // Clear all required attributes first
+  document.querySelectorAll('input[required], textarea[required]').forEach(field => {
+    field.removeAttribute('required');
+  });
+  
+  if (stepNumber === 2) {
+    // Step 2: Email and password fields
+    document.getElementById('user-username').setAttribute('required', 'true');
+    document.getElementById('user-password1').setAttribute('required', 'true');
+    document.getElementById('user-password2').setAttribute('required', 'true');
+  } else if (stepNumber === 3 && userType) {
+    // Step 3: Dynamic form fields based on user type
+    const formSelector = userType === 'applicant' ? '#applicant-form' : '#recruiter-form';
+    const form = document.querySelector(formSelector);
+    
+    if (form) {
+      // Set required on fields marked with data-required
+      form.querySelectorAll('[data-required="true"]').forEach(field => {
+        field.setAttribute('required', 'true');
+      });
+    }
+  }
+}
+
+// Function to validate current step
+function validateCurrentStep() {
+  if (currentStep === 1) {
+    if (!selectedUserType) {
+      alert('Please select your user type');
+      return false;
+    }
+  } else if (currentStep === 2) {
+    const email = document.getElementById('user-username').value.trim();
+    const password = document.getElementById('user-password1').value;
+    const confirmPassword = document.getElementById('user-password2').value;
+    
+    if (!email || !password || !confirmPassword) {
+      alert('Please fill in all fields');
+      return false;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return false;
+    }
+    
+    // Password length validation
+    if (password.length < 8) {
+      alert('Password must be at least 8 characters long');
+      return false;
+    }
+    
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return false;
+    }
+  } else if (currentStep === 3) {
+    // Validate required fields in the current form
+    const activeForm = selectedUserType === 'applicant' ? 
+      document.getElementById('applicant-form') : 
+      document.getElementById('recruiter-form');
+    
+    const requiredFields = activeForm.querySelectorAll('[required]');
+    for (let field of requiredFields) {
+      if (!field.value.trim()) {
+        alert(`Please fill in the ${field.getAttribute('name').replace('_', ' ')} field`);
+        field.focus();
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
 function nextStep() {
+  if (!validateCurrentStep()) {
+    return;
+  }
+  
   if (currentStep < 3) {
-    // Validate current step
-    if (currentStep === 1) {
-      if (!selectedUserType) {
-        alert('Please select your user type');
-        return;
-      }
-    }
-    
-    if (currentStep === 2) {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirm_password').value;
-      
-      if (!email || !password || !confirmPassword) {
-        alert('Please fill in all fields');
-        return;
-      }
-      
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-      
-      if (password !== confirmPassword) {
-        alert('Passwords do not match');
-        return;
-      }
-    }
-    
     // Hide current step
     document.getElementById(`step${currentStep}`).classList.remove('active');
     document.getElementById(`step${currentStep}-dot`).classList.remove('active');
@@ -299,6 +385,9 @@ function nextStep() {
     currentStep++;
     document.getElementById(`step${currentStep}`).classList.add('active');
     document.getElementById(`step${currentStep}-dot`).classList.add('active');
+    
+    // Set required fields for the new step
+    setRequiredFields(currentStep, selectedUserType);
     
     // Show appropriate form based on user type
     if (currentStep === 3) {
@@ -323,6 +412,9 @@ function prevStep() {
     currentStep--;
     document.getElementById(`step${currentStep}`).classList.add('active');
     document.getElementById(`step${currentStep}-dot`).classList.add('active');
+    
+    // Update required fields for the previous step
+    setRequiredFields(currentStep, selectedUserType);
   }
 }
 
@@ -339,6 +431,23 @@ function selectUserType(type) {
   // Enable next button
   document.getElementById('step1-next').disabled = false;
 }
+
+// Handle form submission
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+  // Ensure all required fields are set for the final step
+  setRequiredFields(3, selectedUserType);
+  
+  // Let the browser handle native validation
+  if (!validateCurrentStep()) {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// Initialize the form
+document.addEventListener('DOMContentLoaded', function() {
+  setRequiredFields(1);
+});
 </script>
 {% endblock content %}
 
