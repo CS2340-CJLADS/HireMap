@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/map.css' %}">
+<div class="container">
+  <!-- Main Map Section -->
+  <section class="section">
+    <div class="map-container">
+      <div class="map" id="mainMap"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p class="small muted">Dashboard - Manage your job search</p>
+  </footer>
+</div>
+
+<!-- Leaflet assets for the main map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  (function(){
+    try{
+      var map = L.map('mainMap').setView([37.7749, -122.4194], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      
+      // Add sample job markers
+      L.marker([37.7749, -122.4194]).addTo(map).bindPopup('<strong>Frontend Engineer</strong><br>Acme Inc<br>Remote');
+      L.marker([37.7849, -122.4094]).addTo(map).bindPopup('<strong>Backend Engineer</strong><br>Globex<br>Onsite');
+      L.marker([37.7649, -122.4294]).addTo(map).bindPopup('<strong>Product Designer</strong><br>TechCorp<br>Hybrid');
+    }catch(e){ 
+      console.log('Map initialization error:', e);
+    }
+  })();
+</script>
+{% endblock content %}

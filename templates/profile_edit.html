@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Edit Profile</h2>
+    <a class="link-back" href="/">← Home</a>
+  </div>
+  <form class="form" method="post">
+    {% csrf_token %}
+    <label class="label">Name</label>
+    <input type="text" placeholder="Your name" />
+    <label class="label">Title</label>
+    <input type="text" placeholder="e.g., Product Designer" />
+    <label class="label">About</label>
+    <textarea rows="4" placeholder="Short bio"></textarea>
+    <div class="form-actions">
+      <button class="btn" type="submit">Save</button>
+      <a class="btn secondary" href="/">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock content %}
+
+

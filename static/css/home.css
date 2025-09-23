@@ -1,0 +1,97 @@
+/* Home page specific styles */
+.hero {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: var(--white);
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 2rem;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero p.lede {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.hero-triad {
+  margin: 2rem 0;
+}
+
+.mini-map {
+  transition: transform 0.2s ease;
+}
+
+.mini-map:hover {
+  transform: scale(1.02);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+}
+
+.featured-roles {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.featured-roles h3 {
+  color: var(--brand);
+  margin-bottom: 1rem;
+}
+
+.featured-roles .list {
+  list-style: none;
+  padding: 0;
+}
+
+.featured-roles .list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  color: var(--muted);
+}
+
+.featured-roles .list li:last-child {
+  border-bottom: none;
+}
+
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  background: var(--white);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--brand);
+  display: block;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}

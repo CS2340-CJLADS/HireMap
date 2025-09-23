@@ -1,12 +1,13 @@
 from django.db import models
 
+
 # Create your models here.
 class JobPosting(models.Model):
     id = models.AutoField(primary_key = True)
     title = models.CharField(max_length=100)
     description = models.TextField()
     skills_required = models.TextField()
-    location = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)  # address string (used by the map)
     salary_min = models.DecimalField(max_digits=10, decimal_places=2)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2)
     remote = models.BooleanField(default=False)
@@ -25,4 +26,4 @@ class Application(models.Model):
     message = models.TextField(blank = True)
 
     def __str__(self):
-        return "id: " + str(self.id) + ", applicant: " + self.applicant.__str__() + ", listing: " + self.listing.__str__()
+        return str(self.id) + " - applicant: " + self.applicant.__str__() + ", listing: " + self.listing.__str__()

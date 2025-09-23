@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    {% load static %}
+	<head>
+		<title>{{ template_data.title }}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+	</head>
+	<body>
+		<script src="{% static 'js/nav.js' %}"></script>
+		<!-- Navbar -->
+		<nav class="nav">
+			<div class="container">
+				<div class="nav-content">
+					<a href="/" class="brand">HireMap</a>
+					<div class="nav-actions">
+						<a href="/jobs/">Jobs</a>
+						<a href="/map/">Map</a>
+					{% if user.is_authenticated %}
+						{% if user.applicant %}
+							<a href="/applications/">Applications</a>
+							<a href="/messages/">Messages</a>
+						{% endif %}
+						{% if user.recruiter %}
+							<a href="/recruiter/jobs/">Recruiter</a>
+							<a href="/recruiter/jobs/new/">Post Job</a>
+						{% endif %}
+						<div class="dropdown" style="position: relative; display: inline-block;">
+							<button class="avatar-btn" onclick="toggleUserMenu()">
+								<div class="avatar"></div>
+							</button>
+							<div id="userMenu" class="dropdown-menu" style="display:none; position:absolute; right:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px; min-width: 180px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); z-index: 1000;">
+								<a href="/profile/" class="dropdown-item" style="display:block; padding:0.75rem 1rem; color:#111827; text-decoration:none;">Profile</a>
+								<a href="/accounts/logout/" class="dropdown-item" style="display:block; padding:0.75rem 1rem; color:#111827; text-decoration:none;">Sign out</a>
+							</div>
+						</div>
+					{% else %}
+						<a href="/accounts/login/">Log in</a>
+						<a href="/accounts/signup/">Sign up</a>
+					{% endif %}
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<div>
+		{% block content %}
+		{% endblock content %}
+		</div>
+	</body>
+</html>
