@@ -12,6 +12,11 @@
     <div class="card" style="max-width: 400px; margin: 0 auto;">
       <form class="form" method="post">
         {% csrf_token %}
+        {% if template_data.error %}
+        <div style="background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;">
+          {{ template_data.error }}
+        </div>
+        {% endif %}
         <div class="form-group">
           <label class="label">Email</label>
           <input type="email" name="email" placeholder="Enter your email" required>

@@ -145,6 +145,27 @@
     {% if template_data.error %}
       <div style="background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
         {{ template_data.error }}
+        {% if template_data.user_form_errors %}
+          <div class="small" style="margin-top: 0.5rem;">
+            <ul style="margin: 0 0 0 1rem;">
+              {% for field, errors in template_data.user_form_errors.items %}
+                {% for e in errors %}
+                  <li>{{ e }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        {% if template_data.password_help_texts %}
+          <div class="small" style="margin-top: 0.75rem;">
+            <strong>Password must meet the following requirements:</strong>
+            <ul style="margin: 0.25rem 0 0 1rem;">
+              {% for text in template_data.password_help_texts %}
+                <li>{{ text }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
       </div>
     {% endif %}
   </div>

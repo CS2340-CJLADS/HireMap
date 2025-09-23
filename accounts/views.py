@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import RecruiterForm, ApplicantForm, CustomUserCreationForm
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.contrib.auth.password_validation import password_validators_help_texts
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
@@ -60,7 +61,9 @@ def signup(request):
                 return render(request, 'accounts/signup.html', {'template_data': template_data})
         else:
             print("User form is invalid:", user_form.errors)
-            template_data['error'] = 'Please check your email and password fields. Error: ' + str(user_form.errors)
+            template_data['error'] = 'Please review the highlighted fields.'
+            template_data['user_form_errors'] = user_form.errors
+            template_data['password_help_texts'] = password_validators_help_texts()
             return render(request, 'accounts/signup.html', {'template_data': template_data})
 
 def login(request):
@@ -69,7 +72,10 @@ def login(request):
     if request.method == 'GET':
         return render(request, 'accounts/login.html', {'template_data' : template_data})
     elif request.method == 'POST':
-        user = authenticate(request, username = request.POST['username'], password = request.POST['password'])
+        # The login form uses an "email" input; authenticate with Django's username field
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, username=email, password=password)
         if user is None:
             template_data['error'] = 'The email or password is incorrect.'
             return render(request, 'accounts/login.html', {'template_data' : template_data})
@@ -80,4 +86,5 @@ def login(request):
 @login_required
 def logout(request):
     auth_logout(request)
-    return redirect('home.index')
+    template_data = {'title': 'Signed Out'}
+    return render(request, 'signout.html', {'template_data': template_data})
