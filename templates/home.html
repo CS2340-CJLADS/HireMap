@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
+<div class="container">
+  <div class="hero">
+    <h1>Find Your Dream Job</h1>
+    <p class="lede muted">Discover opportunities on our interactive map, manage applications, and connect with top employers.</p>
+    <div class="hero-actions">
+      <a href="/login/" class="btn">Log In</a>
+      <a href="/signup/" class="btn">Sign Up</a>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+

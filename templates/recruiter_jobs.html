@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/recruiter.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Recruiter Jobs</h2>
+    <a class="link-back" href="/">← Home</a>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <h3>Frontend Engineer</h3>
+      <p class="small muted">2 applicants</p>
+      <a class="btn secondary" href="/recruiter/jobs/new/">Duplicate</a>
+    </div>
+    <div class="card">
+      <h3>Backend Engineer</h3>
+      <p class="small muted">5 applicants</p>
+      <a class="btn secondary" href="/recruiter/jobs/new/">Duplicate</a>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+

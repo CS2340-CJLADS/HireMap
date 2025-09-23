@@ -3,15 +3,37 @@
     {% load static %}
 	<head>
 		<title>{{ template_data.title }}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
 	<body>
+		<!-- Navbar -->
+		<nav class="nav">
+			<div class="container">
+				<div class="nav-content">
+					<a href="/" class="brand">HireMap</a>
+					<div class="nav-actions">
+						<a href="/jobs/">Jobs</a>
+						<a href="/applications/">Applications</a>
+						<a href="/map/">Map</a>
+						<a href="/recruiter/jobs/">Recruiter</a>
+						<a href="/recruiter/jobs/new/">Post Job</a>
+						<a href="/profile/">Profile</a>
+						<a href="/messages/">Messages</a>
+						<button class="avatar-btn">
+							<div class="avatar"></div>
+						</button>
+					</div>
+				</div>
+			</div>
+		</nav>
+
 		<div>
-		<!-- Header Placeholder -->
 		{% block content %}
 		{% endblock content %}
-		<!-- Footer Placeholder -->
 		</div>
 	</body>
 </html>
