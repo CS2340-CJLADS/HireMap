@@ -7,9 +7,14 @@
   <div class="job-header">
     <h2 class="page-title">Frontend Engineer</h2>
     <div class="job-actions">
-      <button class="btn">Apply</button>
-      <button class="btn secondary">Save</button>
+      <form method="post" action="{% url 'jobs:detail' job.id %}">
+      {% csrf_token %}
+        <textarea name="message" placeholder="Optional message to employer"></textarea><br>
+        <button type="submit" class="btn">Apply</button>
+      </form>
+    <button class="btn secondary">Save</button>
     </div>
+
   </div>
   <div class="grid-2">
     <div class="card">
