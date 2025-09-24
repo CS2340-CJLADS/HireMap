@@ -1,5 +1,5 @@
 from django.urls import path
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from . import views
 
 app_name = "home"
@@ -34,18 +34,20 @@ urlpatterns = [
     path("applicants/", RECRUITER_APPLICANTS, name="recruiter_applicants_short"),
 
     # Public TemplateViews (no generic /dashboard route)
-    path("profile/", PROFILE, name="profile_edit"),
+    path("profile/", views.profile_view, name="profile_edit"),
+    path("recruiter-profile/", views.recruiter_profile_view, name="recruiter_profile"),
     path("saved-searches/", SAVED_SEARCHES, name="saved_searches"),
     path("messages/", MESSAGES, name="messages_inbox"),
     path("map/", MAP, name="map"),
+    path("applications/", RedirectView.as_view(url="/jobs/my-applications/", permanent=False), name="applications_board"),
     
-    # Job-related pages
-    path("job-search/", JOB_SEARCH, name="job_search"),
-    path("jobs/<int:job_id>/", JOB_DETAILS, name="job_details"),
-    path("manage-jobs/", MANAGE_JOBS, name="manage_jobs"),
-    path("post-job/", POST_JOB, name="post_job"),
-    path("edit-job/", EDIT_JOB, name="edit_job"),
-    path("search-candidates/", SEARCH_CANDIDATES, name="search_candidates"),
+    # Job-related pages (redirect to proper jobs app)
+    path("job-search/", RedirectView.as_view(url="/jobs/", permanent=False), name="job_search"),
+    path("jobs/<int:job_id>/", RedirectView.as_view(url="/jobs/%(job_id)s/", permanent=False), name="job_details"),
+    path("manage-jobs/", RedirectView.as_view(url="/jobs/recruiter/jobs/", permanent=False), name="manage_jobs"),
+    path("post-job/", RedirectView.as_view(url="/jobs/recruiter/jobs/new/", permanent=False), name="post_job"),
+    path("edit-job/", RedirectView.as_view(url="/jobs/recruiter/jobs/1/edit/", permanent=False), name="edit_job"),
+    path("search-candidates/", views.search_candidates, name="search_candidates"),
 ]
 
 

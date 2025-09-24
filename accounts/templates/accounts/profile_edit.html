@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+<div class="container">
+  <div class="hero">
+    <h1>Edit Profile</h1>
+    <p class="lede muted">Update your professional information.</p>
+  </div>
+
+  <section class="section">
+    <div class="card">
+      <form class="form" method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label class="label">First Name *</label>
+          <input type="text" name="first_name" value="{{ applicant.first_name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Last Name *</label>
+          <input type="text" name="last_name" value="{{ applicant.last_name }}" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Skills</label>
+          <textarea name="skills" placeholder="e.g., Python, JavaScript, Project Management" rows="3">{{ applicant.skills }}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Education</label>
+          <input type="text" name="education" value="{{ applicant.education }}" placeholder="e.g., Bachelor's in Computer Science">
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Work Experience</label>
+          <textarea name="experience" placeholder="Describe your work experience" rows="4">{{ applicant.experience }}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Projects</label>
+          <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Manage your individual projects separately for better presentation to recruiters.</p>
+          <a href="{% url 'jobs:jobs.manage_projects' %}" class="btn secondary" style="display: inline-block; margin-top: 0.5rem;">Manage Projects</a>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Links (Portfolio, LinkedIn, etc.)</label>
+          <input type="url" name="links" value="{{ applicant.links }}" placeholder="https://your-portfolio.com">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn">Save Profile</button>
+          <a href="/" class="btn secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock content %}

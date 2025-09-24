@@ -1,204 +1,277 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container" style="max-width: 800px; margin: 0 auto; padding: 2rem;">
-  <div style="margin-bottom: 2rem;">
-    <h2>Profile</h2>
-    <a href="/dashboard/applicant/">← Applicant Dashboard</a>
+{% load static %}
+{% load custom_filters %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+
+<div class="container">
+  <div class="hero">
+    <h1>{{ template_data.applicant.first_name }} {{ template_data.applicant.last_name }}</h1>
+    <p class="lede muted">My Profile</p>
+    <a href="/dashboard/applicant/" class="link-back">← Back to Dashboard</a>
   </div>
 
-  <!-- Profile View Mode -->
-  <div id="profile-view">
-    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-      <div style="width: 60px; height: 60px; background: #eee; border-radius: 50%;"></div>
-      <div style="flex: 1;">
-        <h1 style="margin: 0 0 0.5rem 0;">John Doe</h1>
-        <p style="margin: 0 0 0.25rem 0; color: #666;">Frontend Engineer with 3+ years experience</p>
-        <p style="margin: 0; color: #999; font-size: 0.9rem;">San Francisco, CA</p>
-      </div>
-      <button onclick="toggleEditMode()" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer;">Edit Profile</button>
+  <section class="section">
+    <div class="card">
+      <h3>Contact Information</h3>
+      <p><strong>Email:</strong> {{ template_data.applicant.user.email }}</p>
+      <p><strong>Name:</strong> {{ template_data.applicant.first_name }} {{ template_data.applicant.last_name }}</p>
     </div>
 
-    <!-- Skills Section -->
-    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0;">Skills</h3>
-        <button onclick="editSection('skills')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
-      </div>
-      <div>
-        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">React</span>
-        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">JavaScript</span>
-        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">TypeScript</span>
-        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">CSS</span>
-        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">HTML</span>
-        <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; margin-right: 0.5rem; display: inline-block; margin-bottom: 0.5rem;">Node.js</span>
+    {% if template_data.applicant.skills %}
+    <div class="card">
+      <h3>Skills</h3>
+      <div class="skills-container">
+        {% for skill in template_data.applicant.skills|split:"," %}
+          {% if skill.strip %}
+            <span class="skill-tag">{{ skill.strip }}</span>
+          {% endif %}
+        {% endfor %}
       </div>
     </div>
+    {% endif %}
 
-    <!-- Education Section -->
-    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0;">Education</h3>
-        <button onclick="editSection('education')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
-      </div>
-      <div>
-        <h4 style="margin: 0 0 0.25rem 0;">Bachelor of Computer Science</h4>
-        <p style="margin: 0 0 0.25rem 0; color: #666;">University of California, Berkeley</p>
-        <p style="margin: 0; color: #999; font-size: 0.9rem;">2018 - 2022</p>
-      </div>
+    {% if template_data.applicant.education %}
+    <div class="card">
+      <h3>Education</h3>
+      <p>{{ template_data.applicant.education }}</p>
     </div>
+    {% endif %}
 
-    <!-- Experience Section -->
-    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0;">Experience</h3>
-        <button onclick="editSection('experience')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
-      </div>
-      <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0;">
-        <h4 style="margin: 0 0 0.25rem 0;">Frontend Engineer</h4>
-        <p style="margin: 0 0 0.25rem 0; color: #666;">TechCorp Inc</p>
-        <p style="margin: 0 0 0.5rem 0; color: #999; font-size: 0.9rem;">2022 - Present</p>
-        <p style="margin: 0; color: #555; font-size: 0.9rem;">Building responsive web applications using React and modern JavaScript frameworks.</p>
-      </div>
-      <div>
-        <h4 style="margin: 0 0 0.25rem 0;">Junior Developer</h4>
-        <p style="margin: 0 0 0.25rem 0; color: #666;">StartupXYZ</p>
-        <p style="margin: 0 0 0.5rem 0; color: #999; font-size: 0.9rem;">2021 - 2022</p>
-        <p style="margin: 0; color: #555; font-size: 0.9rem;">Developed user interfaces and collaborated with design team.</p>
-      </div>
+    {% if template_data.applicant.experience %}
+    <div class="card">
+      <h3>Experience</h3>
+      <p>{{ template_data.applicant.experience }}</p>
     </div>
+    {% endif %}
 
-    <!-- Links Section -->
-    <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0;">Links</h3>
-        <button onclick="editSection('links')" style="padding: 0.25rem 0.75rem; background: none; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer; color: #2A5155;">Edit</button>
+    {% if template_data.applicant.project_set.all %}
+    <div class="card">
+      <h3>Projects</h3>
+      <div class="projects-preview">
+        {% for project in template_data.applicant.project_set.all|slice:":3" %}
+          <div class="project-item">
+            <h4>{{ project.title }}</h4>
+            <p>{{ project.description|truncatewords:20 }}</p>
+            {% if project.technologies %}
+              <p><strong>Technologies:</strong> {{ project.technologies }}</p>
+            {% endif %}
+            {% if project.url %}
+              <p><a href="{{ project.url }}" target="_blank" class="profile-link">{{ project.url }}</a></p>
+            {% endif %}
       </div>
-      <div>
-        <div style="margin-bottom: 0.5rem;"><a href="https://github.com/johndoe" target="_blank" style="color: #2A5155; text-decoration: none;">GitHub</a></div>
-        <div style="margin-bottom: 0.5rem;"><a href="https://linkedin.com/in/johndoe" target="_blank" style="color: #2A5155; text-decoration: none;">LinkedIn</a></div>
-        <div><a href="https://johndoe.dev" target="_blank" style="color: #2A5155; text-decoration: none;">Portfolio</a></div>
+        {% endfor %}
+        {% if template_data.applicant.project_set.count > 3 %}
+          <p><em>And {{ template_data.applicant.project_set.count|add:"-3" }} more projects...</em></p>
+        {% endif %}
       </div>
     </div>
+    {% endif %}
+
+    {% if template_data.applicant.links %}
+    <div class="card">
+      <h3>Links</h3>
+      <p><a href="{{ template_data.applicant.links }}" target="_blank" class="profile-link">{{ template_data.applicant.links }}</a></p>
   </div>
+    {% endif %}
 
-  <!-- Profile Edit Mode -->
-  <div id="profile-edit" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h1 style="margin: 0;">Edit Profile</h1>
-      <div>
-        <button onclick="saveProfile()" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; margin-right: 0.5rem;">Save Changes</button>
-        <button onclick="cancelEdit()" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; opacity: 0.7;">Cancel</button>
+    <div class="card">
+      <div class="profile-actions">
+        <a href="{% url 'jobs:jobs.edit_profile' %}" class="btn">Edit Profile</a>
+        <a href="/dashboard/applicant/" class="btn secondary">Back to Dashboard</a>
       </div>
     </div>
-
-    <form>
-      <!-- Basic Info -->
-      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-        <h3 style="margin: 0 0 1rem 0;">Basic Information</h3>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">First Name</label>
-          <input type="text" value="John" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Last Name</label>
-          <input type="text" value="Doe" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Headline</label>
-          <input type="text" value="Frontend Engineer with 3+ years experience" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
+  </section>
       </div>
 
-      <!-- Skills -->
-      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-        <h3 style="margin: 0 0 1rem 0;">Skills</h3>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Skills (comma separated)</label>
-          <input type="text" value="React, JavaScript, TypeScript, CSS, HTML, Node.js" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-      </div>
-
-      <!-- Education -->
-      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-        <h3 style="margin: 0 0 1rem 0;">Education</h3>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Degree</label>
-          <input type="text" value="Bachelor of Computer Science" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Institution</label>
-          <input type="text" value="University of California, Berkeley" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Dates</label>
-          <input type="text" value="2018 - 2022" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-      </div>
-
-      <!-- Experience -->
-      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-        <h3 style="margin: 0 0 1rem 0;">Experience</h3>
-        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-          <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Job Title</label>
-            <input type="text" value="Frontend Engineer" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-          </div>
-          <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Company</label>
-            <input type="text" value="TechCorp Inc" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-          </div>
-          <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Dates</label>
-            <input type="text" value="2022 - Present" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-          </div>
-          <div>
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Description</label>
-            <textarea rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">Building responsive web applications using React and modern JavaScript frameworks.</textarea>
-          </div>
-        </div>
-        <button type="button" style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; opacity: 0.7;">Add Another Experience</button>
-      </div>
-
-      <!-- Links -->
-      <div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #2A5155; border-radius: 8px; background: #FFFFFA;">
-        <h3 style="margin: 0 0 1rem 0;">Links</h3>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">GitHub</label>
-          <input type="url" value="https://github.com/johndoe" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">LinkedIn</label>
-          <input type="url" value="https://linkedin.com/in/johndoe" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Portfolio</label>
-          <input type="url" value="https://johndoe.dev" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;" />
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script>
-function toggleEditMode() {
-  document.getElementById('profile-view').style.display = 'none';
-  document.getElementById('profile-edit').style.display = 'block';
+<style>
+.hero {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: white;
+  border-radius: 8px;
 }
 
-function cancelEdit() {
-  document.getElementById('profile-view').style.display = 'block';
-  document.getElementById('profile-edit').style.display = 'none';
+.hero h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
 }
 
-function saveProfile() {
-  alert('Profile saved! (Frontend only - backend integration needed)');
-  cancelEdit();
+.hero .lede {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: white;
+  opacity: 0.9;
 }
 
-function editSection(section) {
-  alert('Edit ' + section + ' section (Frontend only - backend integration needed)');
+.link-back {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  opacity: 0.9;
+  transition: transform 0.3s ease, opacity 0.2s;
+  display: inline-block;
 }
-</script>
+
+.link-back:hover {
+  color: white;
+  opacity: 1;
+  transform: scale(1.05);
+  text-decoration: none;
+}
+
+.section {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin: 0 0 1rem 0;
+  color: var(--brand);
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--brand);
+  padding-bottom: 0.5rem;
+}
+
+.card p {
+  margin: 0 0 0.75rem 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  background: var(--brand-accent);
+  color: var(--brand);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.profile-link {
+  color: var(--brand);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.profile-link:hover {
+  text-decoration: underline;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--brand);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--brand-dark);
+  color: white;
+  text-decoration: none;
+}
+
+.btn.secondary {
+  background: white;
+  color: #2A5155;
+  border: 1px solid #2A5155;
+}
+
+.btn.secondary:hover {
+  background: #2A5155;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .section {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+  }
+  
+  .skills-container {
+    justify-content: center;
+  }
+}
+
+/* Custom split filter for skills */
+
+.projects-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.project-item {
+  padding: 1rem;
+  background: var(--brand-accent);
+  border-radius: 6px;
+  border-left: 3px solid var(--brand);
+}
+
+.project-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--brand);
+  font-size: 1.1rem;
+}
+
+.project-item p {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.project-item p:last-child {
+  margin-bottom: 0;
+}
+</style>
 {% endblock content %}
-
-

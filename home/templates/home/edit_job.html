@@ -217,7 +217,7 @@
       <p>📍 San Francisco, CA • 💰 $120k - $150k • ⏰ Full-time • ✅ Active - 12 applicants</p>
     </div>
 
-    <form class="form" method="post" id="jobEditForm">
+    <form class="form" method="post" id="jobEditForm" action="/jobs/recruiter/jobs/1/edit/">
       {% csrf_token %}
       
       <!-- Basic Information Section -->
@@ -377,13 +377,20 @@ function updateSkillsDisplay() {
 }
 
 function saveDraft() {
-  alert('Draft saved! (Frontend only - backend integration needed)');
+  // Add a hidden input to indicate this is a draft
+  const form = document.getElementById('jobEditForm');
+  const draftInput = document.createElement('input');
+  draftInput.type = 'hidden';
+  draftInput.name = 'save_draft';
+  draftInput.value = '1';
+  form.appendChild(draftInput);
+  
+  // Submit the form
+  form.submit();
 }
 
 // Handle form submission
 document.getElementById('jobEditForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
   // Validate required fields
   const title = document.getElementById('title').value.trim();
   const company = document.getElementById('company_name').value.trim();
@@ -391,20 +398,19 @@ document.getElementById('jobEditForm').addEventListener('submit', function(e) {
   const location = document.getElementById('location').value.trim();
   
   if (!title || !company || !description || !location) {
+    e.preventDefault();
     alert('Please fill in all required fields.');
     return;
   }
   
   if (!selectedWorkType) {
+    e.preventDefault();
     alert('Please select a work type.');
     return;
   }
   
-  // Show success message
-  alert('Job updated successfully! (Frontend only - backend integration needed)');
-  
-  // Redirect back to manage jobs
-  window.location.href = '/manage-jobs/';
+  // If validation passes, let the form submit normally
+  // The backend will handle the actual job update
 });
 
 // Allow adding skills with Enter key

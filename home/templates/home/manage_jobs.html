@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+{% csrf_token %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/jobs.css' %}">
 <style>
 .manage-actions {
@@ -143,7 +144,7 @@
       <h3 style="margin: 0 0 0.5rem 0; color: #2A5155;">Job Management</h3>
       <p style="margin: 0; color: #666;">Create new job postings and manage existing ones</p>
     </div>
-    <a href="/post-job/" class="btn" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; text-decoration: none; border-radius: 4px; font-weight: 500;">+ Post New Job</a>
+    <a href="/post-job/" class="btn" style="padding: 0.75rem 1.5rem; text-decoration: none;">+ Post New Job</a>
   </div>
 
   <div class="job-list">
@@ -159,9 +160,9 @@
         </div>
       </div>
       <div class="job-actions">
-        <a href="/edit-job/" class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Edit</a>
-        <button onclick="closeJob(1)" class="btn danger" style="background: #ef4444; color: #FFFFFA; border: 1px solid #ef4444;">Close</button>
-        <a href="/applicants/" class="btn" style="background: #2A5155; color: #FFFFFA;">View Applicants</a>
+        <a href="/edit-job/" class="btn secondary">Edit</a>
+        <button onclick="closeJob(1)" class="btn danger">Close</button>
+        <a href="/applicants/" class="btn">View Applicants</a>
       </div>
     </div>
 
@@ -177,9 +178,9 @@
         </div>
       </div>
       <div class="job-actions">
-        <a href="/edit-job/" class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Edit</a>
-        <button onclick="closeJob(2)" class="btn danger" style="background: #ef4444; color: #FFFFFA; border: 1px solid #ef4444;">Close</button>
-        <a href="/applicants/" class="btn" style="background: #2A5155; color: #FFFFFA;">View Applicants</a>
+        <a href="/edit-job/" class="btn secondary">Edit</a>
+        <button onclick="closeJob(2)" class="btn danger">Close</button>
+        <a href="/applicants/" class="btn">View Applicants</a>
       </div>
     </div>
 
@@ -195,9 +196,9 @@
         </div>
       </div>
       <div class="job-actions">
-        <a href="/edit-job/" class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Edit</a>
-        <button onclick="reopenJob(3)" class="btn" style="background: #10b981; color: #FFFFFA; border: 1px solid #10b981;">Reopen</button>
-        <a href="/applicants/" class="btn" style="background: #2A5155; color: #FFFFFA;">View Applicants</a>
+        <a href="/edit-job/" class="btn secondary">Edit</a>
+        <button onclick="reopenJob(3)" class="btn" style="background: white; color: #10b981; border: 2px solid #10b981;">Reopen</button>
+        <a href="/applicants/" class="btn">View Applicants</a>
       </div>
     </div>
   </div>
@@ -206,19 +207,41 @@
 <script>
 function closeJob(jobId) {
   if (confirm('Are you sure you want to close this job posting? This will stop accepting new applications.')) {
-    // TODO: Send request to backend to close job
-    alert(`Job #${jobId} has been closed. (Backend integration needed)`);
-    // Refresh the page or update the UI
-    location.reload();
+    // Create a form and submit it to the backend
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/jobs/recruiter/jobs/${jobId}/close/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
   }
 }
 
 function reopenJob(jobId) {
   if (confirm('Are you sure you want to reopen this job posting? This will start accepting new applications again.')) {
-    // TODO: Send request to backend to reopen job
-    alert(`Job #${jobId} has been reopened. (Backend integration needed)`);
-    // Refresh the page or update the UI
-    location.reload();
+    // Create a form and submit it to the backend
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/jobs/recruiter/jobs/${jobId}/reopen/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
   }
 }
 

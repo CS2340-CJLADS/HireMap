@@ -197,17 +197,12 @@
           
           <div class="form-group">
             <label for="title">Job Title *</label>
-            <input type="text" name="title" id="title" placeholder="e.g., Senior Software Engineer" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="company_name">Company Name *</label>
-            <input type="text" name="company_name" id="company_name" placeholder="Enter company name" required>
+            <input type="text" name="title" id="title" value="{% if job %}{{ job.title }}{% endif %}" placeholder="e.g., Senior Software Engineer" required>
           </div>
           
           <div class="form-group">
             <label for="description">Job Description *</label>
-            <textarea name="description" id="description" placeholder="Describe the role, responsibilities, and what you're looking for..." required></textarea>
+            <textarea name="description" id="description" placeholder="Describe the role, responsibilities, and what you're looking for..." required>{% if job %}{{ job.description }}{% endif %}</textarea>
           </div>
         </div>
 
@@ -217,7 +212,7 @@
           
           <div class="form-group">
             <label for="location">Location *</label>
-            <input type="text" name="location" id="location" placeholder="e.g., San Francisco, CA or Remote" required>
+            <input type="text" name="location" id="location" value="{% if job %}{{ job.location }}{% endif %}" placeholder="e.g., San Francisco, CA or Remote" required>
           </div>
           
           <div class="work-type-selection">
@@ -241,16 +236,16 @@
           <div class="salary-range">
             <div class="form-group">
               <label for="salary_min">Minimum Salary</label>
-              <input type="number" name="salary_min" id="salary_min" placeholder="e.g., 80000" min="0">
+              <input type="number" name="salary_min" id="salary_min" value="{% if job %}{{ job.salary_min }}{% endif %}" placeholder="e.g., 80000" min="0">
             </div>
             <div class="form-group">
               <label for="salary_max">Maximum Salary</label>
-              <input type="number" name="salary_max" id="salary_max" placeholder="e.g., 120000" min="0">
+              <input type="number" name="salary_max" id="salary_max" value="{% if job %}{{ job.salary_max }}{% endif %}" placeholder="e.g., 120000" min="0">
             </div>
           </div>
           
           <div class="checkbox-group">
-            <input type="checkbox" name="visa_sponsorship" id="visa_sponsorship">
+            <input type="checkbox" name="visa_sponsorship" id="visa_sponsorship" {% if job and job.visa_sponsorship %}checked{% endif %}>
             <label for="visa_sponsorship">Visa Sponsorship Available</label>
           </div>
         </div>
@@ -274,8 +269,8 @@
 
         <!-- Form Actions -->
         <div class="form-actions">
-          <a href="/recruiter/jobs/" class="btn secondary">Cancel</a>
-          <button type="button" class="btn secondary" onclick="saveDraft()">Save as Draft</button>
+          <a href="{% url 'jobs:jobs.recruiter_jobs' %}" class="btn secondary">Cancel</a>
+          <button type="submit" name="save_draft" value="1" class="btn secondary">Save as Draft</button>
           <button type="submit" class="btn">Post Job</button>
         </div>
       </form>
@@ -333,10 +328,6 @@ function updateSkillsDisplay() {
   hiddenInput.value = skillsList.join(',');
 }
 
-function saveDraft() {
-  // This will be implemented later
-  alert('Draft saved! (Feature coming soon)');
-}
 
 // Allow adding skills with Enter key
 document.getElementById('skill-input').addEventListener('keypress', function(e) {
@@ -344,6 +335,33 @@ document.getElementById('skill-input').addEventListener('keypress', function(e) 
     e.preventDefault();
     addSkill();
   }
+});
+
+// Initialize the form
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize work type if editing
+  {% if job %}
+    const isRemote = {{ job.remote|yesno:"true,false" }};
+    if (isRemote) {
+      selectWorkType('remote');
+    } else {
+      selectWorkType('onsite');
+    }
+  {% endif %}
+  
+  // Initialize skills if editing
+  {% if job and job.skills_required %}
+    const existingSkillsData = '{{ job.skills_required|escapejs }}';
+    if (existingSkillsData) {
+      const existingSkills = existingSkillsData.split(',');
+      existingSkills.forEach(skill => {
+        if (skill.trim()) {
+          skillsList.push(skill.trim());
+        }
+      });
+      updateSkillsDisplay();
+    }
+  {% endif %}
 });
 </script>
 {% endblock content %}

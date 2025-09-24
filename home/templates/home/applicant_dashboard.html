@@ -1,15 +1,133 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
 <div class="container">
   <div class="page-head">
     <h2 class="page-title">Applicant Dashboard</h2>
+    <p class="page-subtitle">Find your next opportunity and manage your applications</p>
   </div>
-  <div class="grid">
-    <a class="btn" href="/job-search/">Job Search</a>
-    <a class="btn" href="/profile/">Profile</a>
-    <a class="btn" href="/map/">Map</a>
+  
+  <div class="dashboard-grid">
+    <div class="dashboard-card">
+      <h3>Job Search</h3>
+      <p>Browse and search for job opportunities</p>
+      <div class="card-actions">
+        <a class="btn" href="{% url 'jobs:jobs.index' %}">Browse Jobs</a>
+        <a class="btn secondary btn-smaller" href="{% url 'jobs:jobs.my_applications' %}">My Applications</a>
+      </div>
+    </div>
+    
+    <div class="dashboard-card">
+      <h3>My Profile</h3>
+      <p>View and manage your professional profile</p>
+      <div class="card-actions">
+        <a class="btn" href="/profile/">View Profile</a>
+      </div>
+    </div>
+    
+    <div class="dashboard-card">
+      <h3>Map View</h3>
+      <p>Explore job opportunities on the map</p>
+      <div class="card-actions">
+        <a class="btn secondary" href="/map/">View Map</a>
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.dashboard-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.dashboard-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--brand);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.dashboard-card p {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2A5155;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn:hover {
+  background: white;
+  color: #2A5155;
+  border: 1px solid #2A5155;
+}
+
+.btn.secondary {
+  background: white;
+  color: #2A5155;
+  border: 1px solid #2A5155;
+}
+
+.btn.secondary:hover {
+  background: #2A5155;
+  color: white;
+}
+
+.btn-smaller {
+  padding: 0.65rem 1.2rem;
+  font-size: 0.9rem;
+}
+
+.page-subtitle {
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+  }
+}
+</style>
 {% endblock content %}
 
 

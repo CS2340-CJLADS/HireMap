@@ -192,7 +192,7 @@
   </div>
 
   <div class="post-job-container">
-    <form class="form" method="post" id="jobPostForm">
+    <form class="form" method="post" id="jobPostForm" action="/jobs/recruiter/jobs/new/">
       {% csrf_token %}
       
       <!-- Basic Information Section -->
@@ -337,13 +337,20 @@ function updateSkillsDisplay() {
 }
 
 function saveDraft() {
-  alert('Draft saved! (Frontend only - backend integration needed)');
+  // Add a hidden input to indicate this is a draft
+  const form = document.getElementById('jobPostForm');
+  const draftInput = document.createElement('input');
+  draftInput.type = 'hidden';
+  draftInput.name = 'save_draft';
+  draftInput.value = '1';
+  form.appendChild(draftInput);
+  
+  // Submit the form
+  form.submit();
 }
 
 // Handle form submission
 document.getElementById('jobPostForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
   // Validate required fields
   const title = document.getElementById('title').value.trim();
   const company = document.getElementById('company_name').value.trim();
@@ -351,20 +358,19 @@ document.getElementById('jobPostForm').addEventListener('submit', function(e) {
   const location = document.getElementById('location').value.trim();
   
   if (!title || !company || !description || !location) {
+    e.preventDefault();
     alert('Please fill in all required fields.');
     return;
   }
   
   if (!selectedWorkType) {
+    e.preventDefault();
     alert('Please select a work type.');
     return;
   }
   
-  // Show success message
-  alert('Job posted successfully! (Frontend only - backend integration needed)');
-  
-  // Redirect back to manage jobs
-  window.location.href = '/manage-jobs/';
+  // If validation passes, let the form submit normally
+  // The backend will handle the actual job creation
 });
 
 // Allow adding skills with Enter key

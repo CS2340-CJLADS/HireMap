@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+{% csrf_token %}
 <style>
 .job-item {
   border: 1px solid #2A5155;
@@ -86,8 +87,8 @@
 
       <!-- Search Button -->
       <div style="display: flex; gap: 1rem;">
-        <button type="submit" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Search Jobs</button>
-        <button type="button" onclick="clearFilters()" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; opacity: 0.7;">Clear Filters</button>
+        <button type="submit" class="btn" style="padding: 0.75rem 1.5rem;">Search Jobs</button>
+        <button type="button" onclick="clearFilters()" class="btn secondary" style="padding: 0.75rem 1.5rem;">Clear Filters</button>
       </div>
     </form>
   </div>
@@ -122,8 +123,8 @@
           </div>
         </div>
         <div style="margin-left: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-          <a href="/jobs/1/" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; text-decoration: none; border-radius: 4px; font-weight: 500; text-align: center;">View Details</a>
-          <button onclick="quickApply(1)" style="padding: 0.75rem 1.5rem; background: #10b981; color: #FFFFFA; border: none; border-radius: 4px; font-weight: 500; cursor: pointer;">Quick Apply</button>
+          <a href="/jobs/1/" class="btn" style="padding: 0.75rem 1.5rem; text-decoration: none; text-align: center;">View Details</a>
+          <a href="/jobs/1/" class="btn" style="padding: 0.75rem 1.5rem; background: white; color: #10b981; border: 2px solid #10b981; text-decoration: none; text-align: center;">Apply Now</a>
         </div>
       </div>
     </div>
@@ -150,8 +151,8 @@
           </div>
         </div>
         <div style="margin-left: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-          <a href="/jobs/2/" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; text-decoration: none; border-radius: 4px; font-weight: 500; text-align: center;">View Details</a>
-          <button onclick="quickApply(2)" style="padding: 0.75rem 1.5rem; background: #10b981; color: #FFFFFA; border: none; border-radius: 4px; font-weight: 500; cursor: pointer;">Quick Apply</button>
+          <a href="/jobs/2/" class="btn" style="padding: 0.75rem 1.5rem; text-decoration: none; text-align: center;">View Details</a>
+          <a href="/jobs/2/" class="btn" style="padding: 0.75rem 1.5rem; background: white; color: #10b981; border: 2px solid #10b981; text-decoration: none; text-align: center;">Apply Now</a>
         </div>
       </div>
     </div>
@@ -178,8 +179,8 @@
           </div>
         </div>
         <div style="margin-left: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
-          <a href="/jobs/3/" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; text-decoration: none; border-radius: 4px; font-weight: 500; text-align: center;">View Details</a>
-          <button onclick="quickApply(3)" style="padding: 0.75rem 1.5rem; background: #10b981; color: #FFFFFA; border: none; border-radius: 4px; font-weight: 500; cursor: pointer;">Quick Apply</button>
+          <a href="/jobs/3/" class="btn" style="padding: 0.75rem 1.5rem; text-decoration: none; text-align: center;">View Details</a>
+          <a href="/jobs/3/" class="btn" style="padding: 0.75rem 1.5rem; background: white; color: #10b981; border: 2px solid #10b981; text-decoration: none; text-align: center;">Apply Now</a>
         </div>
       </div>
     </div>
@@ -187,33 +188,14 @@
 
   <!-- Pagination -->
   <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
-    <button style="padding: 0.5rem 1rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Previous</button>
-    <button style="padding: 0.5rem 1rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px;">1</button>
-    <button style="padding: 0.5rem 1rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">2</button>
-    <button style="padding: 0.5rem 1rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">3</button>
-    <button style="padding: 0.5rem 1rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Next</button>
+    <button class="btn secondary" style="padding: 0.5rem 1rem;">Previous</button>
+    <button class="btn" style="padding: 0.5rem 1rem;">1</button>
+    <button class="btn secondary" style="padding: 0.5rem 1rem;">2</button>
+    <button class="btn secondary" style="padding: 0.5rem 1rem;">3</button>
+    <button class="btn secondary" style="padding: 0.5rem 1rem;">Next</button>
   </div>
 </div>
 
-<!-- Quick Apply Modal -->
-<div id="quick-apply-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #FFFFFA; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; border: 1px solid #2A5155;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-      <h3 style="margin: 0; color: #2A5155;">Quick Apply</h3>
-      <button onclick="closeQuickApplyModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
-    </div>
-    
-    <div style="margin-bottom: 1rem;">
-      <p style="margin: 0 0 0.5rem 0; color: #666;">Add a personalized note to your application:</p>
-      <textarea id="application-note" placeholder="Why are you interested in this position? What makes you a great fit?" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #2A5155; border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
-    </div>
-    
-    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-      <button onclick="closeQuickApplyModal()" style="padding: 0.75rem 1.5rem; background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer;">Cancel</button>
-      <button onclick="submitQuickApply()" style="padding: 0.75rem 1.5rem; background: #10b981; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Submit Application</button>
-    </div>
-  </div>
-</div>
 
 <script>
 function clearFilters() {
@@ -351,47 +333,5 @@ document.getElementById('job-search-form').addEventListener('submit', function(e
   filterJobs();
 });
 
-// Quick Apply functionality
-let currentJobId = null;
-
-function quickApply(jobId) {
-  currentJobId = jobId;
-  document.getElementById('quick-apply-modal').style.display = 'block';
-  document.getElementById('application-note').focus();
-}
-
-function closeQuickApplyModal() {
-  document.getElementById('quick-apply-modal').style.display = 'none';
-  document.getElementById('application-note').value = '';
-  currentJobId = null;
-}
-
-function submitQuickApply() {
-  const note = document.getElementById('application-note').value.trim();
-  
-  if (!note) {
-    alert('Please add a note to your application.');
-    return;
-  }
-  
-  // TODO: Send application to backend
-  alert(`Application submitted for Job #${currentJobId}!\n\nNote: "${note}"\n\n(Backend integration needed)`);
-  
-  closeQuickApplyModal();
-}
-
-// Close modal when clicking outside
-document.getElementById('quick-apply-modal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeQuickApplyModal();
-  }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && document.getElementById('quick-apply-modal').style.display === 'block') {
-    closeQuickApplyModal();
-  }
-});
 </script>
 {% endblock content %}
