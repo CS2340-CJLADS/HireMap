@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="search-filters">
     <form method="get" class="search-form">
       <div class="search-row">
-        <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." value="{{ template_data.search_term }}" class="search-input" />
+        <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." value="{{ template_data.search_term|default:'' }}" class="search-input" />
         <button type="submit" class="btn">Search</button>
       </div>
       
