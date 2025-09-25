@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import applicant_required, recruiter_required
 from accounts.models import Applicant, Project
-from django.db.models import Q
+from django.db.models import Q, Value, CharField
+from django.db.models.functions import Concat
 
 # Create your views here.
 def index(request):
@@ -69,9 +70,15 @@ def search_candidates(request):
     query = Q()
     
     if search_term:
+        # Create a computed full name field for searching  
+        applicants = applicants.annotate(
+            full_name=Concat('first_name', Value(' '), 'last_name', output_field=CharField())
+        )
+        
         query &= (
             Q(first_name__icontains=search_term) |
             Q(last_name__icontains=search_term) |
+            Q(full_name__icontains=search_term) |  # Add full name search
             Q(skills__icontains=search_term) |
             Q(education__icontains=search_term) |
             Q(experience__icontains=search_term)
