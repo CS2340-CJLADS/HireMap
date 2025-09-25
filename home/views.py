@@ -81,8 +81,13 @@ def search_candidates(request):
             Q(full_name__icontains=search_term) |  # Add full name search
             Q(skills__icontains=search_term) |
             Q(education__icontains=search_term) |
-            Q(experience__icontains=search_term)
+            Q(experience__icontains=search_term) | 
+            Q(project_set__title__icontains=search_term) |  # Search project titles
+            Q(project_set__description__icontains=search_term) |  # Search project descriptions
+            Q(project_set__technologies__icontains=search_term)  # Search project technologies
         )
+
+        applicants = applicants.distinct()  # Ensure distinct applicants after joins
     
     if skills_filter:
         skills_list = [skill.strip() for skill in skills_filter.split(',')]
