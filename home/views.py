@@ -53,6 +53,26 @@ def recruiter_profile_view(request):
 
 @login_required
 @recruiter_required
+def recruiter_profile_edit(request):
+    """Edit recruiter profile"""
+    recruiter = request.user.recruiter
+    
+    if request.method == 'POST':
+        recruiter.first_name = request.POST.get('first_name', '').strip()
+        recruiter.last_name = request.POST.get('last_name', '').strip()
+        recruiter.company_name = request.POST.get('company_name', '').strip()
+        recruiter.location = request.POST.get('location', '').strip()
+        recruiter.save()
+        return redirect('home:recruiter_profile')
+    
+    template_data = {
+        'title': 'Edit Profile',
+        'recruiter': recruiter
+    }
+    return render(request, 'home/recruiter_profile_edit.html', {'template_data': template_data})
+
+@login_required
+@recruiter_required
 def search_candidates(request):
     """Search and filter job seekers"""
     # Get all applicants
@@ -61,8 +81,7 @@ def search_candidates(request):
     # Apply filters
     search_term = request.GET.get('search', '')
     skills_filter = request.GET.get('skills', '')
-    location_filter = request.GET.get('location', '')
-    experience_filter = request.GET.get('experience', '')
+    location_filter = request.GET.get('location-value', '') or request.GET.get('location', '')
     availability_filter = request.GET.get('availability', '')
     education_filter = request.GET.get('education', '')
     
@@ -97,16 +116,8 @@ def search_candidates(request):
     if location_filter:
         query &= Q(location__icontains=location_filter)
     
-    if experience_filter:
-        if experience_filter == 'entry':
-            query &= Q(experience__icontains='entry') | Q(experience__icontains='junior')
-        elif experience_filter == 'mid':
-            query &= Q(experience__icontains='mid') | Q(experience__icontains='intermediate')
-        elif experience_filter == 'senior':
-            query &= Q(experience__icontains='senior') | Q(experience__icontains='lead')
-    
     if availability_filter:
-        query &= Q(availability__icontains=availability_filter)
+        query &= Q(availability=availability_filter)
     
     if education_filter:
         query &= Q(education__icontains=education_filter)
@@ -131,7 +142,6 @@ def search_candidates(request):
             'search': search_term,
             'skills': skills_filter,
             'location': location_filter,
-            'experience': experience_filter,
             'availability': availability_filter,
             'education': education_filter,
         }

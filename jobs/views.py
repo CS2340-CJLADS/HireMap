@@ -11,6 +11,7 @@ from accounts.decorators import recruiter_required, applicant_required
 def index(request):
     # Get filter parameters
     search_term = request.GET.get('search')
+    work_type = request.GET.get('work_type')
     location = request.GET.get('location')
     salary_min = request.GET.get('salary_min')
     salary_max = request.GET.get('salary_max')
@@ -28,11 +29,18 @@ def index(request):
             models.Q(skills_required__icontains=search_term)
         )
     
-    # Apply location filter
-    if location == 'remote':
+    # Apply work type filter
+    if work_type == 'remote':
         job_postings = job_postings.filter(remote=True)
-    elif location == 'onsite':
+    elif work_type == 'onsite':
         job_postings = job_postings.filter(remote=False)
+    elif work_type == 'hybrid':
+        # For hybrid, we'll show both remote and onsite jobs
+        pass  # No additional filtering needed
+    
+    # Apply specific location filter (for onsite/hybrid jobs)
+    if location and work_type in ['onsite', 'hybrid']:
+        job_postings = job_postings.filter(location__icontains=location)
     
     # Apply salary filters
     if salary_min:
@@ -74,6 +82,8 @@ def index(request):
         'job_postings': job_postings,
         'user_type': user_type,
         'search_term': search_term,
+        'work_type': work_type,
+        'location': location,
         'applied_job_ids': applied_job_ids,
         'my_jobs': my_jobs == 'true' if my_jobs else False
     }
@@ -93,7 +103,6 @@ def detail(request, job_id):
         if not hasattr(request.user, 'applicant'):
             return HttpResponseForbidden("Only applicants can apply to jobs.")
         # Get the logged-in user's applicant profile
-        print("post request received")
         message = request.POST.get("message", "")
         applicant = get_object_or_404(Applicant, user=request.user)
         try:
@@ -163,10 +172,6 @@ def apply_to_job(request, job_id):
 def recruiter_jobs(request):
     recruiter = request.user.recruiter
     jobs = JobPosting.objects.filter(recruiter=recruiter).order_by('-created_at')
-    print(f"Recruiter: {recruiter.user.username}")
-    print(f"Jobs found: {jobs.count()}")
-    for job in jobs:
-        print(f"  Job {job.id}: {job.title}")
     return render(request, 'jobs/recruiter_jobs.html', {'jobs': jobs})
 
 
@@ -175,19 +180,16 @@ def recruiter_jobs(request):
 def recruiter_job_new(request):
     recruiter = request.user.recruiter
     if request.method == 'POST':
-        print("POST data received:", dict(request.POST))
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
         skills_required = request.POST.get('skills', '').strip()
-        location = request.POST.get('location', '').strip()
+        location = request.POST.get('location-value', '').strip()
         salary_min = request.POST.get('salary_min') or 0
         salary_max = request.POST.get('salary_max') or 0
         work_type = request.POST.get('work_type')
         visa_sponsorship = bool(request.POST.get('visa_sponsorship'))
         save_as_draft = bool(request.POST.get('save_draft'))
         
-        print(f"Title: {title}, Description: {description}, Location: {location}")
-        print(f"Save as draft: {save_as_draft}")
 
         if not title or not description or not location:
             return HttpResponseBadRequest("Missing required fields.")
@@ -204,7 +206,6 @@ def recruiter_job_new(request):
             recruiter=recruiter,
             is_draft=save_as_draft,
         )
-        print(f"Job created: {job.id}, Draft: {job.is_draft}")
         return redirect('jobs:jobs.recruiter_jobs')
 
     return render(request, 'jobs/recruiter_job_new.html')
@@ -215,13 +216,12 @@ def recruiter_job_new(request):
 def recruiter_job_edit(request, job_id):
     recruiter = request.user.recruiter
     job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
-    print(f"Editing job {job_id} for recruiter {recruiter.user.username}")
 
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
         skills_required = request.POST.get('skills', '').strip()
-        location = request.POST.get('location', '').strip()
+        location = request.POST.get('location-value', '').strip()
         salary_min = request.POST.get('salary_min') or job.salary_min
         salary_max = request.POST.get('salary_max') or job.salary_max
         work_type = request.POST.get('work_type')
@@ -254,10 +254,8 @@ def recruiter_job_edit(request, job_id):
 def close_job(request, job_id):
     recruiter = request.user.recruiter
     job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
-    print(f"Closing job {job_id} for recruiter {recruiter.user.username}")
     job.is_closed = True
     job.save()
-    print(f"Job {job_id} closed successfully")
     return redirect('jobs:jobs.recruiter_jobs')
 
 
@@ -266,10 +264,8 @@ def close_job(request, job_id):
 def reopen_job(request, job_id):
     recruiter = request.user.recruiter
     job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
-    print(f"Reopening job {job_id} for recruiter {recruiter.user.username}")
     job.is_closed = False
     job.save()
-    print(f"Job {job_id} reopened successfully")
     return redirect('jobs:jobs.recruiter_jobs')
 
 
@@ -292,6 +288,9 @@ def edit_profile(request):
         applicant.experience = request.POST.get('experience', '').strip()
         applicant.projects = request.POST.get('projects', '').strip()
         applicant.links = request.POST.get('links', '').strip()
+        applicant.phone = request.POST.get('phone', '').strip()
+        applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()
+        applicant.availability = request.POST.get('availability', 'open-to-work')
         applicant.save()
         return redirect('home:profile_edit')
     
@@ -316,10 +315,6 @@ def job_applications(request, job_id):
     job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
     applications = Application.objects.filter(listing=job).select_related('applicant', 'applicant__user').order_by('-id')
     
-    # Debug: Print application data
-    print(f"Job {job_id} applications: {applications.count()}")
-    for app in applications:
-        print(f"  Application {app.id}: applicant_user_id={app.applicant.user.id if app.applicant else 'None'}, applicant={app.applicant}")
     
     template_data = {
         'title': f'Applications for {job.title}',

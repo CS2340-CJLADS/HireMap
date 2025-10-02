@@ -2,43 +2,43 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
-
 <div class="container">
   <div class="hero">
-    <h1>{{ template_data.recruiter.first_name }} {{ template_data.recruiter.last_name }}</h1>
-    <p class="lede muted">Recruiter Profile</p>
-    <a href="/dashboard/recruiter/" class="link-back">← Back to Dashboard</a>
+    <h1>Edit Profile</h1>
+    <p class="lede muted">Update your recruiter information.</p>
+    <a href="{% url 'home:recruiter_profile' %}" class="link-back">← Back to Profile</a>
   </div>
 
   <section class="section">
     <div class="card">
-      <h3>Contact Information</h3>
-      <p><strong>Email:</strong> {{ template_data.recruiter.user.username }}</p>
-      <p><strong>Name:</strong> {{ template_data.recruiter.first_name }} {{ template_data.recruiter.last_name }}</p>
-    </div>
+      <form class="form" method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label class="label">First Name *</label>
+          <input type="text" name="first_name" value="{{ template_data.recruiter.first_name }}" required>
+        </div>
 
-    {% if template_data.recruiter.company_name %}
-    <div class="card">
-      <h3>Company</h3>
-      <p><strong>Company Name:</strong> {{ template_data.recruiter.company_name }}</p>
-    </div>
-    {% endif %}
+        <div class="form-group">
+          <label class="label">Last Name *</label>
+          <input type="text" name="last_name" value="{{ template_data.recruiter.last_name }}" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Company Name</label>
+          <input type="text" name="company_name" value="{{ template_data.recruiter.company_name }}" placeholder="e.g., Tech Corp Inc.">
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Location</label>
+          <input type="text" name="location" value="{{ template_data.recruiter.location }}" placeholder="e.g., San Francisco, CA">
+        </div>
 
-    {% if template_data.recruiter.location %}
-    <div class="card">
-      <h3>Location</h3>
-      <p>{{ template_data.recruiter.location }}</p>
-    </div>
-    {% endif %}
-
-    <div class="card">
-      <div class="profile-actions">
-        <a href="{% url 'home:recruiter_profile_edit' %}" class="btn">Edit Profile</a>
-        <a href="{% url 'jobs:jobs.recruiter_jobs' %}" class="btn secondary">Manage Jobs</a>
-        <a href="{% url 'jobs:jobs.recruiter_job_new' %}" class="btn secondary">Post New Job</a>
-        <a href="{% url 'jobs:jobs.index' %}" class="btn secondary">Browse All Jobs</a>
-        <a href="/dashboard/recruiter/" class="btn secondary">Back to Dashboard</a>
-      </div>
+        <div class="form-actions">
+          <button type="submit" class="btn">Save Profile</button>
+          <a href="{% url 'home:recruiter_profile' %}" class="btn secondary">Cancel</a>
+        </div>
+      </form>
     </div>
   </section>
 </div>
@@ -100,31 +100,38 @@
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.card h3 {
-  margin: 0 0 1rem 0;
-  color: var(--brand);
-  font-size: 1.25rem;
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
   font-weight: 600;
-  border-bottom: 2px solid var(--brand);
-  padding-bottom: 0.5rem;
+  color: var(--brand);
 }
 
-.card p {
-  margin: 0 0 0.75rem 0;
-  color: var(--text-muted);
-  line-height: 1.5;
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
 }
 
-.card p:last-child {
-  margin-bottom: 0;
+.form-group input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(42, 81, 85, 0.1);
 }
 
-.profile-actions {
-  display: grid;
+.form-actions {
+  display: flex;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  justify-content: center;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--border);
 }
 
 .btn {
@@ -138,7 +145,6 @@
   transition: background-color 0.2s;
   border: none;
   cursor: pointer;
-  text-align: center;
 }
 
 .btn:hover {
@@ -167,8 +173,8 @@
     grid-template-columns: 1fr;
   }
   
-  .profile-actions {
-    grid-template-columns: 1fr;
+  .form-actions {
+    flex-direction: column;
   }
 }
 </style>

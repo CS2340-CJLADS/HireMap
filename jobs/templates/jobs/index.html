@@ -4,6 +4,173 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/jobs.css' %}">
 
 <script>
+// Location data will be fetched from database
+let JOB_LOCATIONS = [];
+
+// Location selector functionality for job filters
+function initializeJobLocationSelector() {
+  const input = document.getElementById('location-input');
+  const dropdown = document.getElementById('location-dropdown');
+  const hiddenInput = document.getElementById('location-value');
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let filteredLocations = [];
+  let selectedIndex = -1;
+  
+  function showDropdown() {
+    dropdown.style.display = 'block';
+  }
+  
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+  
+  function filterLocations(query) {
+    // Fetch locations from database API
+    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        filteredLocations = data.locations.map(loc => loc.name);
+        renderLocations();
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        // Fallback to empty array
+        filteredLocations = [];
+        renderLocations();
+      });
+  }
+  
+  function renderLocations() {
+    dropdown.innerHTML = '';
+    filteredLocations.forEach((location, index) => {
+      const option = document.createElement('div');
+      option.className = 'location-option';
+      
+      // Add custom class for custom locations
+      if (location.includes('(Use as entered)')) {
+        option.classList.add('custom');
+      }
+      
+      option.textContent = location;
+      option.addEventListener('click', () => selectLocation(location));
+      dropdown.appendChild(option);
+    });
+    showDropdown();
+  }
+  
+  function selectLocation(location) {
+    // Handle custom locations and geocoded results
+    if (location.includes('(Use as entered)')) {
+      // Extract the custom location from the display name
+      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
+      input.value = customLocation;
+      hiddenInput.value = customLocation;
+    } else {
+      input.value = location;
+      hiddenInput.value = location;
+    }
+    hideDropdown();
+  }
+  
+  function highlightOption(index) {
+    const options = dropdown.querySelectorAll('.location-option');
+    options.forEach((option, i) => {
+      option.classList.toggle('highlighted', i === index);
+    });
+  }
+  
+  // Debounce timer for API calls
+  let debounceTimer = null;
+  
+  // Event listeners
+  input.addEventListener('input', (e) => {
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer to delay API call
+    debounceTimer = setTimeout(() => {
+      filterLocations(e.target.value);
+    }, 300); // 300ms delay
+  });
+  
+  input.addEventListener('focus', () => {
+    // Only show dropdown if user has typed something
+    if (input.value.trim().length > 0) {
+      filterLocations(input.value);
+    }
+  });
+  
+  input.addEventListener('blur', (e) => {
+    setTimeout(() => {
+      if (!dropdown.contains(document.activeElement)) {
+        hideDropdown();
+      }
+    }, 150);
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    const options = dropdown.querySelectorAll('.location-option');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, options.length - 1);
+      highlightOption(selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      highlightOption(selectedIndex);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && options[selectedIndex]) {
+        selectLocation(options[selectedIndex].textContent);
+      } else {
+        const exactMatch = filteredLocations.find(loc => 
+          loc.toLowerCase() === input.value.toLowerCase()
+        );
+        if (exactMatch) {
+          selectLocation(exactMatch);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      hideDropdown();
+    }
+  });
+  
+  // Don't initialize with empty search - wait for user input
+}
+
+// Work type logic to show/hide location filter
+function initializeWorkTypeLogic() {
+  const workTypeSelect = document.getElementById('work_type');
+  const locationFilterGroup = document.getElementById('location-filter-group');
+  
+  if (!workTypeSelect || !locationFilterGroup) return;
+  
+  function toggleLocationFilter() {
+    const workType = workTypeSelect.value;
+    if (workType === 'onsite' || workType === 'hybrid') {
+      locationFilterGroup.style.display = 'block';
+    } else {
+      locationFilterGroup.style.display = 'none';
+      // Clear location input when hiding
+      const locationInput = document.getElementById('location-input');
+      const locationValue = document.getElementById('location-value');
+      if (locationInput) locationInput.value = '';
+      if (locationValue) locationValue.value = '';
+    }
+  }
+  
+  workTypeSelect.addEventListener('change', toggleLocationFilter);
+  
+  // Initialize on page load
+  toggleLocationFilter();
+}
+
 function openQuickApply(jobId, jobTitle) {
   var modal = document.getElementById('quick-apply-modal');
   var jobIdEl = document.getElementById('modal-job-id');
@@ -97,6 +264,10 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+  
+  // Initialize location selector and work type logic
+  initializeJobLocationSelector();
+  initializeWorkTypeLogic();
 });
 </script>
 <div class="container">
@@ -123,12 +294,24 @@ document.addEventListener('DOMContentLoaded', function() {
       
       <div class="filters-row">
         <div class="filter-group">
-          <label for="location">Location</label>
-          <select name="location" id="location">
-            <option value="">All Locations</option>
-            <option value="remote" {% if request.GET.location == 'remote' %}selected{% endif %}>Remote</option>
-            <option value="onsite" {% if request.GET.location == 'onsite' %}selected{% endif %}>On-site</option>
+          <label for="work_type">Work Type</label>
+          <select name="work_type" id="work_type">
+            <option value="">All Work Types</option>
+            <option value="remote" {% if request.GET.work_type == 'remote' %}selected{% endif %}>Remote</option>
+            <option value="onsite" {% if request.GET.work_type == 'onsite' %}selected{% endif %}>On-site</option>
+            <option value="hybrid" {% if request.GET.work_type == 'hybrid' %}selected{% endif %}>Hybrid</option>
           </select>
+        </div>
+        
+        <div class="filter-group" id="location-filter-group" style="display: none;">
+          <label for="location">Location</label>
+          <div class="location-selector">
+            <input type="text" name="location" id="location-input" placeholder="Search for a location..." autocomplete="off" value="{{ request.GET.location }}">
+            <input type="hidden" name="location-value" id="location-value" value="{{ request.GET.location }}">
+            <div class="location-dropdown" id="location-dropdown" style="display: none;">
+              <!-- Location options will be populated by JavaScript -->
+            </div>
+          </div>
         </div>
         
         <div class="filter-group">
@@ -448,6 +631,56 @@ document.addEventListener('DOMContentLoaded', function() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* Location Selector Styles */
+.location-selector {
+  position: relative;
+}
+
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+}
+
+.location-option:hover {
+  background-color: #f8fafc;
+}
+
+.location-option:last-child {
+  border-bottom: none;
+}
+
+.location-option.highlighted {
+  background-color: var(--brand-accent);
+  color: var(--brand);
+}
+
+.location-option.custom {
+  background-color: #f8f9fa;
+  border-left: 3px solid #6c757d;
+  font-style: italic;
+}
+
+.location-option.custom:hover {
+  background-color: #e9ecef;
 }
 
 .search-row {

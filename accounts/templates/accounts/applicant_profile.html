@@ -3,6 +3,7 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
 
+
 <style>
 .projects-preview {
   display: flex;
@@ -33,6 +34,29 @@
 .project-item p:last-child {
   margin-bottom: 0;
 }
+
+.availability-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.availability-badge.available {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.availability-badge.open-to-work {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.availability-badge.not-looking {
+  background: #ffebee;
+  color: #d32f2f;
+}
 </style>
 <div class="container">
   <div class="hero">
@@ -43,8 +67,27 @@
   <section class="section">
     <div class="card">
       <h3>Contact Information</h3>
-      <p><strong>Email:</strong> {{ applicant.user.email }}</p>
+      <p><strong>Email:</strong> {{ applicant.user.username }}</p>
       <p><strong>Name:</strong> {{ applicant.first_name }} {{ applicant.last_name }}</p>
+      <p><strong>Phone:</strong> 
+        {% if applicant.phone and applicant.phone != 'None' and applicant.phone.strip %}
+          {{ applicant.phone }}
+        {% else %}
+          <em>Not provided</em>
+        {% endif %}
+      </p>
+      <p><strong>Location:</strong> 
+        {% if applicant.location and applicant.location != 'None' and applicant.location.strip %}
+          {{ applicant.location }}
+        {% else %}
+          <em>Not provided</em>
+        {% endif %}
+      </p>
+      <p><strong>Job Search Status:</strong> 
+        <span class="availability-badge {{ applicant.availability|default:'open-to-work' }}">
+          {{ applicant.get_availability_display|default:'Open to Work' }}
+        </span>
+      </p>
     </div>
 
     {% if applicant.skills %}

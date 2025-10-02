@@ -136,6 +136,56 @@
   content: " *";
   color: #ef4444;
 }
+
+/* Location Selector Styles */
+.location-selector {
+  position: relative;
+}
+
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+}
+
+.location-option:hover {
+  background-color: #f8fafc;
+}
+
+.location-option:last-child {
+  border-bottom: none;
+}
+
+.location-option.highlighted {
+  background-color: var(--brand-accent);
+  color: var(--brand);
+}
+
+.location-option.custom {
+  background-color: #f8f9fa;
+  border-left: 3px solid #6c757d;
+  font-style: italic;
+}
+
+.location-option.custom:hover {
+  background-color: #e9ecef;
+}
 </style>
 
 <div class="container">
@@ -249,6 +299,7 @@
             <div class="form-group">
               <label class="label">Skills</label>
               <input type="text" name="applicant-skills" placeholder="e.g., Python, JavaScript, Project Management">
+              <small style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: block;">List your skills separated by commas</small>
             </div>
             
             <div class="form-group">
@@ -259,6 +310,16 @@
             <div class="form-group">
               <label class="label">Work Experience</label>
               <textarea name="applicant-experience" placeholder="Describe your work experience" rows="4"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="label">Job Search Status</label>
+              <select name="applicant-availability" data-required="true">
+                <option value="open-to-work" selected>Open to Work</option>
+                <option value="available">Available Now</option>
+                <option value="not-looking">Not Looking</option>
+              </select>
+              <small style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: block;">This helps recruiters understand your current job search status</small>
             </div>
             
             <div class="form-group">
@@ -286,7 +347,13 @@
 
             <div class="form-group">
               <label class="label">Location</label>
-              <input type="text" name="recruiter-location" placeholder="City, State/Country" data-required="true">
+              <div class="location-selector">
+                <input type="text" name="recruiter-location" id="recruiter-location-input" placeholder="Search for your location..." autocomplete="off" data-required="true">
+                <input type="hidden" name="recruiter-location-value" id="recruiter-location-value">
+                <div class="location-dropdown" id="recruiter-location-dropdown" style="display: none;">
+                  <!-- Location options will be populated by JavaScript -->
+                </div>
+              </div>
             </div>
           </div>
           
@@ -311,6 +378,148 @@
 <script>
 let currentStep = 1;
 let selectedUserType = '';
+
+// Location data will be fetched from database
+let LOCATIONS = [];
+
+// Location selector functionality
+function initializeLocationSelector() {
+  const input = document.getElementById('recruiter-location-input');
+  const dropdown = document.getElementById('recruiter-location-dropdown');
+  const hiddenInput = document.getElementById('recruiter-location-value');
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let filteredLocations = [];
+  let selectedIndex = -1;
+  
+  function showDropdown() {
+    dropdown.style.display = 'block';
+  }
+  
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+  
+  function filterLocations(query) {
+    // Fetch locations from database API
+    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        filteredLocations = data.locations.map(loc => loc.name);
+        renderLocations();
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        // Fallback to empty array
+        filteredLocations = [];
+        renderLocations();
+      });
+  }
+  
+  function renderLocations() {
+    dropdown.innerHTML = '';
+    filteredLocations.forEach((location, index) => {
+      const option = document.createElement('div');
+      option.className = 'location-option';
+      
+      // Add custom class for custom locations
+      if (location.includes('(Use as entered)')) {
+        option.classList.add('custom');
+      }
+      
+      option.textContent = location;
+      option.addEventListener('click', () => selectLocation(location));
+      dropdown.appendChild(option);
+    });
+    showDropdown();
+  }
+  
+  function selectLocation(location) {
+    // Handle custom locations and geocoded results
+    if (location.includes('(Use as entered)')) {
+      // Extract the custom location from the display name
+      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
+      input.value = customLocation;
+      hiddenInput.value = customLocation;
+    } else {
+      input.value = location;
+      hiddenInput.value = location;
+    }
+    hideDropdown();
+  }
+  
+  function highlightOption(index) {
+    const options = dropdown.querySelectorAll('.location-option');
+    options.forEach((option, i) => {
+      option.classList.toggle('highlighted', i === index);
+    });
+  }
+  
+  // Debounce timer for API calls
+  let debounceTimer = null;
+  
+  // Event listeners
+  input.addEventListener('input', (e) => {
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer to delay API call
+    debounceTimer = setTimeout(() => {
+      filterLocations(e.target.value);
+    }, 300); // 300ms delay
+  });
+  
+  input.addEventListener('focus', () => {
+    // Only show dropdown if user has typed something
+    if (input.value.trim().length > 0) {
+      filterLocations(input.value);
+    }
+  });
+  
+  input.addEventListener('blur', (e) => {
+    // Delay hiding to allow clicks on options
+    setTimeout(() => {
+      if (!dropdown.contains(document.activeElement)) {
+        hideDropdown();
+      }
+    }, 150);
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    const options = dropdown.querySelectorAll('.location-option');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, options.length - 1);
+      highlightOption(selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      highlightOption(selectedIndex);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && options[selectedIndex]) {
+        selectLocation(options[selectedIndex].textContent);
+      } else {
+        // If no selection, try to find exact match
+        const exactMatch = filteredLocations.find(loc => 
+          loc.toLowerCase() === input.value.toLowerCase()
+        );
+        if (exactMatch) {
+          selectLocation(exactMatch);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      hideDropdown();
+    }
+  });
+  
+  // Don't initialize with empty search - wait for user input
+}
 
 // Function to set required attributes dynamically
 function setRequiredFields(stepNumber, userType = null) {
@@ -453,8 +662,34 @@ function selectUserType(type) {
   document.getElementById('step1-next').disabled = false;
 }
 
+// Handle Enter key presses
+function handleEnterKey(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    
+    if (currentStep === 1) {
+      // Step 1: User type selection - Enter should do nothing or go to next if type selected
+      if (selectedUserType) {
+        nextStep();
+      }
+    } else if (currentStep === 2) {
+      // Step 2: Email/password - Enter should validate and go to next step
+      nextStep();
+    } else if (currentStep === 3) {
+      // Step 3: Final step - Enter should submit the form
+      document.getElementById('signupForm').submit();
+    }
+  }
+}
+
 // Handle form submission
 document.getElementById('signupForm').addEventListener('submit', function(e) {
+  // Only allow submission on step 3
+  if (currentStep !== 3) {
+    e.preventDefault();
+    return false;
+  }
+  
   // Ensure all required fields are set for the final step
   setRequiredFields(3, selectedUserType);
   
@@ -465,9 +700,17 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
   }
 });
 
-// Initialize the form
+// Add Enter key listeners to all input fields
 document.addEventListener('DOMContentLoaded', function() {
   setRequiredFields(1);
+  
+  // Add Enter key listeners to all input fields
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keypress', handleEnterKey);
+  });
+  
+  // Initialize location selector
+  initializeLocationSelector();
 });
 </script>
 {% endblock content %}

@@ -36,6 +36,7 @@ urlpatterns = [
     # Public TemplateViews (no generic /dashboard route)
     path("profile/", views.profile_view, name="profile_edit"),
     path("recruiter-profile/", views.recruiter_profile_view, name="recruiter_profile"),
+    path("recruiter-profile/edit/", views.recruiter_profile_edit, name="recruiter_profile_edit"),
     path("saved-searches/", SAVED_SEARCHES, name="saved_searches"),
     path("messages/", MESSAGES, name="messages_inbox"),
     path("map/", MAP, name="map"),

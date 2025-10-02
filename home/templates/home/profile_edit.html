@@ -14,8 +14,27 @@
   <section class="section">
     <div class="card">
       <h3>Contact Information</h3>
-      <p><strong>Email:</strong> {{ template_data.applicant.user.email }}</p>
+      <p><strong>Email:</strong> {{ template_data.applicant.user.username }}</p>
       <p><strong>Name:</strong> {{ template_data.applicant.first_name }} {{ template_data.applicant.last_name }}</p>
+      <p><strong>Phone:</strong> 
+        {% if template_data.applicant.phone and template_data.applicant.phone != 'None' and template_data.applicant.phone.strip %}
+          {{ template_data.applicant.phone }}
+        {% else %}
+          <em>Not provided</em>
+        {% endif %}
+      </p>
+      <p><strong>Location:</strong> 
+        {% if template_data.applicant.location and template_data.applicant.location != 'None' and template_data.applicant.location.strip %}
+          {{ template_data.applicant.location }}
+        {% else %}
+          <em>Not provided</em>
+        {% endif %}
+      </p>
+      <p><strong>Job Search Status:</strong> 
+        <span class="availability-badge {{ template_data.applicant.availability|default:'open-to-work' }}">
+          {{ template_data.applicant.get_availability_display|default:'Open to Work' }}
+        </span>
+      </p>
     </div>
 
     {% if template_data.applicant.skills %}
@@ -272,6 +291,29 @@
 
 .project-item p:last-child {
   margin-bottom: 0;
+}
+
+.availability-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.availability-badge.available {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.availability-badge.open-to-work {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.availability-badge.not-looking {
+  background: #ffebee;
+  color: #d32f2f;
 }
 </style>
 {% endblock content %}

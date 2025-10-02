@@ -103,6 +103,48 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+/* Location Selector Styles */
+.location-selector {
+  position: relative;
+}
+
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--brand);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-option {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.location-option:hover,
+.location-option.highlighted {
+  background-color: var(--surface);
+}
+
+.location-option:last-child {
+  border-bottom: none;
+}
+
+.location-option.custom {
+  font-style: italic;
+  color: var(--text-muted);
+  border-left: 3px solid var(--brand);
+}
 </style>
 
 <div class="search-candidates-container">
@@ -116,46 +158,43 @@
     <h3 style="margin: 0 0 1rem 0; color: var(--brand);">Find Talent</h3>
     
     <form method="GET">
-      <!-- Main Search -->
-      <div style="margin-bottom: 1rem;">
+    <!-- Main Search -->
+    <div style="margin-bottom: 1rem;">
         <input type="text" name="search" placeholder="Search by name, title, or keywords..." value="{{ template_data.filters.search }}" style="width: 100%; padding: 0.75rem; border: 1px solid var(--brand); border-radius: 4px; font-size: 1rem;">
-      </div>
+    </div>
 
-      <!-- Advanced Filters -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Skills</label>
+    <!-- Advanced Filters -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Skills</label>
           <input type="text" name="skills" placeholder="React, Python, etc." value="{{ template_data.filters.skills }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--brand); border-radius: 4px;">
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Location</label>
-          <input type="text" name="location" placeholder="City, State" value="{{ template_data.filters.location }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--brand); border-radius: 4px;">
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Experience Level</label>
-          <select name="experience" style="width: 100%; padding: 0.5rem; border: 1px solid var(--brand); border-radius: 4px;">
-            <option value="">All Levels</option>
-            <option value="entry" {% if template_data.filters.experience == 'entry' %}selected{% endif %}>Entry Level (0-2 years)</option>
-            <option value="mid" {% if template_data.filters.experience == 'mid' %}selected{% endif %}>Mid Level (2-5 years)</option>
-            <option value="senior" {% if template_data.filters.experience == 'senior' %}selected{% endif %}>Senior Level (5+ years)</option>
-          </select>
-        </div>
-        <div>
-          <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Availability</label>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Location</label>
+        <div class="location-selector">
+          <input type="text" name="location" id="candidate-location-input" placeholder="Search for a location..." autocomplete="off" value="{{ template_data.filters.location }}">
+          <input type="hidden" name="location-value" id="candidate-location-value" value="{{ template_data.filters.location }}">
+          <div class="location-dropdown" id="candidate-location-dropdown" style="display: none;">
+            <!-- Location options will be populated by JavaScript -->
+          </div>
+      </div>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Availability</label>
           <select name="availability" style="width: 100%; padding: 0.5rem; border: 1px solid var(--brand); border-radius: 4px;">
-            <option value="">All Availability</option>
+          <option value="">All Availability</option>
             <option value="available" {% if template_data.filters.availability == 'available' %}selected{% endif %}>Available Now</option>
             <option value="open-to-work" {% if template_data.filters.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
             <option value="not-looking" {% if template_data.filters.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
-          </select>
-        </div>
+      </select>
       </div>
+    </div>
 
-      <!-- Filter Actions -->
-      <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+    <!-- Filter Actions -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
         <button type="submit" class="btn" style="padding: 0.75rem 1.5rem;">Search Candidates</button>
         <a href="{% url 'home:search_candidates' %}" class="btn secondary" style="padding: 0.75rem 1.5rem;">Clear Filters</a>
-      </div>
+    </div>
     </form>
   </div>
 
@@ -167,24 +206,26 @@
     {% for candidate_data in template_data.applicants_with_projects %}
       {% with candidate_data.applicant as applicant %}
       <div class="candidate-card">
-        <div class="candidate-header">
-          <div class="candidate-info">
+      <div class="candidate-header">
+        <div class="candidate-info">
             <h3>{{ applicant.first_name }} {{ applicant.last_name }}</h3>
-            <div class="candidate-details">
-              📧 {{ applicant.user.email }}
-              {% if applicant.phone %}• 📱 {{ applicant.phone }}{% endif %}
-            </div>
-            {% if applicant.location %}
+          <div class="candidate-details">
+              📧 {{ applicant.user.username }}
+              {% if applicant.phone and applicant.phone != 'None' and applicant.phone.strip %}
+                • 📱 {{ applicant.phone }}
+              {% endif %}
+          </div>
+          {% if applicant.location and applicant.location != 'None' and applicant.location.strip %}
             <div class="candidate-details">📍 {{ applicant.location }}</div>
-            {% endif %}
+          {% endif %}
           </div>
-          <div class="availability-badge {{ applicant.availability|lower|default:'available' }}">
-            {{ applicant.availability|default:'Available' }}
+          <div class="availability-badge {{ applicant.availability|default:'open-to-work' }}">
+            {{ applicant.get_availability_display|default:'Open to Work' }}
           </div>
-        </div>
-
+      </div>
+      
         {% if applicant.skills %}
-        <div class="candidate-skills">
+      <div class="candidate-skills">
           {% for skill in applicant.skills|split:"," %}
             {% if skill.strip %}
               <span class="skill-tag">{{ skill.strip }}</span>
@@ -194,19 +235,19 @@
         {% endif %}
 
         {% if applicant.education %}
-        <div class="candidate-details">
+          <div class="candidate-details">
           <strong>Education:</strong> {{ applicant.education }}
         </div>
         {% endif %}
 
         {% if applicant.experience %}
-        <div class="candidate-details">
+          <div class="candidate-details">
           <strong>Experience:</strong> {{ applicant.experience }}
         </div>
         {% endif %}
 
         {% if candidate_data.projects %}
-        <div class="candidate-details">
+          <div class="candidate-details">
           <strong>Projects:</strong>
           <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
             {% for project in candidate_data.projects %}
@@ -219,8 +260,8 @@
           </ul>
         </div>
         {% endif %}
-
-        <div class="candidate-actions">
+      
+      <div class="candidate-actions">
           <a href="{% url 'jobs:jobs.view_applicant_profile' applicant.user.id %}" class="btn">View Full Profile</a>
           <button class="btn secondary" onclick="contactCandidate('{{ applicant.user.email }}')">Contact</button>
         </div>
@@ -241,5 +282,147 @@
 function contactCandidate(email) {
   alert('Contact functionality would open email client to: ' + email);
 }
+
+// Location selector functionality for candidate search
+function initializeCandidateLocationSelector() {
+  const input = document.getElementById('candidate-location-input');
+  const dropdown = document.getElementById('candidate-location-dropdown');
+  const hiddenInput = document.getElementById('candidate-location-value');
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let filteredLocations = [];
+  let selectedIndex = -1;
+  
+  function showDropdown() {
+    dropdown.style.display = 'block';
+  }
+  
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+  
+  function filterLocations(query) {
+    // Fetch locations from database API
+    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        filteredLocations = data.locations.map(loc => loc.name);
+        renderLocations();
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        // Fallback to empty array
+        filteredLocations = [];
+        renderLocations();
+      });
+  }
+  
+  function renderLocations() {
+    dropdown.innerHTML = '';
+    filteredLocations.forEach((location, index) => {
+      const option = document.createElement('div');
+      option.className = 'location-option';
+      
+      // Add custom class for custom locations
+      if (location.includes('(Use as entered)')) {
+        option.classList.add('custom');
+      }
+      
+      option.textContent = location;
+      option.addEventListener('click', () => selectLocation(location));
+      dropdown.appendChild(option);
+    });
+    showDropdown();
+  }
+  
+  function selectLocation(location) {
+    // Handle custom locations and geocoded results
+    if (location.includes('(Use as entered)')) {
+      // Extract the custom location from the display name
+      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
+      input.value = customLocation;
+      hiddenInput.value = customLocation;
+    } else {
+      input.value = location;
+      hiddenInput.value = location;
+    }
+    hideDropdown();
+  }
+  
+  function highlightOption(index) {
+    const options = dropdown.querySelectorAll('.location-option');
+    options.forEach((option, i) => {
+      option.classList.toggle('highlighted', i === index);
+    });
+  }
+  
+  // Debounce timer for API calls
+  let debounceTimer = null;
+  
+  // Event listeners
+  input.addEventListener('input', (e) => {
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer to delay API call
+    debounceTimer = setTimeout(() => {
+      filterLocations(e.target.value);
+    }, 300); // 300ms delay
+  });
+  
+  input.addEventListener('focus', () => {
+    // Only show dropdown if user has typed something
+    if (input.value.trim().length > 0) {
+      filterLocations(input.value);
+    }
+  });
+  
+  input.addEventListener('blur', () => {
+    // Delay hiding to allow clicks on options
+    setTimeout(hideDropdown, 150);
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    if (dropdown.style.display === 'none') return;
+    
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, filteredLocations.length - 1);
+        highlightOption(selectedIndex);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        highlightOption(selectedIndex);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < filteredLocations.length) {
+          selectLocation(filteredLocations[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        hideDropdown();
+        break;
+    }
+  });
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      hideDropdown();
+    }
+  });
+}
+
+// Initialize location selector when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  initializeCandidateLocationSelector();
+});
 </script>
 {% endblock %}
