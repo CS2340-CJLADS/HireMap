@@ -6,7 +6,7 @@
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
-  --background: #FFFDF8;
+  --background: #ffffff;
   --surface: #f5f3f0;
   --text: #1e293b;
   --text-muted: #64748b;
@@ -18,7 +18,7 @@
   --brand: #2A5155;
   --brand-dark: #1e3a3d;
   --brand-accent: #e8f4f4;
-  --white: #FFFDF8;
+  --white: #ffffff;
   --muted: #64748b;
   --ink: #1e293b;
 }
@@ -105,10 +105,10 @@ a:hover {
 .btn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  border: 1px solid var(--primary);
+  border: 2px solid var(--primary);
   border-radius: 6px;
-  background: var(--primary);
-  color: white;
+  background: white;
+  color: var(--primary);
   font-weight: 500;
   text-align: center;
   cursor: pointer;
@@ -116,28 +116,31 @@ a:hover {
 }
 
 .btn:hover {
-  background: var(--primary-dark);
-  border-color: var(--primary-dark);
+  background: var(--primary);
+  color: white;
   text-decoration: none;
 }
 
 .btn.secondary {
-  background: var(--background);
-  color: var(--primary);
+  background: white;
+  color: var(--secondary);
+  border-color: var(--secondary);
 }
 
 .btn.secondary:hover {
-  background: var(--surface);
+  background: var(--secondary);
+  color: white;
 }
 
 .btn.danger {
-  background: var(--danger);
+  background: white;
+  color: var(--danger);
   border-color: var(--danger);
 }
 
 .btn.danger:hover {
-  background: #dc2626;
-  border-color: #dc2626;
+  background: var(--danger);
+  color: white;
 }
 
 .badge {

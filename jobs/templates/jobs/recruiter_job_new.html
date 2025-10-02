@@ -178,6 +178,48 @@
   margin: 0;
   font-weight: normal;
 }
+
+/* Location Selector Styles */
+.location-selector {
+  position: relative;
+}
+
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-option {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.location-option:hover,
+.location-option.highlighted {
+  background-color: var(--surface);
+}
+
+.location-option:last-child {
+  border-bottom: none;
+}
+
+.location-option.custom {
+  font-style: italic;
+  color: var(--text-muted);
+  border-left: 3px solid var(--primary);
+}
 </style>
 
 <div class="container">
@@ -197,17 +239,12 @@
           
           <div class="form-group">
             <label for="title">Job Title *</label>
-            <input type="text" name="title" id="title" placeholder="e.g., Senior Software Engineer" required>
-          </div>
-          
-          <div class="form-group">
-            <label for="company_name">Company Name *</label>
-            <input type="text" name="company_name" id="company_name" placeholder="Enter company name" required>
+            <input type="text" name="title" id="title" value="{% if job %}{{ job.title }}{% endif %}" placeholder="e.g., Senior Software Engineer" required>
           </div>
           
           <div class="form-group">
             <label for="description">Job Description *</label>
-            <textarea name="description" id="description" placeholder="Describe the role, responsibilities, and what you're looking for..." required></textarea>
+            <textarea name="description" id="description" placeholder="Describe the role, responsibilities, and what you're looking for..." required>{% if job %}{{ job.description }}{% endif %}</textarea>
           </div>
         </div>
 
@@ -217,7 +254,13 @@
           
           <div class="form-group">
             <label for="location">Location *</label>
-            <input type="text" name="location" id="location" placeholder="e.g., San Francisco, CA or Remote" required>
+            <div class="location-selector">
+              <input type="text" name="location" id="location-input" value="{% if job %}{{ job.location }}{% endif %}" placeholder="Search for a location..." autocomplete="off" required>
+              <input type="hidden" name="location-value" id="location-value" value="{% if job %}{{ job.location }}{% endif %}">
+              <div class="location-dropdown" id="location-dropdown" style="display: none;">
+                <!-- Location options will be populated by JavaScript -->
+              </div>
+            </div>
           </div>
           
           <div class="work-type-selection">
@@ -241,16 +284,16 @@
           <div class="salary-range">
             <div class="form-group">
               <label for="salary_min">Minimum Salary</label>
-              <input type="number" name="salary_min" id="salary_min" placeholder="e.g., 80000" min="0">
+              <input type="number" name="salary_min" id="salary_min" value="{% if job %}{{ job.salary_min }}{% endif %}" placeholder="e.g., 80000" min="0">
             </div>
             <div class="form-group">
               <label for="salary_max">Maximum Salary</label>
-              <input type="number" name="salary_max" id="salary_max" placeholder="e.g., 120000" min="0">
+              <input type="number" name="salary_max" id="salary_max" value="{% if job %}{{ job.salary_max }}{% endif %}" placeholder="e.g., 120000" min="0">
             </div>
           </div>
           
           <div class="checkbox-group">
-            <input type="checkbox" name="visa_sponsorship" id="visa_sponsorship">
+            <input type="checkbox" name="visa_sponsorship" id="visa_sponsorship" {% if job and job.visa_sponsorship %}checked{% endif %}>
             <label for="visa_sponsorship">Visa Sponsorship Available</label>
           </div>
         </div>
@@ -274,8 +317,8 @@
 
         <!-- Form Actions -->
         <div class="form-actions">
-          <a href="/recruiter/jobs/" class="btn secondary">Cancel</a>
-          <button type="button" class="btn secondary" onclick="saveDraft()">Save as Draft</button>
+          <a href="{% url 'jobs:jobs.recruiter_jobs' %}" class="btn secondary">Cancel</a>
+          <button type="submit" name="save_draft" value="1" class="btn secondary">Save as Draft</button>
           <button type="submit" class="btn">Post Job</button>
         </div>
       </form>
@@ -333,10 +376,6 @@ function updateSkillsDisplay() {
   hiddenInput.value = skillsList.join(',');
 }
 
-function saveDraft() {
-  // This will be implemented later
-  alert('Draft saved! (Feature coming soon)');
-}
 
 // Allow adding skills with Enter key
 document.getElementById('skill-input').addEventListener('keypress', function(e) {
@@ -344,6 +383,183 @@ document.getElementById('skill-input').addEventListener('keypress', function(e) 
     e.preventDefault();
     addSkill();
   }
+});
+
+// Location selector functionality
+function initializeLocationSelector() {
+  const input = document.getElementById('location-input');
+  const dropdown = document.getElementById('location-dropdown');
+  const hiddenInput = document.getElementById('location-value');
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let filteredLocations = [];
+  let selectedIndex = -1;
+  
+  function showDropdown() {
+    dropdown.style.display = 'block';
+  }
+  
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+  
+  function filterLocations(query) {
+    // Fetch locations from database API
+    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        filteredLocations = data.locations.map(loc => loc.name);
+        renderLocations();
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        // Fallback to empty array
+        filteredLocations = [];
+        renderLocations();
+      });
+  }
+  
+  function renderLocations() {
+    dropdown.innerHTML = '';
+    filteredLocations.forEach((location, index) => {
+      const option = document.createElement('div');
+      option.className = 'location-option';
+      
+      // Add custom class for custom locations
+      if (location.includes('(Use as entered)')) {
+        option.classList.add('custom');
+      }
+      
+      option.textContent = location;
+      option.addEventListener('click', () => selectLocation(location));
+      dropdown.appendChild(option);
+    });
+    showDropdown();
+  }
+  
+  function selectLocation(location) {
+    // Handle custom locations and geocoded results
+    if (location.includes('(Use as entered)')) {
+      // Extract the custom location from the display name
+      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
+      input.value = customLocation;
+      hiddenInput.value = customLocation;
+    } else {
+      input.value = location;
+      hiddenInput.value = location;
+    }
+    hideDropdown();
+  }
+  
+  function highlightOption(index) {
+    const options = dropdown.querySelectorAll('.location-option');
+    options.forEach((option, i) => {
+      option.classList.toggle('highlighted', i === index);
+    });
+  }
+  
+  // Debounce timer for API calls
+  let debounceTimer = null;
+  
+  // Event listeners
+  input.addEventListener('input', (e) => {
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer to delay API call
+    debounceTimer = setTimeout(() => {
+      filterLocations(e.target.value);
+    }, 300); // 300ms delay
+  });
+  
+  input.addEventListener('focus', () => {
+    // Only show dropdown if user has typed something
+    if (input.value.trim().length > 0) {
+      filterLocations(input.value);
+    }
+  });
+  
+  input.addEventListener('blur', () => {
+    // Delay hiding to allow clicks on options
+    setTimeout(hideDropdown, 150);
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    if (dropdown.style.display === 'none') return;
+    
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, filteredLocations.length - 1);
+        highlightOption(selectedIndex);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        highlightOption(selectedIndex);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < filteredLocations.length) {
+          selectLocation(filteredLocations[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        hideDropdown();
+        break;
+    }
+  });
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      hideDropdown();
+    }
+  });
+}
+
+// Initialize the form
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize location selector
+  initializeLocationSelector();
+  
+  // Update the visible input when hidden input changes
+  const locationInput = document.getElementById('location-input');
+  const locationValue = document.getElementById('location-value');
+  
+  if (locationInput && locationValue) {
+    locationValue.addEventListener('change', () => {
+      locationInput.value = locationValue.value;
+    });
+  }
+  
+  // Initialize work type if editing
+  {% if job %}
+    const isRemote = {{ job.remote|yesno:"true,false" }};
+    if (isRemote) {
+      selectWorkType('remote');
+    } else {
+      selectWorkType('onsite');
+    }
+  {% endif %}
+  
+  // Initialize skills if editing
+  {% if job and job.skills_required %}
+    const existingSkillsData = '{{ job.skills_required|escapejs }}';
+    if (existingSkillsData) {
+      const existingSkills = existingSkillsData.split(',');
+      existingSkills.forEach(skill => {
+        if (skill.trim()) {
+          skillsList.push(skill.trim());
+        }
+      });
+      updateSkillsDisplay();
+    }
+  {% endif %}
 });
 </script>
 {% endblock content %}

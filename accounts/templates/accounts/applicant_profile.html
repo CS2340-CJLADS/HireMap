@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+
+
+<style>
+.projects-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.project-item {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #007bff;
+}
+
+.project-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.project-item p {
+  margin: 0 0 0.5rem 0;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.project-item p:last-child {
+  margin-bottom: 0;
+}
+
+.availability-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.availability-badge.available {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.availability-badge.open-to-work {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.availability-badge.not-looking {
+  background: #ffebee;
+  color: #d32f2f;
+}
+</style>
+<div class="container">
+  <div class="hero">
+    <h1>{{ applicant.first_name }} {{ applicant.last_name }}</h1>
+    <p class="lede muted">Job Seeker Profile</p>
+  </div>
+
+  <section class="section">
+    <div class="card">
+      <h3>Contact Information</h3>
+      <p><strong>Email:</strong> {{ applicant.user.username }}</p>
+      <p><strong>Name:</strong> {{ applicant.first_name }} {{ applicant.last_name }}</p>
+      <p><strong>Phone:</strong> 
+        {% if applicant.phone and applicant.phone != 'None' and applicant.phone.strip %}
+          {{ applicant.phone }}
+        {% else %}
+          <em>Not provided</em>
+        {% endif %}
+      </p>
+      <p><strong>Location:</strong> 
+        {% if applicant.location and applicant.location != 'None' and applicant.location.strip %}
+          {{ applicant.location }}
+        {% else %}
+          <em>Not provided</em>
+        {% endif %}
+      </p>
+      <p><strong>Job Search Status:</strong> 
+        <span class="availability-badge {{ applicant.availability|default:'open-to-work' }}">
+          {{ applicant.get_availability_display|default:'Open to Work' }}
+        </span>
+      </p>
+    </div>
+
+    {% if applicant.skills %}
+    <div class="card">
+      <h3>Skills</h3>
+      <p>{{ applicant.skills }}</p>
+    </div>
+    {% endif %}
+
+    {% if applicant.education %}
+    <div class="card">
+      <h3>Education</h3>
+      <p>{{ applicant.education }}</p>
+    </div>
+    {% endif %}
+
+    {% if applicant.experience %}
+    <div class="card">
+      <h3>Experience</h3>
+      <p>{{ applicant.experience }}</p>
+    </div>
+    {% endif %}
+
+    {% if applicant.project_set.all %}
+    <div class="card">
+      <h3>Projects</h3>
+      <div class="projects-preview">
+        {% for project in applicant.project_set.all %}
+          <div class="project-item">
+            <h4>{{ project.title }}</h4>
+            <p>{{ project.description }}</p>
+            {% if project.technologies %}
+              <p><strong>Technologies:</strong> {{ project.technologies }}</p>
+            {% endif %}
+            {% if project.url %}
+              <p><strong>URL:</strong> <a href="{{ project.url }}" target="_blank">{{ project.url }}</a></p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if applicant.links %}
+    <div class="card">
+      <h3>Links</h3>
+      <p><a href="{{ applicant.links }}" target="_blank">{{ applicant.links }}</a></p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock content %}

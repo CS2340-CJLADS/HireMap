@@ -22,7 +22,7 @@
   padding: 1.5rem;
   margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
 }
 
 .filters h3 {
@@ -49,7 +49,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -77,7 +77,7 @@
 }
 
 .job-description {
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.5;
   margin-bottom: 1rem;
 }
@@ -91,7 +91,7 @@
 
 .job-tag {
   background: var(--brand-accent);
-  color: #3b2a15;
+  color: var(--brand);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -130,3 +130,4 @@
   background: var(--brand);
   color: var(--white);
 }
+

@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+<style>
+/* Location Selector Styles */
+.location-selector {
+  position: relative;
+}
+
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-option {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+
+.location-option:hover,
+.location-option.highlighted {
+  background-color: var(--surface);
+}
+
+.location-option:last-child {
+  border-bottom: none;
+}
+
+.location-option.custom {
+  font-style: italic;
+  color: var(--text-muted);
+  border-left: 3px solid var(--primary);
+}
+</style>
+<div class="container">
+  <div class="hero">
+    <h1>Edit Profile</h1>
+    <p class="lede muted">Update your professional information.</p>
+  </div>
+
+  <section class="section">
+    <div class="card">
+      <form class="form" method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label class="label">First Name *</label>
+          <input type="text" name="first_name" value="{{ applicant.first_name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Last Name *</label>
+          <input type="text" name="last_name" value="{{ applicant.last_name }}" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Skills</label>
+          <textarea name="skills" placeholder="e.g., Python, JavaScript, Project Management" rows="3">{{ applicant.skills }}</textarea>
+          <small style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: block;">List your skills separated by commas</small>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Education</label>
+          <input type="text" name="education" value="{{ applicant.education }}" placeholder="e.g., Bachelor's in Computer Science">
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Work Experience</label>
+          <textarea name="experience" placeholder="Describe your work experience" rows="4">{{ applicant.experience }}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Projects</label>
+          <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Manage your individual projects separately for better presentation to recruiters.</p>
+          <a href="{% url 'jobs:jobs.manage_projects' %}" class="btn secondary" style="display: inline-block; margin-top: 0.5rem;">Manage Projects</a>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Phone Number</label>
+          <input type="tel" name="phone" value="{{ applicant.phone }}" placeholder="(555) 123-4567">
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Location</label>
+          <div class="location-selector">
+            <input type="text" name="location" id="applicant-location-input" value="{{ applicant.location }}" placeholder="Search for your location..." autocomplete="off">
+            <input type="hidden" name="location-value" id="applicant-location-value" value="{{ applicant.location }}">
+            <div class="location-dropdown" id="applicant-location-dropdown" style="display: none;">
+              <!-- Location options will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Job Search Status</label>
+          <select name="availability">
+            <option value="available" {% if applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
+            <option value="open-to-work" {% if applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
+            <option value="not-looking" {% if applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
+          </select>
+          <small style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: block;">This helps recruiters understand your current job search status</small>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Links (Portfolio, LinkedIn, etc.)</label>
+          <input type="url" name="links" value="{{ applicant.links }}" placeholder="https://your-portfolio.com">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn">Save Profile</button>
+          <a href="{% url 'home:profile_edit' %}" class="btn secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<script>
+// Location selector functionality for applicant profile
+function initializeApplicantLocationSelector() {
+  const input = document.getElementById('applicant-location-input');
+  const dropdown = document.getElementById('applicant-location-dropdown');
+  const hiddenInput = document.getElementById('applicant-location-value');
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let filteredLocations = [];
+  let selectedIndex = -1;
+  
+  function showDropdown() {
+    dropdown.style.display = 'block';
+  }
+  
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+  
+  function filterLocations(query) {
+    // Fetch locations from database API
+    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        filteredLocations = data.locations.map(loc => loc.name);
+        renderLocations();
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        // Fallback to empty array
+        filteredLocations = [];
+        renderLocations();
+      });
+  }
+  
+  function renderLocations() {
+    dropdown.innerHTML = '';
+    filteredLocations.forEach((location, index) => {
+      const option = document.createElement('div');
+      option.className = 'location-option';
+      
+      // Add custom class for custom locations
+      if (location.includes('(Use as entered)')) {
+        option.classList.add('custom');
+      }
+      
+      option.textContent = location;
+      option.addEventListener('click', () => selectLocation(location));
+      dropdown.appendChild(option);
+    });
+    showDropdown();
+  }
+  
+  function selectLocation(location) {
+    // Handle custom locations and geocoded results
+    if (location.includes('(Use as entered)')) {
+      // Extract the custom location from the display name
+      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
+      input.value = customLocation;
+      hiddenInput.value = customLocation;
+    } else {
+      input.value = location;
+      hiddenInput.value = location;
+    }
+    hideDropdown();
+  }
+  
+  function highlightOption(index) {
+    const options = dropdown.querySelectorAll('.location-option');
+    options.forEach((option, i) => {
+      option.classList.toggle('highlighted', i === index);
+    });
+  }
+  
+  // Debounce timer for API calls
+  let debounceTimer = null;
+  
+  // Event listeners
+  input.addEventListener('input', (e) => {
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer to delay API call
+    debounceTimer = setTimeout(() => {
+      filterLocations(e.target.value);
+    }, 300); // 300ms delay
+  });
+  
+  input.addEventListener('focus', () => {
+    // Only show dropdown if user has typed something
+    if (input.value.trim().length > 0) {
+      filterLocations(input.value);
+    }
+  });
+  
+  input.addEventListener('blur', () => {
+    // Delay hiding to allow clicks on options
+    setTimeout(hideDropdown, 150);
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    if (dropdown.style.display === 'none') return;
+    
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, filteredLocations.length - 1);
+        highlightOption(selectedIndex);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        highlightOption(selectedIndex);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < filteredLocations.length) {
+          selectLocation(filteredLocations[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        hideDropdown();
+        break;
+    }
+  });
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      hideDropdown();
+    }
+  });
+}
+
+// Initialize location selector when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  initializeApplicantLocationSelector();
+});
+</script>
+{% endblock content %}

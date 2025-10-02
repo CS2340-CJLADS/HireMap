@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Recruiter Dashboard</h2>
+    <p class="page-subtitle">Manage your job postings and find candidates</p>
+  </div>
+  
+  <div class="dashboard-grid">
+    <div class="dashboard-card">
+      <h3>Job Management</h3>
+      <p>Create, edit, and manage your job postings</p>
+      <div class="card-actions">
+        <a class="btn secondary" href="/manage-jobs/">Manage Jobs</a>
+        <a class="btn secondary" href="/post-job/">Post New Job</a>
+      </div>
+    </div>
+    
+    <div class="dashboard-card">
+      <h3>Browse Jobs</h3>
+      <p>View all job listings to see what's available in the market</p>
+      <div class="card-actions">
+        <a class="btn secondary" href="{% url 'jobs:jobs.index' %}">Browse All Jobs</a>
+      </div>
+    </div>
+    
+    <div class="dashboard-card">
+      <h3>Find Candidates</h3>
+      <p>Search and discover talented job seekers</p>
+      <div class="card-actions">
+        <a class="btn secondary" href="/search-candidates/">Search Candidates</a>
+      </div>
+    </div>
+    
+    <div class="dashboard-card">
+      <h3>My Profile</h3>
+      <p>View and manage your recruiter profile</p>
+      <div class="card-actions">
+        <a class="btn secondary" href="/recruiter-profile/">View Profile</a>
+        <a class="btn secondary" href="/recruiter-profile/edit/">Edit Profile</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.dashboard-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.dashboard-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--brand);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.dashboard-card p {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2A5155;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.btn:hover {
+  background: white;
+  color: #2A5155;
+  border: 1px solid #2A5155;
+}
+
+.btn.secondary {
+  background: white;
+  color: #2A5155;
+  border: 1px solid #2A5155;
+}
+
+.btn.secondary:hover {
+  background: #2A5155;
+  color: white;
+}
+
+.page-subtitle {
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+  }
+}
+</style>
+{% endblock content %}
+
+
