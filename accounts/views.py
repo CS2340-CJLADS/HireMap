@@ -78,7 +78,7 @@ def login(request):
             if hasattr(user, 'recruiter'):
                 return redirect('home:recruiter')  # currently a placeholder
             elif hasattr(user, 'applicant'):
-                return redirect('home:applicant')  # currently a placeholder
+                return redirect('home:job_search_dashboard')  # New job search dashboard
             else:
                 # Fallback if no profile exists
                 return redirect('home:index')

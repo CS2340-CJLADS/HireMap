@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+
+<div class="job-search-container">
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>HireMap</h2>
+            </div>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    {% if template_data.user_is_applicant %}
+                        <a href="{% url 'home:applicant' %}" class="nav-link">Dashboard</a>
+                        <a href="{% url 'jobs:jobs.my_applications' %}" class="nav-link">My Applications</a>
+                        <a href="{% url 'jobs:jobs.manage_projects' %}" class="nav-link">My Projects</a>
+                    {% else %}
+                        <a href="{% url 'home:recruiter' %}" class="nav-link">Dashboard</a>
+                        <a href="{% url 'jobs:jobs.recruiter_jobs' %}" class="nav-link">My Jobs</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:accounts.login' %}" class="nav-link">Login</a>
+                    <a href="{% url 'accounts:accounts.signup' %}" class="nav-link">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search & Filters Bar -->
+    <div class="search-filters-bar">
+        <form method="get" class="search-form">
+            <div class="search-row">
+                <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." 
+                       value="{{ template_data.search_term|default:'' }}" class="search-input" />
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+            
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label for="location">Location</label>
+                    <select name="location" id="location">
+                        <option value="">All Locations</option>
+                        <option value="remote" {% if request.GET.location == 'remote' %}selected{% endif %}>Remote</option>
+                        <option value="onsite" {% if request.GET.location == 'onsite' %}selected{% endif %}>On-site</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="salary_min">Min Salary</label>
+                    <input type="number" name="salary_min" id="salary_min" placeholder="e.g., 50000" value="{{ request.GET.salary_min }}" />
+                </div>
+                
+                <div class="filter-group">
+                    <label for="salary_max">Max Salary</label>
+                    <input type="number" name="salary_max" id="salary_max" placeholder="e.g., 100000" value="{{ request.GET.salary_max }}" />
+                </div>
+                
+                <div class="filter-group">
+                    <label for="visa_sponsorship">Visa Sponsorship</label>
+                    <select name="visa_sponsorship" id="visa_sponsorship">
+                        <option value="">Any</option>
+                        <option value="true" {% if request.GET.visa_sponsorship == 'true' %}selected{% endif %}>Available</option>
+                    </select>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="submit" class="btn">Apply Filters</button>
+                    <a href="{% url 'home:job_search_dashboard' %}" class="btn secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Split Screen Layout -->
+    <div class="split-screen">
+        <!-- Left Panel: Job List -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h3>Job Listings ({{ template_data.job_postings.count }})</h3>
+            </div>
+            <div class="job-list" id="job-list">
+                {% for job in template_data.job_postings %}
+                <div class="job-tile" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
+                    <div class="job-tile-header">
+                        <h4 class="job-tile-title">{{ job.title }}</h4>
+                        <span class="job-tile-company">{{ job.recruiter.company_name }}</span>
+                    </div>
+                    <div class="job-tile-meta">
+                        <span class="job-location">{% if job.remote %}Remote{% else %}{{ job.location }}{% endif %}</span>
+                        <span class="job-salary">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</span>
+                    </div>
+                    <div class="job-tile-description">
+                        {{ job.description|truncatewords:20 }}
+                    </div>
+                    <div class="job-tile-skills">
+                        {% if job.skills_required %}
+                            <span class="skills-inline">{{ job.skills_required }}</span>
+                        {% endif %}
+                    </div>
+                    {% if job.id in template_data.applied_job_ids %}
+                        <div class="job-status applied">✅ Applied</div>
+                    {% elif template_data.user_is_applicant %}
+                        <div class="job-status available">Apply Now</div>
+                    {% else %}
+                        <div class="job-status login-required">Login to Apply</div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="panel-header"><h3>Demo Jobs</h3></div>
+                <div class="job-tile" data-job-id="demo-1" onclick="showJobDetails('demo-1')">
+                    <div class="job-tile-header">
+                        <h4 class="job-tile-title">Frontend Engineer</h4>
+                        <span class="job-tile-company">Acme Corp</span>
+                    </div>
+                    <div class="job-tile-meta">
+                        <span class="job-location">Remote</span>
+                        <span class="job-salary">$90,000 - $120,000</span>
+                    </div>
+                    <div class="job-tile-description">
+                        Build modern UIs with React, collaborate with design and backend teams.
+                    </div>
+                    <div class="job-tile-skills">
+                        <span class="skills-inline">React, TypeScript, CSS</span>
+                    </div>
+                    <div class="job-status available">Apply Now</div>
+                </div>
+
+                <div class="job-tile" data-job-id="demo-2" onclick="showJobDetails('demo-2')">
+                    <div class="job-tile-header">
+                        <h4 class="job-tile-title">Backend Developer</h4>
+                        <span class="job-tile-company">Globex</span>
+                    </div>
+                    <div class="job-tile-meta">
+                        <span class="job-location">New York, NY</span>
+                        <span class="job-salary">$110,000 - $140,000</span>
+                    </div>
+                    <div class="job-tile-description">
+                        Design and maintain APIs, optimize performance, ensure reliability at scale.
+                    </div>
+                    <div class="job-tile-skills">
+                        <span class="skills-inline">Django, PostgreSQL, REST</span>
+                    </div>
+                    <div class="job-status available">Apply Now</div>
+                </div>
+
+                <div class="job-tile" data-job-id="demo-3" onclick="showJobDetails('demo-3')">
+                    <div class="job-tile-header">
+                        <h4 class="job-tile-title">Data Analyst</h4>
+                        <span class="job-tile-company">Initech</span>
+                    </div>
+                    <div class="job-tile-meta">
+                        <span class="job-location">On-site</span>
+                        <span class="job-salary">$70,000 - $95,000</span>
+                    </div>
+                    <div class="job-tile-description">
+                        Analyze business data, create dashboards, and present insights to stakeholders.
+                    </div>
+                    <div class="job-tile-skills">
+                        <span class="skills-inline">SQL, Python, Tableau</span>
+                    </div>
+                    <div class="job-status available">Apply Now</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Panel: Dynamic Content -->
+        <div class="right-panel" id="right-panel">
+            <!-- Default: Dashboard -->
+            <div id="dashboard-content" class="panel-content">
+                <div class="panel-header">
+                    <h3>Dashboard</h3>
+                </div>
+                <div class="dashboard-widgets">
+                    {% if template_data.user_is_applicant %}
+                        <div class="widget">
+                            <h4>Recent Applications</h4>
+                            <div class="widget-content">
+                                {% for application in template_data.recent_applications %}
+                                <div class="application-item">
+                                    <div class="app-job-title">{{ application.listing.title }}</div>
+                                    <div class="app-company">{{ application.listing.recruiter.company_name }}</div>
+                                    <div class="app-date">{{ application.created_at|date:"M d" }}</div>
+                                </div>
+                                {% empty %}
+                                <p class="no-data">No recent applications</p>
+                                {% endfor %}
+                            </div>
+                            <a href="{% url 'jobs:jobs.my_applications' %}" class="widget-link">View All Applications</a>
+                        </div>
+
+                        <div class="widget">
+                            <h4>Quick Actions</h4>
+                            <div class="widget-content">
+                                <a href="{% url 'jobs:jobs.manage_projects' %}" class="action-link">Manage Projects</a>
+                                <a href="{% url 'home:profile_edit' %}" class="action-link">Edit Profile</a>
+                                <a href="{% url 'jobs:jobs.my_applications' %}" class="action-link">View Applications</a>
+                            </div>
+                        </div>
+
+                        <div class="widget">
+                            <h4>Profile Stats</h4>
+                            <div class="widget-content">
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ template_data.total_applications|default:0 }}</span>
+                                    <span class="stat-label">Applications</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ template_data.total_projects|default:0 }}</span>
+                                    <span class="stat-label">Projects</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="widget">
+                            <h4>Welcome to HireMap</h4>
+                            <div class="widget-content">
+                                <p>Discover amazing job opportunities and connect with top employers.</p>
+                                <p>Sign up to start applying to jobs and building your career.</p>
+                            </div>
+                            <a href="{% url 'accounts:accounts.signup' %}" class="widget-link">Get Started</a>
+                        </div>
+
+                        <div class="widget">
+                            <h4>Quick Actions</h4>
+                            <div class="widget-content">
+                                <a href="{% url 'accounts:accounts.login' %}" class="action-link">Login to Your Account</a>
+                                <a href="{% url 'accounts:accounts.signup' %}" class="action-link">Create New Account</a>
+                                <a href="{% url 'home:index' %}" class="action-link">Learn More</a>
+                            </div>
+                        </div>
+
+                        <div class="widget">
+                            <h4>Why Choose HireMap?</h4>
+                            <div class="widget-content">
+                                <div class="stat-item">
+                                    <span class="stat-number">{{ template_data.job_postings.count }}</span>
+                                    <span class="stat-label">Active Jobs</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number">100+</span>
+                                    <span class="stat-label">Companies</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Job Details (hidden by default) -->
+            <div id="job-details-content" class="panel-content" style="display: none;">
+                <div class="panel-header">
+                    <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
+                    <h3 id="job-detail-title">Job Details</h3>
+                </div>
+                <div class="job-details-content">
+                    <div id="job-details-loading" class="loading-state" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading job details...</p>
+                    </div>
+                    <div id="job-details-body">
+                        <!-- Job details will be loaded here via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/job_search_dashboard.js' %}"></script>
+{% endblock content %}

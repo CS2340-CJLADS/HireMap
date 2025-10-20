@@ -43,7 +43,7 @@ urlpatterns = [
     path("applications/", RedirectView.as_view(url="/jobs/my-applications/", permanent=False), name="applications_board"),
     
     # Job-related pages (redirect to proper jobs app)
-    path("job-search/", RedirectView.as_view(url="/jobs/", permanent=False), name="job_search"),
+    path("job-search/", views.job_search_dashboard, name="job_search_dashboard"),
     path("jobs/<int:job_id>/", RedirectView.as_view(url="/jobs/%(job_id)s/", permanent=False), name="job_details"),
     path("manage-jobs/", RedirectView.as_view(url="/jobs/recruiter/jobs/", permanent=False), name="manage_jobs"),
     path("post-job/", RedirectView.as_view(url="/jobs/recruiter/jobs/new/", permanent=False), name="post_job"),

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import applicant_required, recruiter_required
 from accounts.models import Applicant, Project
+from jobs.models import JobPosting, Application
 from django.db.models import Q, Value, CharField
 from django.db.models.functions import Concat
 
@@ -26,6 +27,85 @@ def applicant_dashboard(request):
 def recruiter_dashboard(request):
     template_data = {'title': 'Recruiter Dashboard'}
     return render(request, 'home/recruiter_dashboard.html', {'template_data': template_data})
+
+def job_search_dashboard(request):
+    """New job search dashboard with split-screen layout - No login required for testing"""
+    
+    # Get filter parameters (reuse existing jobs logic)
+    search_term = request.GET.get('search')
+    location = request.GET.get('location')
+    salary_min = request.GET.get('salary_min')
+    salary_max = request.GET.get('salary_max')
+    visa_sponsorship = request.GET.get('visa_sponsorship')
+    
+    # Start with base queryset
+    job_postings = JobPosting.objects.filter(is_draft=False, is_closed=False)
+    
+    # Apply search filter
+    if search_term:
+        job_postings = job_postings.filter(
+            Q(title__icontains=search_term) |
+            Q(recruiter__company_name__icontains=search_term) |
+            Q(skills_required__icontains=search_term)
+        )
+    
+    # Apply location filter
+    if location == 'remote':
+        job_postings = job_postings.filter(remote=True)
+    elif location == 'onsite':
+        job_postings = job_postings.filter(remote=False)
+    
+    # Apply salary filters
+    if salary_min:
+        try:
+            job_postings = job_postings.filter(salary_max__gte=float(salary_min))
+        except ValueError:
+            pass
+    
+    if salary_max:
+        try:
+            job_postings = job_postings.filter(salary_min__lte=float(salary_max))
+        except ValueError:
+            pass
+    
+    # Apply visa sponsorship filter
+    if visa_sponsorship == 'true':
+        job_postings = job_postings.filter(visa_sponsorship=True)
+    
+    # Get applied job IDs (only if user is logged in as applicant)
+    applied_job_ids = []
+    recent_applications = []
+    total_applications = 0
+    total_projects = 0
+    
+    if request.user.is_authenticated and hasattr(request.user, 'applicant'):
+        applicant = request.user.applicant
+        applied_job_ids = list(Application.objects.filter(
+            applicant=applicant,
+            listing__in=job_postings
+        ).values_list('listing_id', flat=True))
+        
+        # Get recent applications for dashboard
+        recent_applications = Application.objects.filter(
+            applicant=applicant
+        ).select_related('listing', 'listing__recruiter').order_by('-created_at')[:5]
+        
+        # Get stats
+        total_applications = Application.objects.filter(applicant=applicant).count()
+        total_projects = Project.objects.filter(applicant=applicant).count()
+    
+    template_data = {
+        'title': 'Job Search Dashboard',
+        'job_postings': job_postings,
+        'search_term': search_term,
+        'applied_job_ids': applied_job_ids,
+        'recent_applications': recent_applications,
+        'total_applications': total_applications,
+        'total_projects': total_projects,
+        'user_is_applicant': request.user.is_authenticated and hasattr(request.user, 'applicant'),
+    }
+    
+    return render(request, 'home/job_search_dashboard.html', {'template_data': template_data})
 
 @login_required
 @applicant_required
