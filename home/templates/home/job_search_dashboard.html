@@ -12,14 +12,8 @@
             </div>
             <div class="nav-links">
                 {% if user.is_authenticated %}
-                    {% if template_data.user_is_applicant %}
-                        <a href="{% url 'home:applicant' %}" class="nav-link">Dashboard</a>
-                        <a href="{% url 'jobs:jobs.my_applications' %}" class="nav-link">My Applications</a>
-                        <a href="{% url 'jobs:jobs.manage_projects' %}" class="nav-link">My Projects</a>
-                    {% else %}
-                        <a href="{% url 'home:recruiter' %}" class="nav-link">Dashboard</a>
-                        <a href="{% url 'jobs:jobs.recruiter_jobs' %}" class="nav-link">My Jobs</a>
-                    {% endif %}
+                    <a href="{% url 'home:job_search_dashboard' %}" class="nav-link active">Jobs</a>
+                    <a href="{% url 'home:my_applications' %}" class="nav-link">My Applications</a>
                     <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
                 {% else %}
                     <a href="{% url 'accounts:accounts.login' %}" class="nav-link">Login</a>
@@ -197,7 +191,7 @@
                                 <div class="position">iOS Engineer</div>
                             </div>
                         </div>
-                        <a href="{% url 'jobs:jobs.my_applications' %}" class="view-all-button">View All</a>
+                        <a href="{% url 'home:my_applications' %}" class="view-all-button">View All</a>
                     </div>
                     
                     <div class="dashboard-section">

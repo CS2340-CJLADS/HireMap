@@ -12,10 +12,9 @@
                 <h2>HireMap</h2>
             </div>
             <div class="nav-links">
-                <a href="#" class="nav-link">Dashboard</a>
-                <a href="#" class="nav-link">My Applications</a>
-                <a href="#" class="nav-link">My Projects</a>
-                <a href="#" class="nav-link">Logout</a>
+                <a href="{% url 'home:job_search_dashboard' %}" class="nav-link">Jobs</a>
+                <a href="{% url 'home:my_applications' %}" class="nav-link active">My Applications</a>
+                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
             </div>
         </div>
     </nav>
@@ -59,8 +58,8 @@
                                 {{ application.listing.location }}
                             {% endif %}
                         </div>
-                        <div class="application-status status-{{ application.status|lower }}">
-                            {{ application.status }}
+                        <div class="application-status status-applied">
+                            Applied
                         </div>
                     </div>
                     {% empty %}

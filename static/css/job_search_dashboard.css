@@ -1479,3 +1479,9 @@
         padding: 1rem;
     }
 }
+
+/* Active navigation state */
+.nav-link.active {
+    background: rgba(255,255,255,0.2);
+    font-weight: 600;
+}
