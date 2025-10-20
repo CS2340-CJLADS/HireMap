@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+
+<div class="job-search-container">
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>HireMap</h2>
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'recruiter:dashboard' %}" class="nav-link active">Dashboard</a>
+                <a href="{% url 'recruiter:jobs' %}" class="nav-link">My Jobs</a>
+                <a href="{% url 'recruiter:profile' %}" class="nav-link">My Profile</a>
+                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="dashboard-section">
+            <h2>Recruiter Dashboard</h2>
+            <p>Welcome back, {{ template_data.recruiter.first_name }}!</p>
+            
+            <div class="stats-row">
+                <div class="stat-card">
+                    <h3>{{ template_data.total_jobs }}</h3>
+                    <p>Active Jobs</p>
+                </div>
+                <div class="stat-card">
+                    <h3>{{ template_data.total_applications }}</h3>
+                    <p>Total Applications</p>
+                </div>
+            </div>
+            
+            <div class="dashboard-section">
+                <h3>Recent Applications</h3>
+                {% for application in template_data.recent_applications %}
+                <div class="application-item">
+                    <strong>{{ application.applicant.first_name }} {{ application.applicant.last_name }}</strong>
+                    <span>applied to {{ application.listing.title }}</span>
+                    <small>{{ application.created_at|date:"M d, Y" }}</small>
+                </div>
+                {% empty %}
+                <p>No recent applications.</p>
+                {% endfor %}
+            </div>
+            
+            <div class="card-actions">
+                <a href="{% url 'recruiter:job_new' %}" class="btn">Post New Job</a>
+                <a href="{% url 'recruiter:jobs' %}" class="btn secondary">Manage Jobs</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

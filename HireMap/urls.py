@@ -18,7 +18,11 @@ urlpatterns = [
     # Jobs
     path("jobs/", include(("jobs.urls", "jobs"), namespace="jobs")),
 
-    # React SPA routes (explicit)
+    # User-specific apps
+    path("recruiter/", include(("recruiter.urls", "recruiter"), namespace="recruiter")),
+    path("seeker/", include(("seeker.urls", "seeker"), namespace="seeker")),
+
+    # Home (shared pages)
     path("", include(("home.urls", "home"), namespace="home")),
 ]
 

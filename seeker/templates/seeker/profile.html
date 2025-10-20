@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+
+<div class="job-search-container">
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>HireMap</h2>
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'seeker:dashboard' %}" class="nav-link">Jobs</a>
+                <a href="{% url 'seeker:applications' %}" class="nav-link">My Applications</a>
+                <a href="{% url 'seeker:profile' %}" class="nav-link active">My Profile</a>
+                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="dashboard-section">
+            <h2>My Profile</h2>
+            <p>Manage your profile information and preferences.</p>
+            
+            <div class="profile-content">
+                <div class="profile-info">
+                    <h3>{{ template_data.applicant.first_name }} {{ template_data.applicant.last_name }}</h3>
+                    <p><strong>Email:</strong> {{ template_data.applicant.user.email }}</p>
+                    <p><strong>Phone:</strong> {{ template_data.applicant.phone|default:"Not provided" }}</p>
+                    <p><strong>Location:</strong> {{ template_data.applicant.location|default:"Not provided" }}</p>
+                    <p><strong>Skills:</strong> {{ template_data.applicant.skills|default:"Not provided" }}</p>
+                    <p><strong>Education:</strong> {{ template_data.applicant.education|default:"Not provided" }}</p>
+                    <p><strong>Experience:</strong> {{ template_data.applicant.experience|default:"Not provided" }}</p>
+                    <p><strong>Availability:</strong> {{ template_data.applicant.availability|default:"Not specified" }}</p>
+                </div>
+                
+                <div class="profile-actions">
+                    <a href="{% url 'jobs:jobs.edit_profile' %}" class="btn">Edit Profile</a>
+                    <a href="{% url 'seeker:dashboard' %}" class="btn secondary">Back to Jobs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

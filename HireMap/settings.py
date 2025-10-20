@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'home',
     'accounts',
     'jobs',
-    'api',     # NEW: read-only JSON endpoints the React app uses
+    'api',
+    'recruiter',
+    'seeker',
 ]
 
 MIDDLEWARE = [
