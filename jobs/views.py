@@ -296,16 +296,53 @@ def edit_profile(request):
     
     return render(request, 'accounts/profile_edit.html', {'applicant': applicant})
 
-@applicant_required
 def my_applications(request):
-    applicant = request.user.applicant
-    applications = Application.objects.filter(applicant=applicant).select_related('listing', 'listing__recruiter').order_by('-id')
+    if request.user.is_authenticated and hasattr(request.user, 'applicant'):
+        # Authenticated user with applicant profile
+        applicant = request.user.applicant
+        applications = Application.objects.filter(applicant=applicant).select_related('listing', 'listing__recruiter').order_by('-created_at')
+        
+        # If no real applications, show demo data
+        if not applications.exists():
+            applications = get_demo_applications()
+    else:
+        # Demo data for non-authenticated users or users without applicant profile
+        applications = get_demo_applications()
     
     template_data = {
         'title': 'My Applications',
         'applications': applications
     }
     return render(request, 'jobs/my_applications.html', {'template_data': template_data})
+
+def get_demo_applications():
+    """Return demo application data for testing purposes"""
+    class DemoApplication:
+        def __init__(self, id, status, company_name, title, location, remote, created_at, message):
+            self.id = id
+            self.status = status
+            self.created_at = created_at
+            self.message = message
+            self.listing = DemoJobListing(company_name, title, location, remote)
+    
+    class DemoJobListing:
+        def __init__(self, company_name, title, location, remote):
+            self.title = title
+            self.location = location
+            self.remote = remote
+            self.recruiter = DemoRecruiter(company_name)
+    
+    class DemoRecruiter:
+        def __init__(self, company_name):
+            self.company_name = company_name
+    
+    return [
+        DemoApplication(1, "Applied", "Google", "Software Engineer", "New York City, NY", True, "2024-01-15", "Excited about this opportunity!"),
+        DemoApplication(2, "Closed", "Microsoft", "Product Manager", "Seattle, WA", False, "2024-01-10", "Thank you for considering my application."),
+        DemoApplication(3, "Interviewing", "Apple", "iOS Developer", "Cupertino, CA", False, "2024-01-08", "Looking forward to discussing this role."),
+        DemoApplication(4, "Review", "Meta", "Frontend Developer", "Menlo Park, CA", True, "2024-01-05", "Passionate about React and modern web development."),
+        DemoApplication(5, "Offer", "Netflix", "Backend Engineer", "Los Gatos, CA", True, "2024-01-03", "Thrilled about the possibility of joining Netflix!"),
+    ]
 
 
 @recruiter_required

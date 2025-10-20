@@ -152,3 +152,183 @@
 .drag-handle:hover {
   color: var(--brand);
 }
+
+/* My Applications Page Styles */
+.applications-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.application-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-radius: 45px;
+  background: var(--bg-of-cards, linear-gradient(180deg, rgba(19, 227, 178, 0.08) 17.31%, rgba(101, 243, 243, 0.08) 100%));
+  box-shadow: 0 0 5px -1px #218074;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 60px;
+}
+
+.application-bar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px -1px #218074;
+}
+
+.application-bar.active {
+  border: 2px solid #007bff;
+}
+
+.application-company,
+.application-position,
+.application-location {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.application-company {
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.application-position {
+  min-width: 150px;
+}
+
+.application-location {
+  min-width: 180px;
+}
+
+.application-status {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-align: center;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.status-applied {
+  background-color: #007bff;
+  color: white;
+}
+
+.status-review {
+  background-color: #6c757d;
+  color: white;
+}
+
+.status-interviewing {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-offer {
+  background-color: #28a745;
+  color: white;
+}
+
+.status-rejected {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-closed {
+  background-color: #6c757d;
+  color: white;
+}
+
+.no-applications {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Status Filter Pills */
+.status-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.status-filter-pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.status-filter-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.status-filter-pill.status-applied {
+  background-color: #007bff;
+}
+
+.status-filter-pill.status-review {
+  background-color: #6c757d;
+}
+
+.status-filter-pill.status-interviewing {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-filter-pill.status-offer {
+  background-color: #28a745;
+}
+
+.status-filter-pill.status-closed {
+  background-color: #6c757d;
+}
+
+/* Status Badge in Header */
+.job-description-header .status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.job-description-header .status-badge.status-applied {
+  background-color: #007bff;
+  color: white;
+}
+
+.job-description-header .status-badge.status-review {
+  background-color: #6c757d;
+  color: white;
+}
+
+.job-description-header .status-badge.status-interviewing {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.job-description-header .status-badge.status-offer {
+  background-color: #28a745;
+  color: white;
+}
+
+.job-description-header .status-badge.status-closed {
+  background-color: #6c757d;
+  color: white;
+}
