@@ -4,6 +4,7 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.views.decorators.http import require_http_methods
 from django.db import IntegrityError, models
 from .models import JobPosting, Application
+from .recommendations import get_recommended_jobs, get_recommended_applicants
 from accounts.models import Recruiter, Applicant, Project
 from accounts.decorators import recruiter_required, applicant_required
 
@@ -17,6 +18,8 @@ def index(request):
     salary_max = request.GET.get('salary_max')
     visa_sponsorship = request.GET.get('visa_sponsorship')
     my_jobs = request.GET.get('my_jobs')  # Filter for recruiter's own jobs
+    skills_search = request.GET.get('skills_search')
+    location_search = request.GET.get('location_search')
     
     # Start with base queryset
     job_postings = JobPosting.objects.filter(is_draft=False, is_closed=False)
@@ -28,6 +31,17 @@ def index(request):
             models.Q(recruiter__company_name__icontains=search_term) |
             models.Q(skills_required__icontains=search_term)
         )
+    
+    # Apply skills search filter (new search bar)
+    if skills_search:
+        # Support comma-separated skills
+        skills_list = [skill.strip() for skill in skills_search.split(',') if skill.strip()]
+        for skill in skills_list:
+            job_postings = job_postings.filter(skills_required__icontains=skill)
+    
+    # Apply location search filter (new search bar)
+    if location_search:
+        job_postings = job_postings.filter(location__icontains=location_search)
     
     # Apply work type filter
     if work_type == 'remote':

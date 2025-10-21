@@ -27,6 +27,20 @@ class Application(models.Model):
     applicant = models.ForeignKey('accounts.Applicant', on_delete = models.CASCADE)
     # Basically all applicant information will be pulled from here
     listing = models.ForeignKey('jobs.JobPosting', on_delete = models.CASCADE)
+    # Application stage tracking
+    STAGE_APPLIED = 'Applied'
+    STAGE_UNDER_REVIEW = 'Under Review'
+    STAGE_INTERVIEW = 'Interview'
+    STAGE_OFFER = 'Offer'
+    STAGE_CLOSED = 'Closed'
+    STAGE_CHOICES = [
+        (STAGE_APPLIED, 'Applied'),
+        (STAGE_UNDER_REVIEW, 'Under Review'),
+        (STAGE_INTERVIEW, 'Interview'),
+        (STAGE_OFFER, 'Offer'),
+        (STAGE_CLOSED, 'Closed'),
+    ]
+    status = models.CharField(max_length=20, choices=STAGE_CHOICES, default=STAGE_APPLIED)
     message = models.TextField(blank = True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 

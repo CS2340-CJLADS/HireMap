@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from accounts.decorators import applicant_required
 from accounts.models import Applicant, Project
 from jobs.models import JobPosting, Application
+from jobs.recommendations import get_recommended_jobs
 from django.db.models import Q, Value, CharField
 from django.db.models.functions import Concat
 
@@ -87,6 +88,11 @@ def dashboard(request):
         # Get stats
         total_applications = Application.objects.filter(applicant=applicant).count()
         total_projects = Project.objects.filter(applicant=applicant).count()
+        
+        # Get recommended jobs for the applicant
+        recommended_jobs = get_recommended_jobs(applicant, limit=5)
+    else:
+        recommended_jobs = []
     
     template_data = {
         'title': 'Job Search Dashboard',
@@ -96,6 +102,7 @@ def dashboard(request):
         'recent_applications': recent_applications,
         'total_applications': total_applications,
         'total_projects': total_projects,
+        'recommended_jobs': recommended_jobs,
         'user_is_applicant': request.user.is_authenticated and hasattr(request.user, 'applicant'),
     }
     

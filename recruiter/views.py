@@ -4,6 +4,7 @@ from django.db.models import Q
 from accounts.decorators import recruiter_required
 from accounts.models import Applicant
 from jobs.models import JobPosting, Application
+from jobs.recommendations import get_recommended_applicants
 
 # Create your views here.
 
@@ -237,3 +238,53 @@ def view_applicant(request, applicant_id):
         'applicant': applicant,
     }
     return render(request, 'accounts/applicant_profile.html', {'template_data': template_data})
+
+@login_required
+@recruiter_required
+def search_candidates(request):
+    """Search candidates with recommendations"""
+    recruiter = request.user.recruiter
+    
+    # Get filter parameters
+    search_term = request.GET.get('search')
+    skills_search = request.GET.get('skills_search')
+    location_search = request.GET.get('location_search')
+    job_id = request.GET.get('job_id')
+    
+    # Start with base queryset
+    applicants = Applicant.objects.all()
+    
+    # Apply search filters
+    if search_term:
+        applicants = applicants.filter(
+            Q(first_name__icontains=search_term) |
+            Q(last_name__icontains=search_term) |
+            Q(skills__icontains=search_term) |
+            Q(education__icontains=search_term)
+        )
+    
+    if skills_search:
+        skills_list = [skill.strip() for skill in skills_search.split(',') if skill.strip()]
+        for skill in skills_list:
+            applicants = applicants.filter(skills__icontains=skill)
+    
+    if location_search:
+        applicants = applicants.filter(location__icontains=location_search)
+    
+    # Get recommended applicants if job is specified
+    recommended_applicants = []
+    if job_id:
+        job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
+        recommended_applicants = get_recommended_applicants(job, limit=10)
+    
+    template_data = {
+        'title': 'Search Candidates',
+        'applicants': applicants,
+        'recommended_applicants': recommended_applicants,
+        'search_term': search_term,
+        'skills_search': skills_search,
+        'location_search': location_search,
+        'job_id': job_id,
+    }
+    
+    return render(request, 'recruiter/search_candidates.html', {'template_data': template_data})
