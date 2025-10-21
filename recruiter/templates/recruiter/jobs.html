@@ -1,65 +1,206 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/recruiter.css' %}">
 
 <div class="job-search-container">
     <div class="page-container">
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h2>My Job Postings</h2>
-                <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post New Job</a>
-            </div>
-            
-            {% if template_data.jobs %}
-            <div class="jobs-list">
-                {% for job in template_data.jobs %}
-                <div class="job-item">
-                    <div class="job-info">
-                        <h3>{{ job.title }}</h3>
-                        <p class="job-meta">
-                            <span class="location">{% if job.remote %}Remote{% else %}{{ job.location }}{% endif %}</span>
-                            <span class="salary">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</span>
-                            <span class="status {% if job.is_draft %}draft{% elif job.is_closed %}closed{% else %}active{% endif %}">
-                                {% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}
-                            </span>
-                        </p>
-                        <p class="job-description">{{ job.description|truncatewords:30 }}</p>
+        <!-- START: My Jobs grid update -->
+        <div class="search-filters-bar">
+            <form method="get" class="search-form">
+                <div class="search-row">
+                    <div class="search-text">
+                        <input type="text" name="search" placeholder="Search my job postings..."
+                               value="{{ request.GET.search|default:'' }}" class="search-input" />
+                        <button type="submit" class="search-icon" aria-label="Search">🔍</button>
                     </div>
-                    <div class="job-actions">
-                        <a href="{% url 'recruiter:job_applications' job.id %}" class="btn secondary">View Applications</a>
-                        <a href="{% url 'recruiter:job_edit' job.id %}" class="btn secondary">Edit</a>
-                        <a href="{% url 'recruiter:job_delete' job.id %}" class="btn danger">Delete</a>
+                    <div class="filter-actions">
+                        <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post New Job</a>
                     </div>
                 </div>
+            </form>
+        </div>
+
+        {% if template_data.jobs %}
+            <div class="cards-grid">
+                {% for job in template_data.jobs %}
+                    <article class="job-card"
+                             role="button" tabindex="0"
+                             data-job-id="{{ job.id }}"
+                             data-title="{{ job.title|escape }}"
+                             data-location="{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}"
+                             data-salary-min="{{ job.salary_min|default_if_none:''|floatformat:0 }}"
+                             data-salary-max="{{ job.salary_max|default_if_none:''|floatformat:0 }}"
+                             data-status="{% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}"
+                             data-description="{{ job.description|escape }}"
+                             data-skills="{{ job.skills_required|escape }}"
+                             data-visa="{{ job.visa_sponsorship|yesno:'Yes,No' }}"
+                             data-created="{{ job.created_at|date:'M d, Y' }}"
+                             data-applications="{{ job.application_set.count }}">
+                        
+                        <div class="job-card-header">
+                            <h3 class="job-title">{{ job.title }}</h3>
+                            <div class="job-status-badge {% if job.is_draft %}draft{% elif job.is_closed %}closed{% else %}active{% endif %}">
+                                {% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="job-card-body">
+                            <div class="job-meta">
+                                <div class="job-location">
+                                    <span class="icon">📍</span>
+                                    {% if job.remote %}Remote{% else %}{{ job.location }}{% endif %}
+                                </div>
+                                <div class="job-salary">
+                                    <span class="icon">💰</span>
+                                    ${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}
+                                </div>
+                                <div class="job-applications">
+                                    <span class="icon">👥</span>
+                                    {{ job.application_set.count }} application{{ job.application_set.count|pluralize }}
+                                </div>
+                            </div>
+                            
+                            <div class="job-description">
+                                {{ job.description|truncatewords:25 }}
+                            </div>
+                            
+                            <div class="job-skills">
+                                <strong>Skills:</strong> {{ job.skills_required|truncatewords:10 }}
+                            </div>
+                        </div>
+                        
+                        <div class="job-card-footer">
+                            <div class="job-actions">
+                                <a href="{% url 'recruiter:job_applications' job.id %}" class="btn secondary">
+                                    View Applications ({{ job.application_set.count }})
+                                </a>
+                                <a href="{% url 'recruiter:job_edit' job.id %}" class="btn secondary">Edit</a>
+                                <a href="{% url 'recruiter:job_delete' job.id %}" class="btn danger">Delete</a>
+                            </div>
+                            <div class="job-date">
+                                Posted: {{ job.created_at|date:"M d, Y" }}
+                            </div>
+                        </div>
+                    </article>
                 {% endfor %}
             </div>
-            {% else %}
+        {% else %}
             <div class="empty-state">
-                <h3>No job postings yet</h3>
-                <p>Create your first job posting to start attracting candidates.</p>
-                <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post Your First Job</a>
+                <div class="empty-state-content">
+                    <h3>No job postings yet</h3>
+                    <p>Create your first job posting to start attracting candidates.</p>
+                    <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post Your First Job</a>
+                </div>
             </div>
-            {% endif %}
-        </div>
+        {% endif %}
     </div>
 </div>
+
 <style>
-.btn.danger {
-    background: #dc2626;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: background-color 0.2s;
-    display: inline-block;
+/* Enhanced styling for Ali's frontend improvements */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
 }
 
-.btn.danger:hover {
-    background: #b91c1c;
-    color: white;
+.job-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.job-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.job-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    flex: 1;
+}
+
+.job-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.job-status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.job-status-badge.draft {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.job-status-badge.closed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.job-card-body {
+    margin-bottom: 1rem;
+}
+
+.job-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.job-meta > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.job-meta .icon {
+    font-size: 1rem;
+}
+
+.job-description {
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.job-skills {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.job-card-footer {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .job-actions {
@@ -68,8 +209,114 @@
     flex-wrap: wrap;
 }
 
+.job-actions .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.job-actions .btn.secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.job-actions .btn.secondary:hover {
+    background: #e5e7eb;
+}
+
+.job-actions .btn.danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+}
+
+.job-actions .btn.danger:hover {
+    background: #b91c1c;
+}
+
+.job-date {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-content h3 {
+    font-size: 1.5rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-content p {
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.search-filters-bar {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.search-form .search-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-text {
+    flex: 1;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+}
+
+.search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 @media (max-width: 768px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .job-card-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
     .job-actions {
+        justify-content: center;
+    }
+    
+    .search-form .search-row {
         flex-direction: column;
     }
 }
