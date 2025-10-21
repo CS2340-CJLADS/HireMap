@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     # Admin first (and force /admin -> /admin/)
@@ -16,6 +18,14 @@ urlpatterns = [
     # Jobs
     path("jobs/", include(("jobs.urls", "jobs"), namespace="jobs")),
 
-    # React SPA routes (explicit)
+    # User-specific apps
+    path("recruiter/", include(("recruiter.urls", "recruiter"), namespace="recruiter")),
+    path("seeker/", include(("seeker.urls", "seeker"), namespace="seeker")),
+
+    # Home (shared pages)
     path("", include(("home.urls", "home"), namespace="home")),
 ]
+
+# Serve static files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])

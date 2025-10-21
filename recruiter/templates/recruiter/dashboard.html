@@ -1,0 +1,654 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+
+<div class="job-search-container">
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>HireMap</h2>
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'recruiter:dashboard' %}" class="nav-link active">Dashboard</a>
+                <a href="{% url 'recruiter:jobs' %}" class="nav-link">My Jobs</a>
+                <a href="{% url 'recruiter:profile' %}" class="nav-link">My Profile</a>
+                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+    <!-- Search & Filters Bar -->
+    <div class="search-filters-bar">
+        <form method="get" class="search-form" id="search-form">
+            <div class="search-row">
+                <div class="search-text">
+                    <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." 
+                           value="{{ template_data.search_term|default:'' }}" class="search-input" id="search-input" />
+                    <button type="submit" class="search-icon" aria-label="Search">🔍</button>
+                </div>
+                <div class="filter-actions">
+                    <button type="button" id="clear-filters" class="clear-filters-btn">Clear All</button>
+                </div>
+                <div class="search-filters-inline">
+                    <div class="filter-item">
+                        <input type="text" name="title" id="title" placeholder="e.g., Software Engineer, Product Manager..." 
+                               value="{{ request.GET.title|default:'' }}" class="filter-input" />
+                    </div>
+                    <div class="filter-item">
+                        <input type="text" name="location" id="location" placeholder="e.g., San Francisco, Remote, New York..." 
+                               value="{{ request.GET.location|default:'' }}" class="filter-input" />
+                    </div>
+                    <div class="filter-item">
+                        <div class="visa-filter">
+                            <span class="visa-text">Visa</span>
+                            <input type="checkbox" name="visa_sponsorship" id="visa_sponsorship" value="true" {% if request.GET.visa_sponsorship == 'true' %}checked{% endif %} />
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <input type="text" name="skills" id="skills" placeholder="e.g., Python, React, AWS..." 
+                               value="{{ request.GET.skills|default:'' }}" class="filter-input" />
+                    </div>
+                    <div class="filter-item">
+                        <div class="salary-filter">
+                            <span class="salary-text">Salary</span>
+                            <div class="dual-range-container">
+                                <div class="range-values">
+                                    <span class="min-value">$50k</span>
+                                    <span class="max-value">$150k</span>
+                                </div>
+                                <input type="range" name="salary_min" id="salary_min" min="30000" max="200000" step="5000" value="{{ request.GET.salary_min|default:'50000' }}" class="range-input range-min" />
+                                <input type="range" name="salary_max" id="salary_max" min="30000" max="200000" step="5000" value="{{ request.GET.salary_max|default:'150000' }}" class="range-input range-max" />
+                                <div class="range-track"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Split Screen Layout -->
+    <div class="split-screen">
+        <!-- Left Panel: Job List -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h3>Job Listings ({{ template_data.job_postings.count }})</h3>
+            </div>
+            <div class="job-list" id="job-list">
+                <div class="job-listings-grid">
+                    {% for job in template_data.job_postings %}
+                    <div class="job-listing" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
+                        <div class="job-tile">
+                            <div class="job-tile-company">{{ job.recruiter.company_name|default:"Company" }}</div>
+                            <div class="job-tile-position">{{ job.title }}</div>
+                            
+                            <div class="job-tile-separator"></div>
+                            
+                            <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
+                            <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-jobs-message">
+                        <p>No jobs found matching your criteria.</p>
+                        <p>Try adjusting your search filters or check back later for new opportunities.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Recruiter Dashboard -->
+        <div class="right-panel" id="right-panel">
+            <!-- Default: Dashboard -->
+            <div id="dashboard-content" class="panel-content">
+                <div class="dashboard-container">
+                    <div class="dashboard-section">
+                        <div class="section-name">Current Search</div>
+                        <div class="saved-searches-list" id="current-search-tags">
+                            {% if template_data.search_term %}
+                            <span class="saved-search-item">"{{ template_data.search_term }}"</span>
+                            {% endif %}
+                            {% if request.GET.title %}
+                            <span class="saved-search-item">{{ request.GET.title }}</span>
+                            {% endif %}
+                            {% if request.GET.location == 'remote' %}
+                            <span class="saved-search-item">Remote</span>
+                            {% elif request.GET.location == 'onsite' %}
+                            <span class="saved-search-item">On-site</span>
+                            {% endif %}
+                            {% if request.GET.skills %}
+                            <span class="saved-search-item">{{ request.GET.skills }}</span>
+                            {% endif %}
+                            {% if request.GET.visa_sponsorship == 'true' %}
+                            <span class="saved-search-item">Visa Sponsorship</span>
+                            {% endif %}
+                            {% if request.GET.salary_min or request.GET.salary_max %}
+                            <span class="saved-search-item">
+                                ${{ request.GET.salary_min|default:'50' }}k - ${{ request.GET.salary_max|default:'150' }}k
+                            </span>
+                            {% endif %}
+                            {% if not template_data.search_term and not request.GET.title and not request.GET.location and not request.GET.skills and not request.GET.visa_sponsorship and not request.GET.salary_min and not request.GET.salary_max %}
+                            <span class="saved-search-item">All Jobs</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <div class="section-name">Your Job Postings</div>
+                        <div class="job-postings-list">
+                            {% for job in template_data.jobs|slice:":3" %}
+                            <div class="job-posting-tile">
+                                <div class="job-posting-header">
+                                    <span class="job-title">{{ job.title }}</span>
+                                    <span class="job-status {% if job.is_draft %}draft{% elif job.is_closed %}closed{% else %}active{% endif %}">
+                                        {% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}
+                                    </span>
+                                </div>
+                                <div class="job-posting-meta">
+                                    <span>{{ job.location }}{% if job.remote %} (Remote){% endif %}</span>
+                                    <span>${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</span>
+                                </div>
+                                <div class="job-posting-actions">
+                                    <a href="{% url 'recruiter:job_applications' job.id %}" class="btn small">View Applications</a>
+                                    <a href="{% url 'recruiter:job_edit' job.id %}" class="btn small secondary">Edit</a>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="no-job-postings">
+                                <p>No job postings yet.</p>
+                                <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post Your First Job</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if template_data.jobs.count > 3 %}
+                        <a href="{% url 'recruiter:jobs' %}" class="view-all-button">View All Jobs</a>
+                        {% endif %}
+            </div>
+            
+            <div class="dashboard-section">
+                <div class="section-name">Recent Applications Received</div>
+                <div class="recent-applications-list">
+                    {% for application in template_data.recent_applications %}
+                    <div class="application-tile">
+                        <div class="application-header">
+                            <span class="company-name">{{ application.applicant.first_name }} {{ application.applicant.last_name }}</span>
+                            <span class="status-label">Applied</span>
+                        </div>
+                        <div class="position">{{ application.listing.title }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="no-applications-message">
+                        <p>No recent applications.</p>
+                        <p>Applications will appear here as candidates apply to your jobs.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <style>
+            .company-name {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+            }
+            .position {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 180px;
+            }
+            </style>
+            
+            <div class="dashboard-section">
+                <div class="section-name">Quick Actions</div>
+                <div class="quick-actions">
+                    <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post New Job</a>
+                <a href="{% url 'recruiter:jobs' %}" class="btn secondary">Manage Jobs</a>
+                </div>
+            </div>
+                </div>
+            </div>
+            
+            <!-- Job Details (hidden by default) -->
+            <div id="job-details-content" class="panel-content" style="display: none;">
+                <div class="job-details-content">
+                    <div class="job-details-header">
+                        <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
+                    </div>
+                    <div id="job-details-loading" class="loading-state" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading job details...</p>
+                    </div>
+                    <div id="job-details-body">
+                        <div class="job-description-container">
+                            <!-- Header Section -->
+                            <div class="job-description-header">
+                                <div class="job-description-company" id="job-description-company">Company</div>
+                                <div class="job-description-position" id="job-description-position">Position</div>
+                            </div>
+                            
+                            <!-- Description Sections -->
+                            <div class="job-description-sections">
+                                <div class="job-description-section">
+                                    <div class="section-title">About</div>
+                                    <div class="section-content">
+                                        <div id="job-description-location">Location</div>
+                                        <div id="job-description-salary">Salary</div>
+                                        <div id="job-description-visa">Visa</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Skills</div>
+                                    <div class="section-content" id="job-description-skills">Skills</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Requirements</div>
+                                    <div class="section-content" id="job-description-requirements">Requirements</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Description</div>
+                                    <div class="section-content" id="job-description-description">Description</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions Section -->
+                            <div class="job-description-actions">
+                                <div class="job-actions">
+                                    <a href="#" class="btn primary" id="edit-job-btn">Edit Job</a>
+                                    <a href="#" class="btn secondary" id="view-applications-btn">View Applications</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+// Job Details Logic for Recruiter Dashboard
+let currentJobId = null;
+let jobData = {};
+
+// Store job data from template
+{% for job in template_data.job_postings %}
+jobData['{{ job.id }}'] = {
+    id: '{{ job.id }}',
+    title: '{{ job.title|escapejs }}',
+    company: '{{ job.recruiter.company_name|default:"Company"|escapejs }}',
+    location: '{{ job.location|escapejs }}',
+    remote: {{ job.remote|yesno:"true,false" }},
+    salary_min: {{ job.salary_min }},
+    salary_max: {{ job.salary_max }},
+    visa_sponsorship: {{ job.visa_sponsorship|yesno:"true,false" }},
+    skills_required: '{{ job.skills_required|escapejs }}',
+    description: '{{ job.description|escapejs }}',
+    requirements: '{{ job.requirements|default:""|escapejs }}'
+};
+{% endfor %}
+
+function showJobDetails(jobId) {
+    currentJobId = jobId;
+    
+    // Show loading state
+    document.getElementById('job-details-loading').style.display = 'block';
+    document.getElementById('job-details-body').style.display = 'none';
+    document.getElementById('job-details-content').style.display = 'block';
+    document.getElementById('dashboard-content').style.display = 'none';
+    
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+        if (jobData[jobId]) {
+            const job = jobData[jobId];
+            
+            // Update job details
+            document.getElementById('job-description-company').textContent = job.company;
+            document.getElementById('job-description-position').textContent = job.title;
+            document.getElementById('job-description-location').textContent = job.remote ? job.location + ' (Remote)' : job.location;
+            document.getElementById('job-description-salary').textContent = '$' + job.salary_min.toLocaleString() + ' - $' + job.salary_max.toLocaleString();
+            document.getElementById('job-description-visa').textContent = job.visa_sponsorship ? 'Visa sponsorship available' : 'No visa sponsorship';
+            document.getElementById('job-description-skills').textContent = job.skills_required || 'Not specified';
+            document.getElementById('job-description-requirements').textContent = job.requirements || 'Not specified';
+            document.getElementById('job-description-description').textContent = job.description || 'No description provided';
+            
+            // Update action buttons
+            const editBtn = document.getElementById('edit-job-btn');
+            const viewAppsBtn = document.getElementById('view-applications-btn');
+            
+            if (editBtn) {
+                editBtn.href = `/recruiter/jobs/${jobId}/edit/`;
+            }
+            if (viewAppsBtn) {
+                viewAppsBtn.href = `/recruiter/jobs/${jobId}/applications/`;
+            }
+        }
+        
+        // Hide loading, show content
+        document.getElementById('job-details-loading').style.display = 'none';
+        document.getElementById('job-details-body').style.display = 'block';
+    }, 500);
+}
+
+// Back to dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('back-to-dashboard');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            document.getElementById('job-details-content').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'block';
+            currentJobId = null;
+        });
+    }
+});
+
+// Filter Management
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('search-form');
+    const clearBtn = document.getElementById('clear-filters');
+    const searchInput = document.getElementById('search-input');
+    const titleSelect = document.getElementById('title');
+    const locationSelect = document.getElementById('location');
+    const skillsSelect = document.getElementById('skills');
+    const visaCheckbox = document.getElementById('visa_sponsorship');
+    const minSlider = document.getElementById('salary_min');
+    const maxSlider = document.getElementById('salary_max');
+    const minValue = document.querySelector('.min-value');
+    const maxValue = document.querySelector('.max-value');
+    
+    // Auto-submit on filter change
+    function autoSubmit() {
+        form.submit();
+    }
+    
+    // Clear all filters
+    function clearFilters() {
+        searchInput.value = '';
+        titleSelect.value = '';
+        locationSelect.value = '';
+        skillsSelect.value = '';
+        visaCheckbox.checked = false;
+        minSlider.value = '50000';
+        maxSlider.value = '150000';
+        updateSliderValues();
+        form.submit();
+    }
+    
+    // Update slider display values
+    function updateSliderValues() {
+        if (minSlider && maxSlider && minValue && maxValue) {
+            const minVal = parseInt(minSlider.value);
+            const maxVal = parseInt(maxSlider.value);
+            
+            // Prevent min from crossing max
+            if (minVal >= maxVal) {
+                minSlider.value = maxVal - 5000;
+            }
+            
+            // Prevent max from crossing min
+            if (maxVal <= minVal) {
+                maxSlider.value = minVal + 5000;
+            }
+            
+            // Update display values
+            minValue.textContent = '$' + Math.round(parseInt(minSlider.value) / 1000) + 'k';
+            maxValue.textContent = '$' + Math.round(parseInt(maxSlider.value) / 1000) + 'k';
+        }
+    }
+    
+    // Event listeners
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearFilters);
+    }
+    
+    if (titleSelect) {
+        let titleTimeout;
+        titleSelect.addEventListener('input', function() {
+            clearTimeout(titleTimeout);
+            titleTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+    
+    if (locationSelect) {
+        let locationTimeout;
+        locationSelect.addEventListener('input', function() {
+            clearTimeout(locationTimeout);
+            locationTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+    
+    if (skillsSelect) {
+        let skillsTimeout;
+        skillsSelect.addEventListener('input', function() {
+            clearTimeout(skillsTimeout);
+            skillsTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+    
+    if (visaCheckbox) {
+        visaCheckbox.addEventListener('change', autoSubmit);
+    }
+    
+    if (minSlider && maxSlider) {
+        minSlider.addEventListener('input', function() {
+            updateSliderValues();
+            // Debounce the auto-submit for sliders
+            clearTimeout(window.sliderTimeout);
+            window.sliderTimeout = setTimeout(autoSubmit, 500);
+        });
+        
+        maxSlider.addEventListener('input', function() {
+            updateSliderValues();
+            // Debounce the auto-submit for sliders
+            clearTimeout(window.sliderTimeout);
+            window.sliderTimeout = setTimeout(autoSubmit, 500);
+        });
+        
+        // Initialize values
+        updateSliderValues();
+    }
+    
+    // Search input with debounce
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+});
+</script>
+
+<style>
+.job-postings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.job-posting-tile {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.job-posting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.job-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.job-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.job-status.active {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.job-status.draft {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.job-status.closed {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.job-posting-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.job-posting-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn.secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn.small {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.no-job-postings {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.no-job-postings p {
+    margin-bottom: 1rem;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .job-posting-actions {
+        flex-direction: column;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+    }
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.clear-filters-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clear-filters-btn:hover {
+    background: #5a6268;
+}
+
+.saved-search-item {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin: 0.25rem;
+    display: inline-block;
+}
+
+.saved-searches-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .filter-actions {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Fix job status positioning - override external CSS */
+.job-status {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+</style>
+{% endblock content %}

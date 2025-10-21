@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-*-fe_pexx3sc6j&_&p9$%35&x8rq1e8d(u&v7oiedzye#$34*-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 
 # Application definition
@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'home',
     'accounts',
     'jobs',
-    'api',     # NEW: read-only JSON endpoints the React app uses
+    'api',
+    'recruiter',
+    'seeker',
 ]
 
 MIDDLEWARE = [

@@ -1,26 +1,37 @@
 /* Clean, professional base styles */
 :root {
-  --primary: #2A5155;
-  --primary-dark: #1e3a3d;
-  --secondary: #64748b;
-  --success: #10b981;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --background: #ffffff;
-  --surface: #f5f3f0;
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
+  /* Your New Design System */
+  --main-green: #218074;
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --text: #000000;
   
-  /* Brand colors for consistency across all pages */
-  --brand: #2A5155;
-  --brand-dark: #1e3a3d;
-  --brand-accent: #e8f4f4;
-  --white: #ffffff;
-  --muted: #64748b;
-  --ink: #1e293b;
+  /* Layout */
+  --page-content-width: 92%;
+  
+  /* Typography Tokens */
+  --font-family-base: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-size-16: 16px;
+  --font-size-20: 20px;
+  
+  /* Semantic Text Tokens (property-based, reusable across pages) */
+  --text-semibold-20-size: var(--font-size-20);
+  --text-semibold-20-weight: var(--font-weight-semibold);
+  --text-medium-16-size: var(--font-size-16);
+  --text-medium-16-weight: var(--font-weight-medium);
+  --text-regular-16-size: var(--font-size-16);
+  --text-regular-16-weight: var(--font-weight-regular);
+  --text-regular-20-size: var(--font-size-20);
+  --text-regular-20-weight: var(--font-weight-regular);
+  
+  /* Job Search Dashboard Design System */
+  --job-card-gradient-start: #13E3B2;
+  --job-card-gradient-end: #65F3F3;
+  --job-card-fill-opacity: 0.08;
+  --job-card-selected-opacity: 0.40;
+  --app-background: #F4FFFF;
 }
 
 * {
@@ -30,14 +41,14 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-family-base);
   color: var(--text);
-  background: var(--background);
+  background: var(--app-background);
   line-height: 1.6;
 }
 
 a {
-  color: var(--primary);
+  color: #000000;
   text-decoration: none;
 }
 
@@ -50,6 +61,11 @@ a:hover {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+/* Generic page container that constrains inner content to the shared width */
+.page-container {
+  margin: 0 0 4rem 2rem;
 }
 
 /* Navigation */
@@ -65,7 +81,7 @@ a:hover {
 .brand {
   font-weight: 700;
   font-size: 1.5rem;
-  color: var(--primary);
+  color: #000000;
 }
 
 .nav-actions {
@@ -77,7 +93,7 @@ a:hover {
 .nav-actions a {
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  color: var(--text);
+  color: #000000;
   transition: background-color 0.2s;
 }
 
@@ -105,10 +121,10 @@ a:hover {
 .btn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  border: 2px solid var(--primary);
+  border: 2px solid var(--main-green);
   border-radius: 6px;
   background: white;
-  color: var(--primary);
+  color: #000000;
   font-weight: 500;
   text-align: center;
   cursor: pointer;
@@ -123,8 +139,8 @@ a:hover {
 
 .btn.secondary {
   background: white;
-  color: var(--secondary);
-  border-color: var(--secondary);
+  color: #000000;
+  border-color: #000000;
 }
 
 .btn.secondary:hover {
@@ -134,8 +150,8 @@ a:hover {
 
 .btn.danger {
   background: white;
-  color: var(--danger);
-  border-color: var(--danger);
+  color: #000000;
+  border-color: #000000;
 }
 
 .btn.danger:hover {
@@ -146,8 +162,8 @@ a:hover {
 .badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background: var(--surface);
-  color: var(--text);
+  background: #f0f0f0;
+  color: #000000;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -161,7 +177,7 @@ a:hover {
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text);
+  color: #000000;
   margin: 0 0 1rem 0;
 }
 
@@ -193,11 +209,11 @@ a:hover {
 }
 
 .tile {
-  background: var(--primary);
-  color: white;
+  background: var(--main-green);
+  color: #000000;
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
 }
 
 /* Forms */
@@ -205,7 +221,7 @@ a:hover {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--text);
+  color: #000000;
 }
 
 .form input,
@@ -223,8 +239,8 @@ a:hover {
 .form select:focus,
 .form textarea:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(42, 81, 85, 0.1);
+  border-color: var(--main-green);
+  box-shadow: 0 0 0 3px rgba(33, 128, 116, 0.1);
 }
 
 .form-actions {
@@ -235,7 +251,7 @@ a:hover {
 
 /* Utility classes */
 .muted {
-  color: var(--text-muted);
+  color: #000000;
 }
 
 .small {
@@ -243,12 +259,12 @@ a:hover {
 }
 
 .link-back {
-  color: var(--text-muted);
+  color: #000000;
   font-size: 0.875rem;
 }
 
 .link-back:hover {
-  color: var(--primary);
+  color: #000000;
   text-decoration: none;
 }
 

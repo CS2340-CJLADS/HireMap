@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/applications.css' %}">
+
+<div class="job-search-container">
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>HireMap</h2>
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'home:job_search_dashboard' %}" class="nav-link">Jobs</a>
+                <a href="{% url 'home:my_applications' %}" class="nav-link active">My Applications</a>
+                <a href="{% url 'home:profile' %}" class="nav-link">My Profile</a>
+                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <!-- Search Bar -->
+        <div class="search-filters-bar">
+            <form method="get" class="search-form">
+                <div class="search-row">
+                    <div class="search-text">
+                        <input type="text" name="search" placeholder="Search applications..." class="search-input" />
+                        <button type="submit" class="search-icon" aria-label="Search">🔍</button>
+                    </div>
+                    <div class="status-filters">
+                        <div class="status-filter-pill status-applied">Applied</div>
+                        <div class="status-filter-pill status-review">Review</div>
+                        <div class="status-filter-pill status-interviewing">Interviewing</div>
+                        <div class="status-filter-pill status-offer">Offer</div>
+                        <div class="status-filter-pill status-closed">Closed</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Split Screen Layout -->
+        <div class="split-screen">
+            <!-- Left Panel: Applications List -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h3>My Applications</h3>
+                </div>
+                <div class="applications-container" id="applications-list">
+                    {% for application in template_data.applications %}
+                    <div class="application-bar" data-application-id="{{ application.id }}">
+                        <div class="application-company">{{ application.listing.recruiter.company_name }}</div>
+                        <div class="application-position">{{ application.listing.title }}</div>
+                        <div class="application-location">
+                            {% if application.listing.remote %}
+                                {{ application.listing.location }} (Remote)
+                            {% else %}
+                                {{ application.listing.location }}
+                            {% endif %}
+                        </div>
+                        <div class="application-status status-applied">
+                            Applied
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-applications">
+                        <p>No applications found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Right Panel: Application Details -->
+            <div class="right-panel" id="right-panel">
+                <!-- Default: Dashboard -->
+                <div id="dashboard-content" class="panel-content">
+                    <div class="job-details-content">
+                        <div class="job-description-container">
+                            <!-- Header Section -->
+                            <div class="job-description-header">
+                                <div class="job-description-company">Google</div>
+                                <div class="status-badge status-interviewing">Interviewing</div>
+                                <div class="job-description-position">Software Engineer Intern</div>
+                            </div>
+                            
+                            <!-- Description Sections -->
+                            <div class="job-description-sections">
+                                <div class="job-description-section">
+                                    <div class="section-title">About</div>
+                                    <div class="section-content">
+                                        <div>New York City, NY (Remote)</div>
+                                        <div>$70,000 - 100,000</div>
+                                        <div>Visa Required</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Skills</div>
+                                    <div class="section-content">Python, Java, Git, GitHub</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Requirements</div>
+                                    <div class="section-content">Bachelor's degree in Computer Science or related field. 1-3 years of experience in software development. Strong communication and problem-solving skills.</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Description</div>
+                                    <div class="section-content">We are looking for a Software Engineer to design, develop, and maintain scalable applications. You will work with cross-functional teams to deliver high-quality features and improve system performance.</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Your Note</div>
+                                    <div class="section-content">Message that you left when you were applying</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Details (hidden by default) -->
+                <div id="job-details-content" class="panel-content" style="display: none;">
+                    <div class="job-details-content">
+                        <div class="job-details-header">
+                            <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
+                        </div>
+                        <div id="job-details-loading" class="loading-state" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Loading application details...</p>
+                        </div>
+                        <div id="job-details-body">
+                            <div class="job-description-container">
+                                <!-- Header Section -->
+                                <div class="job-description-header">
+                                    <div class="job-description-company" id="job-description-company">Company</div>
+                                    <div class="job-description-position" id="job-description-position">Position</div>
+                                </div>
+                                
+                                <!-- Description Sections -->
+                                <div class="job-description-sections">
+                                    <div class="job-description-section">
+                                        <div class="section-title">About</div>
+                                        <div class="section-content">
+                                            <div id="job-description-location">Location</div>
+                                            <div id="job-description-salary">Salary</div>
+                                            <div id="job-description-visa">Visa</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="job-description-section">
+                                        <div class="section-title">Skills</div>
+                                        <div class="section-content" id="job-description-skills">Skills</div>
+                                    </div>
+                                    
+                                    <div class="job-description-section">
+                                        <div class="section-title">Requirements</div>
+                                        <div class="section-content" id="job-description-requirements">Requirements</div>
+                                    </div>
+                                    
+                                    <div class="job-description-section">
+                                        <div class="section-title">Description</div>
+                                        <div class="section-content" id="job-description-description">Description</div>
+                                    </div>
+                                    
+                                    <div class="job-description-section">
+                                        <div class="section-title">Your Note</div>
+                                        <div class="section-content" id="application-note">Your application message will appear here</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

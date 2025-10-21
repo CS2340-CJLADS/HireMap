@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+
+<div class="job-search-container">
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <h2>HireMap</h2>
+            </div>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'home:job_search_dashboard' %}" class="nav-link active">Jobs</a>
+                    <a href="{% url 'home:my_applications' %}" class="nav-link">My Applications</a>
+                    <a href="{% url 'home:profile' %}" class="nav-link">My Profile</a>
+                    <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:accounts.login' %}" class="nav-link">Login</a>
+                    <a href="{% url 'accounts:accounts.signup' %}" class="nav-link">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+    <!-- Search & Filters Bar -->
+    <div class="search-filters-bar">
+        <form method="get" class="search-form">
+            <div class="search-row">
+                <div class="search-text">
+                    <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." 
+                           value="{{ template_data.search_term|default:'' }}" class="search-input" />
+                    <button type="submit" class="search-icon" aria-label="Search">🔍</button>
+                </div>
+                <div class="search-filters-inline">
+                    <div class="filter-item">
+                        <select name="title" id="title">
+                            <option value="">Title</option>
+                            <option value="Frontend Engineer" {% if request.GET.title == 'Frontend Engineer' %}selected{% endif %}>Frontend Engineer</option>
+                            <option value="Backend Developer" {% if request.GET.title == 'Backend Developer' %}selected{% endif %}>Backend Developer</option>
+                            <option value="Data Analyst" {% if request.GET.title == 'Data Analyst' %}selected{% endif %}>Data Analyst</option>
+                            <option value="Full Stack" {% if request.GET.title == 'Full Stack' %}selected{% endif %}>Full Stack</option>
+                            <option value="DevOps" {% if request.GET.title == 'DevOps' %}selected{% endif %}>DevOps</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <select name="location" id="location">
+                            <option value="">Location</option>
+                            <option value="remote" {% if request.GET.location == 'remote' %}selected{% endif %}>Remote</option>
+                            <option value="onsite" {% if request.GET.location == 'onsite' %}selected{% endif %}>On-site</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <div class="visa-filter">
+                            <span class="visa-text">Visa</span>
+                            <input type="checkbox" name="visa_sponsorship" id="visa_sponsorship" value="true" {% if request.GET.visa_sponsorship == 'true' %}checked{% endif %} />
+                        </div>
+                    </div>
+                    <div class="filter-item">
+                        <select name="skills" id="skills">
+                            <option value="">Skills</option>
+                            <option value="React" {% if request.GET.skills == 'React' %}selected{% endif %}>React</option>
+                            <option value="Python" {% if request.GET.skills == 'Python' %}selected{% endif %}>Python</option>
+                            <option value="JavaScript" {% if request.GET.skills == 'JavaScript' %}selected{% endif %}>JavaScript</option>
+                            <option value="Django" {% if request.GET.skills == 'Django' %}selected{% endif %}>Django</option>
+                            <option value="SQL" {% if request.GET.skills == 'SQL' %}selected{% endif %}>SQL</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <div class="salary-filter">
+                            <span class="salary-text">Salary</span>
+                            <div class="dual-range-container">
+                                <div class="range-values">
+                                    <span class="min-value">$50k</span>
+                                    <span class="max-value">$150k</span>
+                                </div>
+                                <input type="range" name="salary_min" id="salary_min" min="30000" max="200000" step="5000" value="{{ request.GET.salary_min|default:'50000' }}" class="range-input range-min" />
+                                <input type="range" name="salary_max" id="salary_max" min="30000" max="200000" step="5000" value="{{ request.GET.salary_max|default:'150000' }}" class="range-input range-max" />
+                                <div class="range-track"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+        </form>
+    </div>
+
+    <!-- Split Screen Layout -->
+    <div class="split-screen">
+        <!-- Left Panel: Job List -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h3>Job Listings ({{ template_data.job_postings.count }})</h3>
+            </div>
+            <div class="job-list" id="job-list">
+                <div class="job-listings-grid">
+                    {% for job in template_data.job_postings %}
+                    <div class="job-listing" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
+                        <div class="job-tile">
+                            <div class="job-tile-company">{{ job.recruiter.company_name }}</div>
+                            <div class="job-tile-position">{{ job.title }}</div>
+                            
+                            <div class="job-tile-separator"></div>
+                            
+                            <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
+                            <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="job-listing" data-job-id="demo-1" onclick="showJobDetails('demo-1')">
+                        <div class="job-tile">
+                            <div class="job-tile-company">Acme Corp</div>
+                            <div class="job-tile-position">Frontend Engineer</div>
+                            
+                            <div class="job-tile-separator"></div>
+                            
+                            <div class="job-tile-range">$90,000 - $120,000</div>
+                            <div class="job-tile-location">Remote</div>
+                        </div>
+                    </div>
+
+                    <div class="job-listing" data-job-id="demo-2" onclick="showJobDetails('demo-2')">
+                        <div class="job-tile">
+                            <div class="job-tile-company">Globex</div>
+                            <div class="job-tile-position">Backend Developer</div>
+                            
+                            <div class="job-tile-separator"></div>
+                            
+                            <div class="job-tile-range">$110,000 - $140,000</div>
+                            <div class="job-tile-location">New York, NY</div>
+                        </div>
+                    </div>
+
+                    <div class="job-listing" data-job-id="demo-3" onclick="showJobDetails('demo-3')">
+                        <div class="job-tile">
+                            <div class="job-tile-company">Initech</div>
+                            <div class="job-tile-position">Data Analyst</div>
+                            
+                            <div class="job-tile-separator"></div>
+                            
+                            <div class="job-tile-range">$70,000 - $95,000</div>
+                            <div class="job-tile-location">On-site</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Dynamic Content -->
+        <div class="right-panel" id="right-panel">
+            <!-- Default: Dashboard -->
+            <div id="dashboard-content" class="panel-content">
+                <div class="dashboard-container">
+                    <div class="dashboard-section">
+                        <div class="section-name">Saved Searches</div>
+                        <div class="saved-searches-list">
+                            <span class="saved-search-item">Remote Jobs</span>
+                            <span class="saved-search-item">Near Atlanta</span>
+                            <span class="saved-search-item">Over 100k</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <div class="section-name">Your recent applications</div>
+                        <div class="recent-applications-list">
+                            <div class="application-tile">
+                                <div class="application-header">
+                                    <span class="company-name">Google</span>
+                                    <span class="status-label">Applied</span>
+                                </div>
+                                <div class="position">Software Engineering</div>
+                            </div>
+                            
+                            <div class="application-tile">
+                                <div class="application-header">
+                                    <span class="company-name">Microsoft</span>
+                                    <span class="status-label">Applied</span>
+                                </div>
+                                <div class="position">Frontend Developer</div>
+                            </div>
+                            
+                            <div class="application-tile">
+                                <div class="application-header">
+                                    <span class="company-name">Apple</span>
+                                    <span class="status-label">Applied</span>
+                                </div>
+                                <div class="position">iOS Engineer</div>
+                            </div>
+                        </div>
+                        <a href="{% url 'home:my_applications' %}" class="view-all-button">View All</a>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <div class="section-name">Recommended Based on your skills</div>
+                        <div class="recommended-jobs-list">
+                            <div class="recommended-job-tile">
+                                <div class="job-tile-company">Meta</div>
+                                <div class="job-tile-position">React Developer</div>
+                                
+                                <div class="job-tile-separator"></div>
+                                
+                                <div class="job-tile-range">$95,000 - $130,000</div>
+                                <div class="job-tile-location">San Francisco, CA</div>
+                            </div>
+                            
+                            <div class="recommended-job-tile">
+                                <div class="job-tile-company">Netflix</div>
+                                <div class="job-tile-position">Full Stack Engineer</div>
+                                
+                                <div class="job-tile-separator"></div>
+                                
+                                <div class="job-tile-range">$120,000 - $160,000</div>
+                                <div class="job-tile-location">Los Gatos, CA</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Details (hidden by default) -->
+            <div id="job-details-content" class="panel-content" style="display: none;">
+                <div class="job-details-content">
+                    <div class="job-details-header">
+                        <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
+                    </div>
+                    <div id="job-details-loading" class="loading-state" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading job details...</p>
+                    </div>
+                    <div id="job-details-body">
+                        <div class="job-description-container">
+                            <!-- Header Section -->
+                            <div class="job-description-header">
+                                <div class="job-description-company" id="job-description-company">Company</div>
+                                <div class="job-description-position" id="job-description-position">Position</div>
+                            </div>
+                            
+                            <!-- Description Sections -->
+                            <div class="job-description-sections">
+                                <div class="job-description-section">
+                                    <div class="section-title">About</div>
+                                    <div class="section-content">
+                                        <div id="job-description-location">Location</div>
+                                        <div id="job-description-salary">Salary</div>
+                                        <div id="job-description-visa">Visa</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Skills</div>
+                                    <div class="section-content" id="job-description-skills">Skills</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Requirements</div>
+                                    <div class="section-content" id="job-description-requirements">Requirements</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Description</div>
+                                    <div class="section-content" id="job-description-description">Description</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chat + Submit Section -->
+                            <div class="job-description-actions">
+                                <div class="message-input-container">
+                                    <input type="text" placeholder="Add an Optional message before applying" class="message-input" />
+                                </div>
+                                <button class="apply-button">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<script src="{% static 'js/job_search_dashboard.js' %}"></script>
+
+<script>
+// Dual Range Slider Logic
+document.addEventListener('DOMContentLoaded', function() {
+    const minSlider = document.getElementById('salary_min');
+    const maxSlider = document.getElementById('salary_max');
+    const minValue = document.querySelector('.min-value');
+    const maxValue = document.querySelector('.max-value');
+    
+    function updateValues() {
+        const minVal = parseInt(minSlider.value);
+        const maxVal = parseInt(maxSlider.value);
+        
+        // Prevent min from crossing max
+        if (minVal >= maxVal) {
+            minSlider.value = maxVal - 5000;
+        }
+        
+        // Prevent max from crossing min
+        if (maxVal <= minVal) {
+            maxSlider.value = minVal + 5000;
+        }
+        
+        // Update display values
+        minValue.textContent = '$' + Math.round(parseInt(minSlider.value) / 1000) + 'k';
+        maxValue.textContent = '$' + Math.round(parseInt(maxSlider.value) / 1000) + 'k';
+    }
+    
+    // Initialize values
+    updateValues();
+    
+    // Add event listeners
+    minSlider.addEventListener('input', updateValues);
+    maxSlider.addEventListener('input', updateValues);
+});
+</script>
+{% endblock content %}
