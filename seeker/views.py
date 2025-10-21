@@ -13,7 +13,9 @@ def dashboard(request):
     
     # Get filter parameters
     search_term = request.GET.get('search')
+    title = request.GET.get('title')
     location = request.GET.get('location')
+    skills = request.GET.get('skills')
     salary_min = request.GET.get('salary_min')
     salary_max = request.GET.get('salary_max')
     visa_sponsorship = request.GET.get('visa_sponsorship')
@@ -29,11 +31,23 @@ def dashboard(request):
             Q(skills_required__icontains=search_term)
         )
     
+    # Apply title filter
+    if title:
+        job_postings = job_postings.filter(title__icontains=title)
+    
+    # Apply skills filter
+    if skills:
+        job_postings = job_postings.filter(skills_required__icontains=skills)
+    
     # Apply location filter
-    if location == 'remote':
-        job_postings = job_postings.filter(remote=True)
-    elif location == 'onsite':
-        job_postings = job_postings.filter(remote=False)
+    if location:
+        if location.lower() == 'remote':
+            job_postings = job_postings.filter(remote=True)
+        elif location.lower() == 'onsite' or location.lower() == 'on-site':
+            job_postings = job_postings.filter(remote=False)
+        else:
+            # Search in location field for text matches
+            job_postings = job_postings.filter(location__icontains=location)
     
     # Apply salary filters
     if salary_min:

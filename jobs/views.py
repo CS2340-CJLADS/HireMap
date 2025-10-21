@@ -146,6 +146,16 @@ def apply_to_job(request, job_id):
         return HttpResponseForbidden("Only applicants can apply to jobs.")
     applicant = request.user.applicant
     listing = get_object_or_404(JobPosting, pk=job_id, is_draft=False, is_closed=False)
+    
+    # Prevent recruiters from applying to their own jobs
+    if hasattr(request.user, 'recruiter') and listing.recruiter == request.user.recruiter:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'error': 'You cannot apply to your own job posting.'
+            }, status=400)
+        return HttpResponseBadRequest("You cannot apply to your own job posting.")
+    
     note = request.POST.get('note', '')
     try:
         application, created = Application.objects.get_or_create(
@@ -157,14 +167,21 @@ def apply_to_job(request, job_id):
             application.message = note
             application.save(update_fields=['message'])
     except IntegrityError:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'error': 'You have already applied to this job.'
+            }, status=400)
         return HttpResponseBadRequest("You have already applied to this job.")
 
-    if request.headers.get('Accept') == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    # Always return JSON for AJAX requests
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
         return JsonResponse({
+            'success': True,
             'id': application.id,
             'listing_id': listing.id,
             'message': application.message,
-        }, status=201)
+        }, status=200)
     return redirect('jobs:jobs.index')
 
 

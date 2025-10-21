@@ -75,47 +75,18 @@
             <div class="right-panel" id="right-panel">
                 <!-- Default: Dashboard -->
                 <div id="dashboard-content" class="panel-content">
-                    <div class="job-details-content">
-                        <div class="job-description-container">
-                            <!-- Header Section -->
-                            <div class="job-description-header">
-                                <div class="job-description-company">Google</div>
-                                <div class="status-badge status-interviewing">Interviewing</div>
-                                <div class="job-description-position">Software Engineer Intern</div>
-                            </div>
-                            
-                            <!-- Description Sections -->
-                            <div class="job-description-sections">
-                                <div class="job-description-section">
-                                    <div class="section-title">About</div>
-                                    <div class="section-content">
-                                        <div>New York City, NY (Remote)</div>
-                                        <div>$70,000 - 100,000</div>
-                                        <div>Visa Required</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Skills</div>
-                                    <div class="section-content">Python, Java, Git, GitHub</div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Requirements</div>
-                                    <div class="section-content">Bachelor's degree in Computer Science or related field. 1-3 years of experience in software development. Strong communication and problem-solving skills.</div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Description</div>
-                                    <div class="section-content">We are looking for a Software Engineer to design, develop, and maintain scalable applications. You will work with cross-functional teams to deliver high-quality features and improve system performance.</div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Your Note</div>
-                                    <div class="section-content">Message that you left when you were applying</div>
-                                </div>
-                            </div>
+                    <div class="applications-dashboard">
+                        <h3>Your Applications</h3>
+                        {% if template_data.applications %}
+                        <p>You have {{ template_data.applications.count }} application{{ template_data.applications.count|pluralize }}.</p>
+                        <p>Click on an application to view details.</p>
+                        {% else %}
+                        <div class="no-applications-message">
+                            <h4>No applications yet</h4>
+                            <p>You haven't applied to any jobs yet. Start browsing jobs and apply to positions that interest you!</p>
+                            <a href="{% url 'seeker:dashboard' %}" class="btn primary">Browse Jobs</a>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -177,4 +148,124 @@
     </div>
 </div>
 
+<script>
+// Application Details Logic
+let currentApplicationId = null;
+let applicationData = {};
+
+// Store application data from template
+{% for application in template_data.applications %}
+applicationData['{{ application.id }}'] = {
+    id: '{{ application.id }}',
+    title: '{{ application.listing.title|escapejs }}',
+    company: '{{ application.listing.recruiter.company_name|default:"Company"|escapejs }}',
+    location: '{{ application.listing.location|escapejs }}',
+    remote: {{ application.listing.remote|yesno:"true,false" }},
+    salary_min: {{ application.listing.salary_min }},
+    salary_max: {{ application.listing.salary_max }},
+    visa_sponsorship: {{ application.listing.visa_sponsorship|yesno:"true,false" }},
+    skills_required: '{{ application.listing.skills_required|escapejs }}',
+    description: '{{ application.listing.description|escapejs }}',
+    requirements: '{{ application.listing.requirements|default:""|escapejs }}',
+    message: '{{ application.message|escapejs }}',
+    created_at: '{{ application.created_at|date:"M d, Y" }}'
+};
+{% endfor %}
+
+function showApplicationDetails(applicationId) {
+    currentApplicationId = applicationId;
+    
+    // Show loading state
+    document.getElementById('job-details-loading').style.display = 'block';
+    document.getElementById('job-details-body').style.display = 'none';
+    document.getElementById('job-details-content').style.display = 'block';
+    document.getElementById('dashboard-content').style.display = 'none';
+    
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+        if (applicationData[applicationId]) {
+            const application = applicationData[applicationId];
+            
+            // Update application details
+            document.getElementById('job-description-company').textContent = application.company;
+            document.getElementById('job-description-position').textContent = application.title;
+            document.getElementById('job-description-location').textContent = application.remote ? application.location + ' (Remote)' : application.location;
+            document.getElementById('job-description-salary').textContent = '$' + application.salary_min.toLocaleString() + ' - $' + application.salary_max.toLocaleString();
+            document.getElementById('job-description-visa').textContent = application.visa_sponsorship ? 'Visa sponsorship available' : 'No visa sponsorship';
+            document.getElementById('job-description-skills').textContent = application.skills_required || 'Not specified';
+            document.getElementById('job-description-requirements').textContent = application.requirements || 'Not specified';
+            document.getElementById('job-description-description').textContent = application.description || 'No description provided';
+            document.getElementById('application-note').textContent = application.message || 'No message provided';
+        }
+        
+        // Hide loading, show content
+        document.getElementById('job-details-loading').style.display = 'none';
+        document.getElementById('job-details-body').style.display = 'block';
+    }, 500);
+}
+
+// Back to dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('back-to-dashboard');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            document.getElementById('job-details-content').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'block';
+            currentApplicationId = null;
+        });
+    }
+    
+    // Add click handlers to application bars
+    document.querySelectorAll('.application-bar').forEach(bar => {
+        bar.addEventListener('click', function() {
+            const applicationId = this.getAttribute('data-application-id');
+            showApplicationDetails(applicationId);
+        });
+    });
+});
+</script>
+
+<style>
+.applications-dashboard {
+    padding: 2rem;
+    text-align: center;
+}
+
+.applications-dashboard h3 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.no-applications-message {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.no-applications-message h4 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+</style>
 {% endblock content %}
