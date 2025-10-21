@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/jobs.css' %}">
+<div class="container">
+  <div class="page-head">
+    <h2 class="page-title">Saved Searches</h2>
+    <a class="link-back" href="/">← Home</a>
+  </div>
+  <div class="card">
+    <h3>Senior Frontend (Remote)</h3>
+    <p class="small muted">10 new matches this week</p>
+    <div class="form-actions">
+      <button class="btn secondary">Edit</button>
+      <button class="btn danger">Delete</button>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+

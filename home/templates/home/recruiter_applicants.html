@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+<style>
+.applicants-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.applicant-card {
+  background: #FFFFFA;
+  border: 1px solid #2A5155;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.applicant-card:hover {
+  box-shadow: 0 4px 12px rgba(42, 81, 85, 0.1);
+}
+
+.applicant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.applicant-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #2A5155;
+  font-size: 1.25rem;
+}
+
+.applicant-details {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.applicant-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-applied {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-reviewing {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-interview {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-rejected {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.applicant-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.skill-tag {
+  background: #e8f4f4;
+  color: #2A5155;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.applicant-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.applicant-actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.search-section {
+  background: #FFFFFA;
+  border: 1px solid #2A5155;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.job-filter {
+  background: #FFFFFA;
+  border: 1px solid #2A5155;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.job-filter select {
+  padding: 0.5rem;
+  border: 1px solid #2A5155;
+  border-radius: 4px;
+  background: #FFFFFA;
+}
+</style>
+
+<div class="applicants-container">
+  <div class="page-head">
+    <h2 class="page-title">Current Applicants</h2>
+    <a class="link-back" href="/manage-jobs/">← Manage Jobs</a>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-section">
+    <h3 style="margin: 0 0 1rem 0; color: #2A5155;">Search Candidates</h3>
+    
+    <!-- Main Search -->
+    <div style="margin-bottom: 1rem;">
+      <input type="text" id="candidate-search" placeholder="Search by name, email, or keywords..." style="width: 100%; padding: 0.75rem; border: 1px solid #2A5155; border-radius: 4px; font-size: 1rem;">
+    </div>
+
+    <!-- Advanced Filters -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Skills</label>
+        <input type="text" id="skills-filter" placeholder="React, Python, etc." style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Location</label>
+        <select id="location-filter" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+          <option value="">All Locations</option>
+          <option value="san-francisco">San Francisco, CA</option>
+          <option value="new-york">New York, NY</option>
+          <option value="remote">Remote</option>
+          <option value="seattle">Seattle, WA</option>
+          <option value="austin">Austin, TX</option>
+          <option value="boston">Boston, MA</option>
+        </select>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Experience Level</label>
+        <select id="experience-filter" style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+          <option value="">All Levels</option>
+          <option value="entry">Entry Level (0-2 years)</option>
+          <option value="mid">Mid Level (2-5 years)</option>
+          <option value="senior">Senior Level (5+ years)</option>
+        </select>
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Projects</label>
+        <input type="text" id="projects-filter" placeholder="Portfolio, GitHub, etc." style="width: 100%; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+      </div>
+    </div>
+
+    <!-- Filter Actions -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+      <button onclick="searchCandidates()" style="padding: 0.75rem 1.5rem; background: #2A5155; color: #FFFFFA; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Search Candidates</button>
+      <button onclick="clearSearch()" style="padding: 0.75rem 1.5rem; background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155; border-radius: 4px; cursor: pointer;">Clear Filters</button>
+    </div>
+
+    <!-- Job Filter -->
+    <div style="border-top: 1px solid #2A5155; padding-top: 1rem;">
+      <label for="job-filter" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Filter by Job:</label>
+      <select id="job-filter" onchange="filterApplicants()" style="width: 200px; padding: 0.5rem; border: 1px solid #2A5155; border-radius: 4px;">
+        <option value="all">All Jobs</option>
+        <option value="frontend">Frontend Engineer</option>
+        <option value="backend">Backend Developer</option>
+        <option value="designer">Product Designer</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Applicants List -->
+  <div id="applicants-list">
+    <!-- Frontend Engineer Applicants -->
+    <div class="applicant-card" data-job="frontend" data-skills="react,typescript,javascript,css,node" data-location="san-francisco" data-experience="mid" data-projects="portfolio,github">
+      <div class="applicant-header">
+        <div class="applicant-info">
+          <h3>Sarah Johnson</h3>
+          <div class="applicant-details">
+            📧 sarah.johnson@email.com • 📱 (555) 123-4567
+          </div>
+          <div class="applicant-details">
+            🎓 Computer Science, Stanford University • 💼 3 years experience
+          </div>
+          <div class="applicant-details">
+            📍 San Francisco, CA • Applied 2 days ago
+          </div>
+        </div>
+        <span class="applicant-status status-reviewing">Under Review</span>
+      </div>
+      
+      <div class="applicant-skills">
+        <span class="skill-tag">React</span>
+        <span class="skill-tag">TypeScript</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">CSS</span>
+        <span class="skill-tag">Node.js</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "I'm excited about this opportunity to work on cutting-edge frontend technologies. I have extensive experience with React and modern JavaScript frameworks, and I'm passionate about creating user-friendly interfaces."
+      </p>
+      
+      <div class="applicant-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Schedule Interview</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Accept</button>
+        <button class="btn danger" style="background: #ef4444; color: #FFFFFA;">Reject</button>
+      </div>
+    </div>
+
+    <!-- Backend Developer Applicants -->
+    <div class="applicant-card" data-job="backend" data-skills="python,django,postgresql,aws,docker" data-location="remote" data-experience="senior" data-projects="github,portfolio">
+      <div class="applicant-header">
+        <div class="applicant-info">
+          <h3>Michael Chen</h3>
+          <div class="applicant-details">
+            📧 michael.chen@email.com • 📱 (555) 987-6543
+          </div>
+          <div class="applicant-details">
+            🎓 Software Engineering, MIT • 💼 5 years experience
+          </div>
+          <div class="applicant-details">
+            📍 Remote • Applied 1 week ago
+          </div>
+        </div>
+        <span class="applicant-status status-interview">Interview Scheduled</span>
+      </div>
+      
+      <div class="applicant-skills">
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">Django</span>
+        <span class="skill-tag">PostgreSQL</span>
+        <span class="skill-tag">AWS</span>
+        <span class="skill-tag">Docker</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "I'm a backend developer with strong experience in Python and Django. I've worked on scalable systems and have expertise in cloud technologies. Looking forward to contributing to your team."
+      </p>
+      
+      <div class="applicant-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Reschedule Interview</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Accept</button>
+        <button class="btn danger" style="background: #ef4444; color: #FFFFFA;">Reject</button>
+      </div>
+    </div>
+
+    <!-- Product Designer Applicants -->
+    <div class="applicant-card" data-job="designer" data-skills="figma,sketch,prototyping,user-research,ui-ux" data-location="new-york" data-experience="mid" data-projects="portfolio,github">
+      <div class="applicant-header">
+        <div class="applicant-info">
+          <h3>Emily Rodriguez</h3>
+          <div class="applicant-details">
+            📧 emily.rodriguez@email.com • 📱 (555) 456-7890
+          </div>
+          <div class="applicant-details">
+            🎓 Design, Art Center College • 💼 4 years experience
+          </div>
+          <div class="applicant-details">
+            📍 New York, NY • Applied 3 days ago
+          </div>
+        </div>
+        <span class="applicant-status status-applied">Applied</span>
+      </div>
+      
+      <div class="applicant-skills">
+        <span class="skill-tag">Figma</span>
+        <span class="skill-tag">Sketch</span>
+        <span class="skill-tag">Prototyping</span>
+        <span class="skill-tag">User Research</span>
+        <span class="skill-tag">UI/UX Design</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "I'm a passionate product designer with a focus on user-centered design. I love creating intuitive interfaces and have experience working with cross-functional teams to bring designs to life."
+      </p>
+      
+      <div class="applicant-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Schedule Interview</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Accept</button>
+        <button class="btn danger" style="background: #ef4444; color: #FFFFFA;">Reject</button>
+      </div>
+    </div>
+
+    <!-- Additional Candidates for Search -->
+    <div class="applicant-card" data-job="frontend" data-skills="vue,angular,javascript,css,html" data-location="remote" data-experience="senior" data-projects="github,portfolio,blog">
+      <div class="applicant-header">
+        <div class="applicant-info">
+          <h3>David Kim</h3>
+          <div class="applicant-details">
+            📧 david.kim@email.com • 📱 (555) 234-5678
+          </div>
+          <div class="applicant-details">
+            🎓 Computer Science, UC Berkeley • 💼 7 years experience
+          </div>
+          <div class="applicant-details">
+            📍 Remote • Applied 1 day ago
+          </div>
+        </div>
+        <span class="applicant-status status-reviewing">Under Review</span>
+      </div>
+      
+      <div class="applicant-skills">
+        <span class="skill-tag">Vue.js</span>
+        <span class="skill-tag">Angular</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">CSS</span>
+        <span class="skill-tag">HTML</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior frontend developer with extensive experience in Vue.js and Angular. I've led multiple projects and have a strong portfolio of responsive web applications."
+      </p>
+      
+      <div class="applicant-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Schedule Interview</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Accept</button>
+        <button class="btn danger" style="background: #ef4444; color: #FFFFFA;">Reject</button>
+      </div>
+    </div>
+
+    <div class="applicant-card" data-job="backend" data-skills="java,spring,mysql,redis,docker" data-location="seattle" data-experience="entry" data-projects="github,hackathon">
+      <div class="applicant-header">
+        <div class="applicant-info">
+          <h3>Lisa Wang</h3>
+          <div class="applicant-details">
+            📧 lisa.wang@email.com • 📱 (555) 345-6789
+          </div>
+          <div class="applicant-details">
+            🎓 Software Engineering, University of Washington • 💼 1 year experience
+          </div>
+          <div class="applicant-details">
+            📍 Seattle, WA • Applied 4 days ago
+          </div>
+        </div>
+        <span class="applicant-status status-applied">Applied</span>
+      </div>
+      
+      <div class="applicant-skills">
+        <span class="skill-tag">Java</span>
+        <span class="skill-tag">Spring Boot</span>
+        <span class="skill-tag">MySQL</span>
+        <span class="skill-tag">Redis</span>
+        <span class="skill-tag">Docker</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Recent graduate with strong Java skills and experience in Spring Boot. I've worked on several hackathon projects and have a growing GitHub portfolio."
+      </p>
+      
+      <div class="applicant-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Schedule Interview</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Accept</button>
+        <button class="btn danger" style="background: #ef4444; color: #FFFFFA;">Reject</button>
+      </div>
+    </div>
+
+    <div class="applicant-card" data-job="designer" data-skills="adobe-creative-suite,illustrator,photoshop,indesign" data-location="austin" data-experience="senior" data-projects="portfolio,behance,dribbble">
+      <div class="applicant-header">
+        <div class="applicant-info">
+          <h3>Alex Thompson</h3>
+          <div class="applicant-details">
+            📧 alex.thompson@email.com • 📱 (555) 456-7890
+          </div>
+          <div class="applicant-details">
+            🎓 Graphic Design, UT Austin • 💼 8 years experience
+          </div>
+          <div class="applicant-details">
+            📍 Austin, TX • Applied 5 days ago
+          </div>
+        </div>
+        <span class="applicant-status status-interview">Interview Scheduled</span>
+      </div>
+      
+      <div class="applicant-skills">
+        <span class="skill-tag">Adobe Creative Suite</span>
+        <span class="skill-tag">Illustrator</span>
+        <span class="skill-tag">Photoshop</span>
+        <span class="skill-tag">InDesign</span>
+        <span class="skill-tag">Brand Design</span>
+      </div>
+      
+      <p style="margin: 0 0 1rem 0; color: #555; line-height: 1.5;">
+        "Senior graphic designer with extensive experience in brand design and visual identity. I've worked with major clients and have a strong portfolio on Behance and Dribbble."
+      </p>
+      
+      <div class="applicant-actions">
+        <button class="btn" style="background: #2A5155; color: #FFFFFA;">View Profile</button>
+        <button class="btn secondary" style="background: #f8f9fa; color: #2A5155; border: 1px solid #2A5155;">Reschedule Interview</button>
+        <button class="btn" style="background: #10b981; color: #FFFFFA;">Accept</button>
+        <button class="btn danger" style="background: #ef4444; color: #FFFFFA;">Reject</button>
+      </div>
+  </div>
+  </div>
+</div>
+
+<script>
+function filterApplicants() {
+  const filter = document.getElementById('job-filter').value;
+  const applicants = document.querySelectorAll('.applicant-card');
+  
+  applicants.forEach(applicant => {
+    if (filter === 'all' || applicant.dataset.job === filter) {
+      applicant.style.display = 'block';
+    } else {
+      applicant.style.display = 'none';
+    }
+  });
+}
+
+function searchCandidates() {
+  const searchTerm = document.getElementById('candidate-search').value.toLowerCase();
+  const skillsFilter = document.getElementById('skills-filter').value.toLowerCase();
+  const locationFilter = document.getElementById('location-filter').value;
+  const experienceFilter = document.getElementById('experience-filter').value;
+  const projectsFilter = document.getElementById('projects-filter').value.toLowerCase();
+  
+  const applicants = document.querySelectorAll('.applicant-card');
+  let visibleCount = 0;
+  
+  applicants.forEach(applicant => {
+    let showCard = true;
+    
+    // Search by name, email, or keywords
+    if (searchTerm) {
+      const name = applicant.querySelector('h3').textContent.toLowerCase();
+      const email = applicant.querySelector('.applicant-details').textContent.toLowerCase();
+      const description = applicant.querySelector('p').textContent.toLowerCase();
+      
+      if (!name.includes(searchTerm) && !email.includes(searchTerm) && !description.includes(searchTerm)) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by skills
+    if (skillsFilter && showCard) {
+      const skills = applicant.dataset.skills.toLowerCase();
+      const searchSkills = skillsFilter.split(',').map(s => s.trim().toLowerCase());
+      const hasMatchingSkill = searchSkills.some(skill => skills.includes(skill));
+      
+      if (!hasMatchingSkill) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by location
+    if (locationFilter && showCard) {
+      if (applicant.dataset.location !== locationFilter) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by experience level
+    if (experienceFilter && showCard) {
+      if (applicant.dataset.experience !== experienceFilter) {
+        showCard = false;
+      }
+    }
+    
+    // Filter by projects
+    if (projectsFilter && showCard) {
+      const projects = applicant.dataset.projects.toLowerCase();
+      const searchProjects = projectsFilter.split(',').map(p => p.trim().toLowerCase());
+      const hasMatchingProject = searchProjects.some(project => projects.includes(project));
+      
+      if (!hasMatchingProject) {
+        showCard = false;
+      }
+    }
+    
+    if (showCard) {
+      applicant.style.display = 'block';
+      visibleCount++;
+    } else {
+      applicant.style.display = 'none';
+    }
+  });
+  
+  // Show search results count
+  const resultsInfo = document.getElementById('search-results') || createResultsInfo();
+  resultsInfo.textContent = `Found ${visibleCount} candidate${visibleCount !== 1 ? 's' : ''}`;
+}
+
+function clearSearch() {
+  document.getElementById('candidate-search').value = '';
+  document.getElementById('skills-filter').value = '';
+  document.getElementById('location-filter').value = '';
+  document.getElementById('experience-filter').value = '';
+  document.getElementById('projects-filter').value = '';
+  
+  // Show all applicants
+  const applicants = document.querySelectorAll('.applicant-card');
+  applicants.forEach(applicant => {
+    applicant.style.display = 'block';
+  });
+  
+  // Update results count
+  const resultsInfo = document.getElementById('search-results');
+  if (resultsInfo) {
+    resultsInfo.textContent = `Found ${applicants.length} candidates`;
+  }
+}
+
+function createResultsInfo() {
+  const resultsDiv = document.createElement('div');
+  resultsDiv.id = 'search-results';
+  resultsDiv.style.cssText = 'margin-bottom: 1rem; color: #666; font-size: 0.9rem; font-weight: 500;';
+  resultsDiv.textContent = 'Found 6 candidates';
+  
+  const searchSection = document.querySelector('.search-section');
+  searchSection.appendChild(resultsDiv);
+  
+  return resultsDiv;
+}
+
+// Add click handlers for action buttons
+document.addEventListener('DOMContentLoaded', function() {
+  // View Profile buttons
+  document.querySelectorAll('.applicant-actions .btn').forEach(btn => {
+    if (btn.textContent.includes('View Profile')) {
+      btn.addEventListener('click', function() {
+        alert('View Profile clicked! (Frontend only - backend integration needed)');
+      });
+    } else if (btn.textContent.includes('Schedule Interview')) {
+      btn.addEventListener('click', function() {
+        alert('Schedule Interview clicked! (Frontend only - backend integration needed)');
+      });
+    } else if (btn.textContent.includes('Accept')) {
+      btn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to accept this applicant?')) {
+          alert('Applicant accepted! (Frontend only - backend integration needed)');
+        }
+      });
+    } else if (btn.textContent.includes('Reject')) {
+      btn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to reject this applicant?')) {
+          alert('Applicant rejected! (Frontend only - backend integration needed)');
+        }
+      });
+    }
+  });
+});
+</script>
+{% endblock content %}
+
+

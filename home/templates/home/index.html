@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
+
+<section class="hero">
+  <div class="container">
+    <h1 class="hero-title">Welcome to HireMap</h1>
+    <p class="hero-subtitle">Sign in or create your account to continue.</p>
+    <div class="hero-actions">
+      <a class="btn btn-secondary" href="/accounts/login/">Log in</a>
+      <a class="btn btn-primary" href="/accounts/signup/">Create account</a>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+

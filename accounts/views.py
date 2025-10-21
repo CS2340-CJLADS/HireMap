@@ -76,9 +76,9 @@ def login(request):
             auth_login(request, user)
             # Determine user type by checking which profile exists
             if hasattr(user, 'recruiter'):
-                return redirect('recruiter:dashboard')  # Redirect to recruiter dashboard
+                return redirect('home:recruiter')  # currently a placeholder
             elif hasattr(user, 'applicant'):
-                return redirect('seeker:dashboard')  # Redirect to seeker dashboard
+                return redirect('home:applicant')  # currently a placeholder
             else:
                 # Fallback if no profile exists
                 return redirect('home:index')

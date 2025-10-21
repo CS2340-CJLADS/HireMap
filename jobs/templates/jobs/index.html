@@ -1,0 +1,772 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/jobs.css' %}">
+
+<script>
+// Location data will be fetched from database
+let JOB_LOCATIONS = [];
+
+// Location selector functionality for job filters
+function initializeJobLocationSelector() {
+  const input = document.getElementById('location-input');
+  const dropdown = document.getElementById('location-dropdown');
+  const hiddenInput = document.getElementById('location-value');
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let filteredLocations = [];
+  let selectedIndex = -1;
+  
+  function showDropdown() {
+    dropdown.style.display = 'block';
+  }
+  
+  function hideDropdown() {
+    dropdown.style.display = 'none';
+    selectedIndex = -1;
+  }
+  
+  function filterLocations(query) {
+    // Fetch locations from database API
+    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
+      .then(response => response.json())
+      .then(data => {
+        filteredLocations = data.locations.map(loc => loc.name);
+        renderLocations();
+      })
+      .catch(error => {
+        console.error('Error fetching locations:', error);
+        // Fallback to empty array
+        filteredLocations = [];
+        renderLocations();
+      });
+  }
+  
+  function renderLocations() {
+    dropdown.innerHTML = '';
+    filteredLocations.forEach((location, index) => {
+      const option = document.createElement('div');
+      option.className = 'location-option';
+      
+      // Add custom class for custom locations
+      if (location.includes('(Use as entered)')) {
+        option.classList.add('custom');
+      }
+      
+      option.textContent = location;
+      option.addEventListener('click', () => selectLocation(location));
+      dropdown.appendChild(option);
+    });
+    showDropdown();
+  }
+  
+  function selectLocation(location) {
+    // Handle custom locations and geocoded results
+    if (location.includes('(Use as entered)')) {
+      // Extract the custom location from the display name
+      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
+      input.value = customLocation;
+      hiddenInput.value = customLocation;
+    } else {
+      input.value = location;
+      hiddenInput.value = location;
+    }
+    hideDropdown();
+  }
+  
+  function highlightOption(index) {
+    const options = dropdown.querySelectorAll('.location-option');
+    options.forEach((option, i) => {
+      option.classList.toggle('highlighted', i === index);
+    });
+  }
+  
+  // Debounce timer for API calls
+  let debounceTimer = null;
+  
+  // Event listeners
+  input.addEventListener('input', (e) => {
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
+    // Set new timer to delay API call
+    debounceTimer = setTimeout(() => {
+      filterLocations(e.target.value);
+    }, 300); // 300ms delay
+  });
+  
+  input.addEventListener('focus', () => {
+    // Only show dropdown if user has typed something
+    if (input.value.trim().length > 0) {
+      filterLocations(input.value);
+    }
+  });
+  
+  input.addEventListener('blur', (e) => {
+    setTimeout(() => {
+      if (!dropdown.contains(document.activeElement)) {
+        hideDropdown();
+      }
+    }, 150);
+  });
+  
+  input.addEventListener('keydown', (e) => {
+    const options = dropdown.querySelectorAll('.location-option');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, options.length - 1);
+      highlightOption(selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      highlightOption(selectedIndex);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && options[selectedIndex]) {
+        selectLocation(options[selectedIndex].textContent);
+      } else {
+        const exactMatch = filteredLocations.find(loc => 
+          loc.toLowerCase() === input.value.toLowerCase()
+        );
+        if (exactMatch) {
+          selectLocation(exactMatch);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      hideDropdown();
+    }
+  });
+  
+  // Don't initialize with empty search - wait for user input
+}
+
+// Work type logic to show/hide location filter
+function initializeWorkTypeLogic() {
+  const workTypeSelect = document.getElementById('work_type');
+  const locationFilterGroup = document.getElementById('location-filter-group');
+  
+  if (!workTypeSelect || !locationFilterGroup) return;
+  
+  function toggleLocationFilter() {
+    const workType = workTypeSelect.value;
+    if (workType === 'onsite' || workType === 'hybrid') {
+      locationFilterGroup.style.display = 'block';
+    } else {
+      locationFilterGroup.style.display = 'none';
+      // Clear location input when hiding
+      const locationInput = document.getElementById('location-input');
+      const locationValue = document.getElementById('location-value');
+      if (locationInput) locationInput.value = '';
+      if (locationValue) locationValue.value = '';
+    }
+  }
+  
+  workTypeSelect.addEventListener('change', toggleLocationFilter);
+  
+  // Initialize on page load
+  toggleLocationFilter();
+}
+
+function openQuickApply(jobId, jobTitle) {
+  var modal = document.getElementById('quick-apply-modal');
+  var jobIdEl = document.getElementById('modal-job-id');
+  var jobTitleEl = document.getElementById('modal-job-title');
+  
+  if (jobIdEl) jobIdEl.value = jobId;
+  if (jobTitleEl) jobTitleEl.textContent = jobTitle;
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+  }
+}
+
+// Simple modal close function
+function closeModal() {
+  var modal = document.getElementById('quick-apply-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// Close modal when clicking X or Cancel
+document.addEventListener('DOMContentLoaded', function() {
+  var closeBtn = document.querySelector('.close');
+  var cancelBtn = document.getElementById('cancel-apply');
+  var modal = document.getElementById('quick-apply-modal');
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      closeModal();
+    });
+  }
+  
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      closeModal();
+    });
+  }
+  
+  // Close modal when clicking outside
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+  }
+  
+  // Handle form submission
+  var form = document.getElementById('quick-apply-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      var jobId = document.getElementById('modal-job-id').value;
+      var note = document.getElementById('application-note').value;
+      var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      var submitBtn = document.getElementById('submit-apply');
+      
+      // Disable submit button to prevent double submission
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Applying...';
+      
+      // Submit application
+      fetch('/jobs/' + jobId + '/apply/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken
+        },
+        body: 'note=' + encodeURIComponent(note)
+      })
+      .then(function(response) {
+        if (response.ok) {
+          // Success - close modal and reload page to show updated status
+          closeModal();
+          window.location.reload();
+        } else {
+          // Error - show alert and re-enable button
+          alert('There was an error submitting your application. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Apply Now';
+        }
+      })
+      .catch(function(error) {
+        console.error('Error:', error);
+        alert('There was an error submitting your application. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Apply Now';
+      });
+    });
+  }
+  
+  // Initialize location selector and work type logic
+  initializeJobLocationSelector();
+  initializeWorkTypeLogic();
+});
+</script>
+<div class="container">
+  {% csrf_token %}
+  <div class="page-head">
+    <h2 class="page-title">Job Listings</h2>
+    <div class="page-links">
+      {% if template_data.user_type == 'applicant' %}
+        <a class="link-back" href="{% url 'home:applicant' %}">← My Dashboard</a>
+      {% elif template_data.user_type == 'recruiter' %}
+        <a class="link-back" href="{% url 'home:recruiter' %}">← My Dashboard</a>
+      {% endif %}
+      <a class="link-back" href="/">← Home</a>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-filters">
+    <form method="get" class="search-form">
+      <div class="search-row">
+        <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." value="{{ template_data.search_term|default:'' }}" class="search-input" />
+        <button type="submit" class="btn">Search</button>
+      </div>
+      
+      <div class="filters-row">
+        <div class="filter-group">
+          <label for="work_type">Work Type</label>
+          <select name="work_type" id="work_type">
+            <option value="">All Work Types</option>
+            <option value="remote" {% if request.GET.work_type == 'remote' %}selected{% endif %}>Remote</option>
+            <option value="onsite" {% if request.GET.work_type == 'onsite' %}selected{% endif %}>On-site</option>
+            <option value="hybrid" {% if request.GET.work_type == 'hybrid' %}selected{% endif %}>Hybrid</option>
+          </select>
+        </div>
+        
+        <div class="filter-group" id="location-filter-group" style="display: none;">
+          <label for="location">Location</label>
+          <div class="location-selector">
+            <input type="text" name="location" id="location-input" placeholder="Search for a location..." autocomplete="off" value="{{ request.GET.location }}">
+            <input type="hidden" name="location-value" id="location-value" value="{{ request.GET.location }}">
+            <div class="location-dropdown" id="location-dropdown" style="display: none;">
+              <!-- Location options will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="filter-group">
+          <label for="salary_min">Min Salary</label>
+          <input type="number" name="salary_min" id="salary_min" placeholder="e.g., 50000" value="{{ request.GET.salary_min }}" />
+        </div>
+        
+        <div class="filter-group">
+          <label for="salary_max">Max Salary</label>
+          <input type="number" name="salary_max" id="salary_max" placeholder="e.g., 100000" value="{{ request.GET.salary_max }}" />
+        </div>
+        
+        <div class="filter-group">
+          <label for="visa_sponsorship">Visa Sponsorship</label>
+          <select name="visa_sponsorship" id="visa_sponsorship">
+            <option value="">Any</option>
+            <option value="true" {% if request.GET.visa_sponsorship == 'true' %}selected{% endif %}>Available</option>
+          </select>
+        </div>
+        
+        {% if template_data.user_type == 'recruiter' %}
+        <div class="filter-group">
+          <label for="my_jobs">Show Only My Jobs</label>
+          <input type="checkbox" name="my_jobs" id="my_jobs" value="true" {% if template_data.my_jobs %}checked{% endif %} />
+        </div>
+        {% endif %}
+        
+        <div class="filter-actions">
+          <button type="submit" class="btn">Apply Filters</button>
+          <a href="{% url 'jobs:jobs.index' %}" class="btn secondary">Clear</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Debug: User type is {{ template_data.user_type }} -->
+  <!-- Debug: Applied job IDs: {{ template_data.applied_job_ids }} -->
+  
+  <!-- User Type Specific Actions -->
+  {% if template_data.user_type == 'recruiter' %}
+    <div style="margin: 1rem 0; padding: 1rem; background: var(--brand-accent); border-radius: 8px;">
+      <p><strong>Recruiter View:</strong> You can view all jobs below. 
+      <a href="{% url 'jobs:jobs.recruiter_jobs' %}">Manage your jobs</a> | 
+      <a href="{% url 'jobs:jobs.recruiter_job_new' %}">Post new job</a></p>
+    </div>
+  {% elif template_data.user_type == 'applicant' %}
+    <div style="margin: 1rem 0; padding: 1rem; background: var(--brand-accent); border-radius: 8px;">
+      <p><strong>Job Seeker View:</strong> You can apply to jobs below. 
+      <a href="{% url 'jobs:jobs.my_applications' %}">View your applications</a></p>
+    </div>
+  {% else %}
+    <div style="margin: 1rem 0; padding: 1rem; background: var(--brand-accent); border-radius: 8px;">
+      <p><strong>Guest View:</strong> You can view jobs but need to 
+      <a href="{% url 'accounts:accounts.login' %}">log in</a> to apply.</p>
+    </div>
+  {% endif %}
+
+  <!-- Job Listings -->
+  {% if template_data.job_postings %}
+    <div class="jobs-grid">
+      {% for job in template_data.job_postings %}
+        <div class="job-card">
+          <div class="job-card-top">
+            <strong>{{ job.title }}</strong>
+            <span class="badge">{{ job.recruiter.company_name }}</span>
+          </div>
+          <div class="job-meta">
+            <span>{{ job.recruiter.company_name }}</span>
+            <span>{% if job.remote %}Remote{% else %}{{ job.location }}{% endif %}</span>
+            <span>${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</span>
+          </div>
+          <div class="job-actions">
+            <a class="btn secondary" href="{% url 'jobs:jobs.detail' job.id %}">View Job</a>
+            {% if template_data.user_type == 'applicant' %}
+              {% if job.id in template_data.applied_job_ids %}
+                <span class="btn applied-btn">✅ Applied</span>
+              {% else %}
+                <button class="btn quick-apply-btn" data-job-id="{{ job.id }}" data-job-title="{{ job.title }}" onclick="openQuickApply('{{ job.id }}', '{{ job.title }}')">Quick Apply</button>
+              {% endif %}
+            {% elif template_data.user_type == 'recruiter' %}
+              <span class="btn disabled">View Only</span>
+            {% elif not user.is_authenticated %}
+              <a class="btn" href="{% url 'accounts:accounts.login' %}">Login to Apply</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <h3>No jobs found</h3>
+      <p>{% if template_data.search_term %}No jobs match your search criteria.{% else %}No job postings available at the moment.{% endif %}</p>
+      {% if template_data.user_type == 'recruiter' %}
+        <a href="{% url 'jobs:jobs.recruiter_job_new' %}" class="btn">Post the first job</a>
+      {% endif %}
+    </div>
+  {% endif %}
+  </div>
+
+  <!-- Quick Apply Modal -->
+  <div id="quick-apply-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+    <div class="modal-content" style="background-color: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; background: linear-gradient(135deg, #2A5155 0%, #1e3a3d 100%); color: white; border-radius: 12px 12px 0 0;">
+        <h3 style="margin: 0; color: white; font-size: 1.25rem; font-weight: 600;">Quick Apply</h3>
+        <span class="close" style="font-size: 1.5rem; font-weight: bold; cursor: pointer; color: white; background: rgba(255, 255, 255, 0.2); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">&times;</span>
+      </div>
+      <div class="modal-body" style="padding: 2rem;">
+        <p style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1rem;">Apply to: <strong id="modal-job-title" style="color: #2A5155;"></strong></p>
+        <form id="quick-apply-form">
+          {% csrf_token %}
+          <input type="hidden" id="modal-job-id" name="job_id">
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="application-note" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #1e293b;">Application Note (Optional)</label>
+            <textarea id="application-note" name="note" rows="4" placeholder="Add a personalized note to your application..." style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; resize: vertical; min-height: 100px; font-family: inherit;"></textarea>
+          </div>
+          <div class="modal-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+            <button type="button" class="btn secondary" id="cancel-apply" style="padding: 0.75rem 2rem; font-weight: 500; border-radius: 6px;">Cancel</button>
+            <button type="submit" class="btn" id="submit-apply" style="padding: 0.75rem 2rem; font-weight: 500; border-radius: 6px;">Apply Now</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+
+<style>
+/* Page links styling */
+.page-links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.page-links .link-back {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--brand);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.page-links .link-back:hover {
+  background: var(--brand-dark);
+  color: white;
+  text-decoration: none;
+}
+
+/* Applied button styling */
+.applied-btn {
+  background: var(--brand-accent) !important;
+  color: var(--brand) !important;
+  border: 2px solid var(--brand) !important;
+  cursor: default !important;
+}
+
+  .applied-btn:hover {
+    background: var(--brand-accent) !important;
+    color: var(--brand) !important;
+    border-color: var(--brand) !important;
+  }
+
+  /* Quick Apply Modal Styles */
+  .modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-content {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease-out;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .close {
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+
+  .modal-body {
+    padding: 2rem;
+  }
+
+  .modal-body p {
+    margin: 0 0 1rem 0;
+    color: var(--text);
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .form-group textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(42, 81, 85, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .modal-actions .btn {
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .modal-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  </style>
+
+
+<style>
+
+/* Search and Filters Styling */
+.search-filters {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Location Selector Styles */
+.location-selector {
+  position: relative;
+}
+
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.location-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+}
+
+.location-option:hover {
+  background-color: #f8fafc;
+}
+
+.location-option:last-child {
+  border-bottom: none;
+}
+
+.location-option.highlighted {
+  background-color: var(--brand-accent);
+  color: var(--brand);
+}
+
+.location-option.custom {
+  background-color: #f8f9fa;
+  border-left: 3px solid #6c757d;
+  font-style: italic;
+}
+
+.location-option.custom:hover {
+  background-color: #e9ecef;
+}
+
+.search-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filters-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Checkbox styling for "My Jobs" filter */
+.filter-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.filter-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .search-row {
+    flex-direction: column;
+  }
+  
+  .filters-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-actions {
+    justify-content: center;
+  }
+}
+</style>
+
+
