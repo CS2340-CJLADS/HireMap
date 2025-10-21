@@ -2,92 +2,341 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/recruiter.css' %}">
 
 <div class="job-search-container">
-    <!-- Navigation Bar -->
-    <nav class="main-nav">
-        <div class="nav-content">
-            <div class="nav-brand">
-                <h2>HireMap</h2>
-            </div>
-            <div class="nav-links">
-                <a href="{% url 'recruiter:dashboard' %}" class="nav-link">Dashboard</a>
-                <a href="{% url 'recruiter:jobs' %}" class="nav-link active">My Jobs</a>
-                <a href="{% url 'recruiter:profile' %}" class="nav-link">My Profile</a>
-                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="page-container">
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h2>My Job Postings</h2>
-                <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post New Job</a>
-            </div>
-            
-            {% if template_data.jobs %}
-            <div class="jobs-list">
-                {% for job in template_data.jobs %}
-                <div class="job-item">
-                    <div class="job-info">
-                        <h3>{{ job.title }}</h3>
-                        <p class="job-meta">
-                            <span class="location">{% if job.remote %}Remote{% else %}{{ job.location }}{% endif %}</span>
-                            <span class="salary">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</span>
-                            <span class="status {% if job.is_draft %}draft{% elif job.is_closed %}closed{% else %}active{% endif %}">
-                                {% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}
-                            </span>
-                        </p>
-                        <p class="job-description">{{ job.description|truncatewords:30 }}</p>
-                    </div>
-                    <div class="job-actions">
-                        <a href="{% url 'recruiter:job_applications' job.id %}" class="btn secondary">View Applications</a>
-                        <a href="{% url 'recruiter:job_edit' job.id %}" class="btn secondary">Edit</a>
-                        <a href="{% url 'recruiter:job_delete' job.id %}" class="btn danger">Delete</a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <h3>No job postings yet</h3>
-                <p>Create your first job posting to start attracting candidates.</p>
-                <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post Your First Job</a>
-            </div>
-            {% endif %}
-        </div>
+  <nav class="main-nav">
+    <div class="nav-content">
+      <!-- START: logo now links to dashboard -->
+      <a href="{% url 'recruiter:dashboard' %}" class="nav-brand"><h2>HireMap</h2></a>
+      <!-- END: logo now links to dashboard -->
+      <div class="nav-links">
+        <a href="{% url 'recruiter:dashboard' %}" class="nav-link">Dashboard</a>
+        <a href="{% url 'recruiter:jobs' %}" class="nav-link active">My Jobs</a>
+        <a href="{% url 'recruiter:profile' %}" class="nav-link">My Profile</a>
+        <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
+      </div>
     </div>
+  </nav>
+
+  <div class="page-container">
+
+    <!-- START: My Jobs grid update -->
+    <div class="search-filters-bar">
+      <form method="get" class="search-form">
+        <div class="search-row">
+          <div class="search-text">
+            <input type="text" name="search" placeholder="Search my job postings..."
+                   value="{{ request.GET.search|default:'' }}" class="search-input" />
+            <button type="submit" class="search-icon" aria-label="Search">🔍</button>
+          </div>
+          <div class="filter-actions">
+            <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post New Job</a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {% if template_data.jobs %}
+      <div class="cards-grid">
+        {% for job in template_data.jobs %}
+          <article class="job-card"
+                   role="button" tabindex="0"
+                   data-job-id="{{ job.id }}"
+                   data-title="{{ job.title|escape }}"
+                   data-location="{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}"
+                   data-salary-min="{{ job.salary_min|default_if_none:''|floatformat:0 }}"
+                   data-salary-max="{{ job.salary_max|default_if_none:''|floatformat:0 }}"
+                   data-status="{% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}"
+                   data-description="{{ job.description|default_if_none:''|striptags|escape }}">
+            <div class="card-header">
+              <h3 class="card-title">{{ job.title }}</h3>
+              <span class="status-chip {% if job.is_draft %}chip-draft{% elif job.is_closed %}chip-closed{% else %}chip-active{% endif %}">
+                {% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}
+              </span>
+            </div>
+
+            <div class="card-meta">
+              <div class="meta-line">
+                <span class="meta-label">Company</span>
+                <span class="meta-value">{{ job.recruiter.company_name }}</span>
+              </div>
+              <div class="meta-line">
+                <span class="meta-label">Location</span>
+                <span class="meta-value">
+                  {% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}
+                </span>
+              </div>
+              {% if job.salary_min or job.salary_max %}
+              <div class="meta-line">
+                <span class="meta-label">Salary</span>
+                <span class="meta-value">
+                  {% if job.salary_min and job.salary_max %}
+                    ${{ job.salary_min|floatformat:0 }} – ${{ job.salary_max|floatformat:0 }}
+                  {% elif job.salary_min %}
+                    From ${{ job.salary_min|floatformat:0 }}
+                  {% elif job.salary_max %}
+                    Up to ${{ job.salary_max|floatformat:0 }}
+                  {% endif %}
+                </span>
+              </div>
+              {% endif %}
+            </div>
+
+            <p class="card-desc">
+              {{ job.description|default_if_none:''|striptags|truncatechars:140 }}
+            </p>
+
+            <div class="card-cta">
+              <a href="{% url 'recruiter:job_edit' job.id %}" class="btn secondary btn-edit-card">Edit</a>
+              <a href="{% url 'recruiter:job_delete' job.id %}" class="btn danger btn-delete-card">Delete</a>
+            </div>
+
+            {# START: embed applications HTML for this job; JS will lift it into the modal #}
+            <template class="apps-template">
+              {% comment %}Try common related names; whichever exists will render content{% endcomment %}
+             <!-- START: fix applications template to use app.applicant (not app.seeker) -->
+                {% for app in job.applications.all %}
+                  <div class="app-row">
+                    <div class="app-row-left">
+                      <div class="app-name">{{ app.applicant }}</div>
+                      <div class="app-meta">Applied {{ app.created_at|date:"M j, Y" }}</div>
+                    </div>
+                    <div class="app-status {{ app.status|lower|cut:' ' }}">{{ app.status }}</div>
+                  </div>
+                {% empty %}
+                  {% for app in job.application_set.all %}
+                    <div class="app-row">
+                      <div class="app-row-left">
+                        <div class="app-name">{{ app.applicant }}</div>
+                        <div class="app-meta">Applied {{ app.created_at|date:"M j, Y" }}</div>
+                      </div>
+                      <div class="app-status {{ app.status|lower|cut:' ' }}">{{ app.status }}</div>
+                    </div>
+                  {% empty %}
+                    <div class="app-empty">No applications yet.</div>
+                  {% endfor %}
+                {% endfor %}
+                <!-- END: fix applications template -->
+
+            </template>
+            {# END: embed applications HTML #}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-applications">
+        <p>No job postings yet.</p>
+        <a href="{% url 'recruiter:job_new' %}" class="btn primary">Post Your First Job</a>
+      </div>
+    {% endif %}
+
+    <!-- Modal -->
+    <div id="job-modal" class="job-modal" aria-hidden="true">
+      <div class="job-modal__backdrop" data-close></div>
+      <div class="job-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="job-modal-title">
+        <button class="job-modal__close" type="button" title="Close" aria-label="Close" data-close>×</button>
+
+        <header class="job-modal__header">
+          <h2 id="job-modal-title" class="job-modal__title"></h2>
+          <span id="job-modal-status" class="status-chip"></span>
+        </header>
+
+        <section class="job-modal__meta">
+          <div class="meta-pill" id="job-modal-location"></div>
+          <div class="meta-pill" id="job-modal-salary"></div>
+        </section>
+
+        <section class="job-modal__body" id="job-modal-desc"></section>
+
+        <!-- START: Applications list appears in-modal -->
+        <section class="job-modal__apps">
+          <h3 class="apps-title">Applications</h3>
+          <div id="job-modal-apps" class="apps-list"></div>
+        </section>
+        <!-- END: Applications list -->
+
+        <footer class="job-modal__footer">
+          <a id="job-modal-view-apps" href="#" class="btn secondary">View Applications</a>
+          <a id="job-modal-edit" href="#" class="btn secondary">Edit</a>
+          <a id="job-modal-delete" href="#" class="btn danger">Delete</a>
+        </footer>
+      </div>
+    </div>
+    <!-- END: My Jobs grid update -->
+
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modal = document.getElementById('job-modal');
+  const titleEl = document.getElementById('job-modal-title');
+  const statusEl = document.getElementById('job-modal-status');
+  const locEl = document.getElementById('job-modal-location');
+  const salEl = document.getElementById('job-modal-salary');
+  const descEl = document.getElementById('job-modal-desc');
+  const appsWrap = document.getElementById('job-modal-apps');
+  const appsBtn = document.getElementById('job-modal-view-apps');
+  const editBtn = document.getElementById('job-modal-edit');
+  const delBtn = document.getElementById('job-modal-delete');
+
+  function setStatusChip(status) {
+    statusEl.textContent = status;
+    statusEl.className = 'status-chip ' + (
+      status === 'Active' ? 'chip-active' :
+      (status === 'Closed' ? 'chip-closed' : 'chip-draft')
+    );
+  }
+
+  function openModal(fromCard) {
+    const id = fromCard.getAttribute('data-job-id');
+    const title = fromCard.getAttribute('data-title') || '';
+    const loc = fromCard.getAttribute('data-location') || '';
+    const smin = fromCard.getAttribute('data-salary-min') || '';
+    const smax = fromCard.getAttribute('data-salary-max') || '';
+    const status = fromCard.getAttribute('data-status') || '';
+    const desc = fromCard.getAttribute('data-description') || '';
+
+    titleEl.textContent = title;
+    setStatusChip(status);
+    locEl.textContent = loc || '';
+    salEl.textContent = (smin && smax) ? ('$' + smin + ' - ' + '$' + smax)
+                   : (smin ? ('From $' + smin) : (smax ? ('Up to $' + smax) : ''));
+    descEl.textContent = desc || '';
+
+    appsBtn.href = "{% url 'recruiter:job_applications' 0 %}".replace('/0/', '/' + id + '/');
+    editBtn.href = "{% url 'recruiter:job_edit' 0 %}".replace('/0/', '/' + id + '/');
+    delBtn.href = "{% url 'recruiter:job_delete' 0 %}".replace('/0/', '/' + id + '/');
+
+    const tpl = fromCard.querySelector('.apps-template');
+    const html = tpl ? tpl.innerHTML.trim() : '';
+    appsWrap.innerHTML = html || '<div class="app-empty">No applications yet.</div>';
+
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.job-card').forEach(function(card){
+    function triggerOpen() { openModal(card); }
+    card.addEventListener('click', triggerOpen);
+    card.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerOpen(); }});
+
+    const editBtn = card.querySelector('.btn-edit-card');
+    const delBtn  = card.querySelector('.btn-delete-card');
+
+    if (editBtn) editBtn.addEventListener('click', function(e){ e.stopPropagation(); });
+    if (delBtn)  delBtn.addEventListener('click',  function(e){
+      e.stopPropagation();
+      if (!confirm('Are you sure you want to delete this job?')) {
+        e.preventDefault();
+      }
+    });
+  });
+
+  modal.addEventListener('click', function(e){
+    if (e.target.hasAttribute('data-close')) closeModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') closeModal();
+  });
+
+  // START: confirm before delete from modal
+  if (delBtn) {
+    delBtn.addEventListener('click', function(e){
+      if (!confirm('Are you sure you want to delete this job?')) {
+        e.preventDefault();
+      }
+    });
+  }
+  // END: confirm before delete
+});
+</script>
+
 <style>
-.btn.danger {
-    background: #dc2626;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: background-color 0.2s;
-    display: inline-block;
+/* START: scoped additions for My Jobs grid + modal + apps list */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
 }
+.job-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-muted, #e5e7eb);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  transition: transform .08s ease, box-shadow .08s ease, border-color .08s ease;
+  outline: none;
+}
+.job-card:focus,
+.job-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  border-color: var(--border-strong, #d1d5db);
+}
+.card-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .25rem;
+}
+.card-title { font-size: 1.05rem; line-height: 1.25rem; margin: 0; }
+.status-chip {
+  display: inline-block;
+  font-size: .75rem;
+  padding: .2rem .55rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.chip-active { background: #e6f6ee; color: #0a7a44; }
+.chip-closed { background: #fdecec; color: #9f1239; }
+.chip-draft  { background: #eef2ff; color: #3730a3; }
 
-.btn.danger:hover {
-    background: #b91c1c;
-    color: white;
-}
+.card-meta { margin: .35rem 0 .5rem; }
+.meta-line { display:flex; justify-content: space-between; gap: .5rem; font-size: .9rem; padding: .15rem 0; }
+.meta-label { color: #6b7280; }
+.meta-value { color: #111827; }
 
-.job-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
+.card-desc { color: #4b5563; font-size: .9rem; margin: .25rem 0 .75rem; min-height: 2.6em; }
+.card-cta { display: flex; gap: .5rem; justify-content: flex-end; }
 
-@media (max-width: 768px) {
-    .job-actions {
-        flex-direction: column;
-    }
+.job-modal[aria-hidden="true"] { display: none; }
+.job-modal { position: fixed; inset: 0; z-index: 60; }
+.job-modal__backdrop { position: absolute; inset: 0; background: rgba(17,24,39,.45); }
+.job-modal__dialog {
+  position: relative; z-index: 61; max-width: 720px; margin: 6vh auto; background: #fff;
+  border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 20px 48px rgba(0,0,0,.18);
+  padding: 1rem 1.25rem 1.25rem;
 }
+.job-modal__close {
+  position: absolute; top: .5rem; right: .6rem; border: none; background: transparent;
+  font-size: 1.5rem; line-height: 1; cursor: pointer; color: #6b7280;
+}
+.job-modal__header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
+.job-modal__title { margin: 0; font-size: 1.25rem; }
+.job-modal__meta { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.meta-pill { background: #f3f4f6; color: #111827; border-radius: 9999px; padding: .25rem .6rem; font-size: .85rem; }
+.job-modal__body { color: #374151; line-height: 1.45rem; max-height: 32vh; overflow: auto; padding-right: .25rem; }
+
+.apps-title { font-size: 1rem; margin: .75rem 0 .25rem; }
+.apps-list { max-height: 28vh; overflow: auto; border-top: 1px dashed #e5e7eb; padding-top: .5rem; }
+.app-row { display:flex; justify-content: space-between; align-items: center; padding: .4rem 0; border-bottom: 1px dashed #f1f5f9; }
+.app-row-left { display:flex; flex-direction: column; }
+.app-name { font-weight: 600; }
+.app-meta { font-size: .8rem; color: #6b7280; }
+.app-status { font-size: .8rem; padding: .15rem .5rem; border-radius: 9999px; background: #eef2ff; color: #3730a3; }
+.app-status.accepted { background: #e6f6ee; color: #0a7a44; }
+.app-status.rejected { background: #fdecec; color: #9f1239; }
+.app-empty { color:#6b7280; padding:.25rem 0; }
+
+.job-modal__footer { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+/* END: scoped additions for My Jobs grid + modal + apps list */
 </style>
 {% endblock content %}
