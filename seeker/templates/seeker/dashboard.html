@@ -1,29 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
 
 <div class="job-search-container">
-    <!-- Navigation Bar -->
-    <nav class="main-nav">
-        <div class="nav-content">
-            <div class="nav-brand">
-                <h2>HireMap</h2>
-            </div>
-            <div class="nav-links">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'seeker:dashboard' %}" class="nav-link active">Jobs</a>
-                    <a href="{% url 'seeker:applications' %}" class="nav-link">My Applications</a>
-                    <a href="{% url 'seeker:profile' %}" class="nav-link">My Profile</a>
-                    <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
-                {% else %}
-                    <a href="{% url 'accounts:accounts.login' %}" class="nav-link">Login</a>
-                    <a href="{% url 'accounts:accounts.signup' %}" class="nav-link">Sign Up</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
     <div class="page-container">
     <!-- Search & Filters Bar -->
     <div class="search-filters-bar">
@@ -201,8 +180,8 @@
                                 <li>Apply to jobs with one click</li>
                             </ul>
                             <div class="auth-actions">
-                                <a href="{% url 'accounts:accounts.login' %}" class="btn primary">Log In</a>
-                                <a href="{% url 'accounts:accounts.signup' %}" class="btn secondary">Sign Up</a>
+                                <a href="{% url 'accounts:login' %}" class="btn primary">Log In</a>
+                                <a href="{% url 'accounts:signup' %}" class="btn secondary">Sign Up</a>
                             </div>
                         </div>
                     </div>
@@ -265,7 +244,7 @@
                                 <button class="apply-button" id="apply-button" onclick="applyToJob()">Apply</button>
                                 {% else %}
                                 <div class="login-prompt">
-                                    <p>Please <a href="{% url 'accounts:accounts.login' %}">log in</a> as an applicant to apply for jobs.</p>
+                                    <p>Please <a href="{% url 'accounts:login' %}">log in</a> as an applicant to apply for jobs.</p>
                                 </div>
                                 {% endif %}
                             </div>

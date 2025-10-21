@@ -222,7 +222,7 @@
 
   <section class="section">
     <div class="card signup-container">
-      <form class="form" method="post" action="{% url 'accounts:accounts.signup' %}" id="signupForm">
+      <form class="form" method="post" action="{% url 'accounts:signup' %}" id="signupForm">
         {% csrf_token %}
         
         <!-- Step Indicator -->
@@ -364,7 +364,7 @@
         </div>
         
         <div style="text-align: center; margin-top: 1rem;">
-          <a href="{% url 'accounts:accounts.login' %}" class="btn secondary">Already have an account?</a>
+          <a href="{% url 'accounts:login' %}" class="btn secondary">Already have an account?</a>
         </div>
         
         <div style="text-align: center; margin-top: 1rem;">

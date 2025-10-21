@@ -106,10 +106,12 @@ def dashboard(request):
 def profile(request):
     """View and edit applicant profile"""
     applicant = request.user.applicant
+    projects = Project.objects.filter(applicant=applicant)
     
     template_data = {
         'title': 'My Profile',
-        'applicant': applicant
+        'applicant': applicant,
+        'projects': projects
     }
     return render(request, 'seeker/profile.html', {'template_data': template_data})
 
