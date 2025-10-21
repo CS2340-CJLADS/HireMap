@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'api',
     'recruiter',
     'seeker',
+    'messages',
 ]
 
 MIDDLEWARE = [
