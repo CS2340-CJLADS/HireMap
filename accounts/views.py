@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from .forms import RecruiterForm, ApplicantForm, CustomUserCreationForm
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.password_validation import password_validators_help_texts
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Location
+from .models import Location, Applicant, Recruiter, ApplicantPrivacySettings, Project
+from .decorators import applicant_required, recruiter_required
 import requests
 import json
 
@@ -39,7 +40,7 @@ def signup(request):
                 recruiter = recruiter_form.save(commit=False)
                 recruiter.user = user
                 recruiter.save()
-                return redirect('accounts:accounts.login')
+                return redirect('accounts:login')
                 
             elif user_type == 'applicant' and applicant_form.is_valid():
                 user = user_form.save()
@@ -47,7 +48,7 @@ def signup(request):
                 applicant.user = user
                 applicant.availability = request.POST.get('applicant-availability', 'open-to-work')
                 applicant.save()
-                return redirect('accounts:accounts.login')
+                return redirect('accounts:login')
                 
             else:
                 # Form validation failed for the specific user type
@@ -207,3 +208,223 @@ def get_locations(request):
             'query': query,
             'error': 'Geocoding service temporarily unavailable'
         })
+
+
+@login_required
+def profile_view(request, user_id=None):
+    """View profile - either own profile or public profile of another user"""
+    if user_id:
+        # Viewing someone else's profile
+        target_user = get_object_or_404(User, id=user_id)
+        
+        if hasattr(target_user, 'applicant'):
+            # Viewing an applicant's profile
+            applicant = target_user.applicant
+            profile_data = applicant.get_public_profile_data()
+            
+            # Get projects if privacy allows
+            privacy = applicant.get_privacy_settings()
+            projects = []
+            if privacy.show_projects:
+                projects = Project.objects.filter(applicant=applicant)
+            
+            template_data = {
+                'title': f"{applicant.first_name} {applicant.last_name} - Profile",
+                'profile_data': profile_data,
+                'projects': projects,
+                'is_own_profile': False,
+                'user_type': 'applicant',
+                'target_user': target_user,
+            }
+            return render(request, 'accounts/public_applicant_profile.html', {'template_data': template_data})
+            
+        elif hasattr(target_user, 'recruiter'):
+            # Viewing a recruiter's profile
+            recruiter = target_user.recruiter
+            template_data = {
+                'title': f"{recruiter.first_name} {recruiter.last_name} - Profile",
+                'recruiter': recruiter,
+                'is_own_profile': False,
+                'user_type': 'recruiter',
+                'target_user': target_user,
+            }
+            return render(request, 'accounts/public_recruiter_profile.html', {'template_data': template_data})
+    else:
+        # Viewing own profile
+        if hasattr(request.user, 'applicant'):
+            return redirect('seeker:profile')
+        elif hasattr(request.user, 'recruiter'):
+            return redirect('accounts:recruiter_profile_edit')
+        else:
+            return redirect('home:index')
+
+
+@login_required
+@applicant_required
+def profile_edit(request):
+    """Edit applicant profile with privacy settings and project management"""
+    applicant = request.user.applicant
+    privacy_settings = applicant.get_privacy_settings()
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # Handle project management actions
+        if action == 'add':
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            technologies = request.POST.get('technologies', '').strip()
+            url = request.POST.get('url', '').strip()
+            
+            if title and description:
+                Project.objects.create(
+                    applicant=applicant,
+                    title=title,
+                    description=description,
+                    technologies=technologies,
+                    url=url
+                )
+            return redirect('seeker:profile')
+        
+        elif action == 'edit':
+            project_id = request.POST.get('project_id')
+            if project_id:
+                try:
+                    project = Project.objects.get(id=project_id, applicant=applicant)
+                    project.title = request.POST.get('title', '').strip()
+                    project.description = request.POST.get('description', '').strip()
+                    project.technologies = request.POST.get('technologies', '').strip()
+                    project.url = request.POST.get('url', '').strip()
+                    project.save()
+                except Project.DoesNotExist:
+                    pass
+            return redirect('seeker:profile')
+        
+        elif action == 'delete':
+            project_id = request.POST.get('project_id')
+            if project_id:
+                try:
+                    project = Project.objects.get(id=project_id, applicant=applicant)
+                    project.delete()
+                except Project.DoesNotExist:
+                    pass
+            return redirect('seeker:profile')
+        
+        # Handle regular profile updates
+        else:
+            # Update basic profile information
+            applicant.first_name = request.POST.get('first_name', '').strip()
+            applicant.last_name = request.POST.get('last_name', '').strip()
+            applicant.skills = request.POST.get('skills', '').strip()
+            applicant.education = request.POST.get('education', '').strip()
+            applicant.experience = request.POST.get('experience', '').strip()
+            applicant.links = request.POST.get('links', '').strip()
+            applicant.phone = request.POST.get('phone', '').strip()
+            applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()
+            applicant.availability = request.POST.get('availability', 'open-to-work')
+            applicant.save()
+            
+            # Update privacy settings
+            privacy_settings.show_skills = bool(request.POST.get('show_skills'))
+            privacy_settings.show_education = bool(request.POST.get('show_education'))
+            privacy_settings.show_experience = bool(request.POST.get('show_experience'))
+            privacy_settings.show_projects = bool(request.POST.get('show_projects'))
+            privacy_settings.show_links = bool(request.POST.get('show_links'))
+            privacy_settings.show_phone = bool(request.POST.get('show_phone'))
+            privacy_settings.show_location = bool(request.POST.get('show_location'))
+            privacy_settings.show_availability = bool(request.POST.get('show_availability'))
+            privacy_settings.allow_email_contact = bool(request.POST.get('allow_email_contact'))
+            privacy_settings.save()
+            
+            return redirect('seeker:profile')
+    
+    # Get projects for display
+    projects = Project.objects.filter(applicant=applicant)
+    
+    template_data = {
+        'title': 'Edit Profile',
+        'applicant': applicant,
+        'privacy_settings': privacy_settings,
+        'projects': projects,
+    }
+    return render(request, 'accounts/profile_edit.html', {'template_data': template_data})
+
+
+@login_required
+@recruiter_required
+def recruiter_profile_edit(request):
+    """Edit recruiter profile"""
+    recruiter = request.user.recruiter
+    
+    if request.method == 'POST':
+        recruiter.first_name = request.POST.get('first_name', '').strip()
+        recruiter.last_name = request.POST.get('last_name', '').strip()
+        recruiter.company_name = request.POST.get('company_name', '').strip()
+        recruiter.location = request.POST.get('location', '').strip()
+        recruiter.save()
+        return redirect('recruiter:profile')
+    
+    template_data = {
+        'title': 'Edit Profile',
+        'recruiter': recruiter,
+    }
+    return render(request, 'accounts/recruiter_profile_edit.html', {'template_data': template_data})
+
+
+@login_required
+@applicant_required
+def manage_projects(request):
+    """Manage applicant projects"""
+    applicant = request.user.applicant
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            technologies = request.POST.get('technologies', '').strip()
+            url = request.POST.get('url', '').strip()
+            
+            if title and description:
+                Project.objects.create(
+                    applicant=applicant,
+                    title=title,
+                    description=description,
+                    technologies=technologies,
+                    url=url
+                )
+        
+        elif action == 'edit':
+            project_id = request.POST.get('project_id')
+            if project_id:
+                try:
+                    project = Project.objects.get(id=project_id, applicant=applicant)
+                    project.title = request.POST.get('title', '').strip()
+                    project.description = request.POST.get('description', '').strip()
+                    project.technologies = request.POST.get('technologies', '').strip()
+                    project.url = request.POST.get('url', '').strip()
+                    project.save()
+                except Project.DoesNotExist:
+                    pass
+        
+        elif action == 'delete':
+            project_id = request.POST.get('project_id')
+            if project_id:
+                try:
+                    project = Project.objects.get(id=project_id, applicant=applicant)
+                    project.delete()
+                except Project.DoesNotExist:
+                    pass
+        
+        return redirect('accounts:manage_projects')
+    
+    projects = Project.objects.filter(applicant=applicant)
+    
+    template_data = {
+        'title': 'Manage Projects',
+        'projects': projects,
+    }
+    return render(request, 'accounts/manage_projects.html', {'template_data': template_data})
+
+

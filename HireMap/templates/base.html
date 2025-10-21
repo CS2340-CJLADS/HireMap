@@ -7,9 +7,44 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+		<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
 	<body>
+		<!-- Navigation Bar -->
+		<nav class="main-nav">
+			<div class="nav-content">
+				<div class="nav-brand">
+					<a href="{% url 'home:index' %}" style="text-decoration: none; color: inherit;">
+						<h2>HireMap</h2>
+					</a>
+				</div>
+				<div class="nav-links">
+					{% if user.is_authenticated %}
+						{% if user.applicant %}
+							<!-- Seeker Navigation -->
+							<a href="{% url 'seeker:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Jobs</a>
+							<a href="{% url 'seeker:applications' %}" class="nav-link {% if request.resolver_match.url_name == 'applications' %}active{% endif %}">My Applications</a>
+							<a href="{% url 'seeker:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
+						{% elif user.recruiter %}
+							<!-- Recruiter Navigation -->
+							<a href="{% url 'recruiter:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+							<a href="{% url 'recruiter:jobs' %}" class="nav-link {% if request.resolver_match.url_name == 'jobs' %}active{% endif %}">My Jobs</a>
+							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
+							<a href="{% url 'home:search_candidates' %}" class="nav-link {% if request.resolver_match.url_name == 'search_candidates' %}active{% endif %}">Find Candidates</a>
+						{% endif %}
+						<a href="{% url 'accounts:logout' %}" class="nav-link">Logout</a>
+					{% else %}
+						<!-- Public Navigation -->
+						<a href="{% url 'home:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Home</a>
+						<a href="{% url 'home:job_search_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'job_search_dashboard' %}active{% endif %}">Find Jobs</a>
+						<a href="{% url 'accounts:login' %}" class="nav-link">Login</a>
+						<a href="{% url 'accounts:signup' %}" class="nav-link">Sign Up</a>
+					{% endif %}
+				</div>
+			</div>
+		</nav>
+
 		<div>
 		{% block content %}
 		{% endblock content %}

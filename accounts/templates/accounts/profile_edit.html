@@ -2,273 +2,630 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
-<style>
-/* Location Selector Styles */
-.location-selector {
-  position: relative;
-}
 
-.location-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.location-option {
-  padding: 0.75rem;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: background-color 0.2s ease;
-}
-
-.location-option:hover,
-.location-option.highlighted {
-  background-color: var(--surface);
-}
-
-.location-option:last-child {
-  border-bottom: none;
-}
-
-.location-option.custom {
-  font-style: italic;
-  color: var(--text-muted);
-  border-left: 3px solid var(--primary);
-}
-</style>
-<div class="container">
-  <div class="hero">
-    <h1>Edit Profile</h1>
-    <p class="lede muted">Update your professional information.</p>
-  </div>
-
-  <section class="section">
-    <div class="card">
-      <form class="form" method="post">
+<div class="job-search-container">
+    <div class="page-container">
+        <div class="dashboard-section">
+            <h2>Edit Profile</h2>
+            <p>Update your profile information and privacy settings.</p>
+            
+            <form method="post" class="profile-form">
         {% csrf_token %}
         
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <h3>Basic Information</h3>
+                    <div class="form-row">
         <div class="form-group">
-          <label class="label">First Name *</label>
-          <input type="text" name="first_name" value="{{ applicant.first_name }}" required>
+                            <label for="first_name">First Name</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ template_data.applicant.first_name }}" required>
         </div>
 
         <div class="form-group">
-          <label class="label">Last Name *</label>
-          <input type="text" name="last_name" value="{{ applicant.last_name }}" required>
+                            <label for="last_name">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ template_data.applicant.last_name }}" required>
+                        </div>
         </div>
         
         <div class="form-group">
-          <label class="label">Skills</label>
-          <textarea name="skills" placeholder="e.g., Python, JavaScript, Project Management" rows="3">{{ applicant.skills }}</textarea>
-          <small style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: block;">List your skills separated by commas</small>
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" value="{{ template_data.applicant.phone|default:'' }}">
         </div>
         
         <div class="form-group">
-          <label class="label">Education</label>
-          <input type="text" name="education" value="{{ applicant.education }}" placeholder="e.g., Bachelor's in Computer Science">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" value="{{ template_data.applicant.location|default:'' }}">
         </div>
         
         <div class="form-group">
-          <label class="label">Work Experience</label>
-          <textarea name="experience" placeholder="Describe your work experience" rows="4">{{ applicant.experience }}</textarea>
+                        <label for="availability">Job Search Status</label>
+                        <select id="availability" name="availability">
+                            <option value="available" {% if template_data.applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
+                            <option value="open-to-work" {% if template_data.applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
+                            <option value="not-looking" {% if template_data.applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Professional Information -->
+                <div class="form-section">
+                    <h3>Professional Information</h3>
+                    <div class="form-group">
+                        <label for="skills">Skills</label>
+                        <textarea id="skills" name="skills" rows="3" placeholder="List your skills separated by commas">{{ template_data.applicant.skills|default:'' }}</textarea>
         </div>
         
         <div class="form-group">
-          <label class="label">Projects</label>
-          <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">Manage your individual projects separately for better presentation to recruiters.</p>
-          <a href="{% url 'jobs:jobs.manage_projects' %}" class="btn secondary" style="display: inline-block; margin-top: 0.5rem;">Manage Projects</a>
+                        <label for="education">Education</label>
+                        <textarea id="education" name="education" rows="3" placeholder="Your educational background">{{ template_data.applicant.education|default:'' }}</textarea>
         </div>
         
         <div class="form-group">
-          <label class="label">Phone Number</label>
-          <input type="tel" name="phone" value="{{ applicant.phone }}" placeholder="(555) 123-4567">
+                        <label for="experience">Experience</label>
+                        <textarea id="experience" name="experience" rows="4" placeholder="Describe your work experience">{{ template_data.applicant.experience|default:'' }}</textarea>
         </div>
         
         <div class="form-group">
-          <label class="label">Location</label>
-          <div class="location-selector">
-            <input type="text" name="location" id="applicant-location-input" value="{{ applicant.location }}" placeholder="Search for your location..." autocomplete="off">
-            <input type="hidden" name="location-value" id="applicant-location-value" value="{{ applicant.location }}">
-            <div class="location-dropdown" id="applicant-location-dropdown" style="display: none;">
-              <!-- Location options will be populated by JavaScript -->
+                        <label for="links">Links</label>
+                        <textarea id="links" name="links" rows="2" placeholder="Portfolio, LinkedIn, GitHub, etc.">{{ template_data.applicant.links|default:'' }}</textarea>
+          </div>
+        </div>
+        
+                <!-- Projects Section -->
+                <div class="form-section">
+                    <h3>Projects Portfolio</h3>
+                    <p>Manage your project portfolio to showcase your work to recruiters.</p>
+                    
+                    <!-- Add New Project Form -->
+                    <div class="add-project-section">
+                        <h4>Add New Project</h4>
+                        <div class="project-form-inline">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="project_title">Project Title</label>
+                                    <input type="text" id="project_title" name="project_title" placeholder="e.g., E-commerce Website">
             </div>
+                                
+                                <div class="form-group">
+                                    <label for="project_technologies">Technologies Used</label>
+                                    <input type="text" id="project_technologies" name="project_technologies" placeholder="e.g., React, Node.js, MongoDB">
           </div>
         </div>
         
         <div class="form-group">
-          <label class="label">Job Search Status</label>
-          <select name="availability">
-            <option value="available" {% if applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
-            <option value="open-to-work" {% if applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
-            <option value="not-looking" {% if applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
-          </select>
-          <small style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; display: block;">This helps recruiters understand your current job search status</small>
+                                <label for="project_description">Description</label>
+                                <textarea id="project_description" name="project_description" rows="3" placeholder="Describe your project, what it does, and your role in it."></textarea>
         </div>
         
         <div class="form-group">
-          <label class="label">Links (Portfolio, LinkedIn, etc.)</label>
-          <input type="url" name="links" value="{{ applicant.links }}" placeholder="https://your-portfolio.com">
+                                <label for="project_url">Project URL (Optional)</label>
+                                <input type="url" id="project_url" name="project_url" placeholder="https://your-project.com">
+                            </div>
+                            
+                            <button type="button" class="btn btn-small" onclick="addProject()">Add Project</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Existing Projects -->
+                    <div class="projects-display">
+                        <h4>Your Projects ({{ template_data.projects|length }})</h4>
+                        
+                        {% if template_data.projects %}
+                            <div class="projects-list">
+                                {% for project in template_data.projects %}
+                                    <div class="project-item" id="project-{{ project.id }}">
+                                        <div class="project-header">
+                                            <h5>{{ project.title }}</h5>
+                                            <div class="project-actions">
+                                                <button class="btn-small edit-btn" onclick="editProject({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.description|escapejs }}', '{{ project.technologies|escapejs }}', '{{ project.url|escapejs }}')">Edit</button>
+                                                <button class="btn-small delete-btn" onclick="deleteProject({{ project.id }})">Delete</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="project-content">
+                                            <p class="project-description">{{ project.description }}</p>
+                                            
+                                            {% if project.technologies %}
+                                                <div class="project-technologies">
+                                                    <strong>Technologies:</strong> {{ project.technologies }}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if project.url %}
+                                                <div class="project-url">
+                                                    <a href="{{ project.url }}" target="_blank" class="project-link">View Project →</a>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <div class="project-date">
+                                                Added: {{ project.created_at|date:"M d, Y" }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-projects">
+                                <p>You haven't added any projects yet. Add your first project above!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Privacy Settings -->
+                <div class="form-section">
+                    <h3>Privacy Settings</h3>
+                    <p>Control what recruiters can see on your profile:</p>
+                    
+                    <div class="privacy-options">
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_skills" {% if template_data.privacy_settings.show_skills %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Skills
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_education" {% if template_data.privacy_settings.show_education %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Education
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_experience" {% if template_data.privacy_settings.show_experience %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Experience
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_projects" {% if template_data.privacy_settings.show_projects %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Projects
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_links" {% if template_data.privacy_settings.show_links %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Links
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_phone" {% if template_data.privacy_settings.show_phone %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Phone Number
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_location" {% if template_data.privacy_settings.show_location %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Location
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="show_availability" {% if template_data.privacy_settings.show_availability %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Show Availability Status
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-preferences">
+                        <h4>Contact Preferences</h4>
+                        <div class="privacy-option">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="allow_email_contact" {% if template_data.privacy_settings.allow_email_contact %}checked{% endif %}>
+                                <span class="checkmark"></span>
+                                Allow Email Contact
+                            </label>
+                        </div>
+                    </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn">Save Profile</button>
-          <a href="{% url 'home:profile_edit' %}" class="btn secondary">Cancel</a>
+                    <button type="submit" class="btn">Save Changes</button>
+                    <a href="{% url 'seeker:profile' %}" class="btn secondary">Cancel</a>
+                </div>
+            </form>
         </div>
-      </form>
     </div>
-  </section>
 </div>
 
-<script>
-// Location selector functionality for applicant profile
-function initializeApplicantLocationSelector() {
-  const input = document.getElementById('applicant-location-input');
-  const dropdown = document.getElementById('applicant-location-dropdown');
-  const hiddenInput = document.getElementById('applicant-location-value');
-  
-  if (!input || !dropdown || !hiddenInput) return;
-  
-  let filteredLocations = [];
-  let selectedIndex = -1;
-  
-  function showDropdown() {
-    dropdown.style.display = 'block';
-  }
-  
-  function hideDropdown() {
-    dropdown.style.display = 'none';
-    selectedIndex = -1;
-  }
-  
-  function filterLocations(query) {
-    // Fetch locations from database API
-    fetch(`/accounts/api/locations/?q=${encodeURIComponent(query)}`)
-      .then(response => response.json())
-      .then(data => {
-        filteredLocations = data.locations.map(loc => loc.name);
-        renderLocations();
-      })
-      .catch(error => {
-        console.error('Error fetching locations:', error);
-        // Fallback to empty array
-        filteredLocations = [];
-        renderLocations();
-      });
-  }
-  
-  function renderLocations() {
-    dropdown.innerHTML = '';
-    filteredLocations.forEach((location, index) => {
-      const option = document.createElement('div');
-      option.className = 'location-option';
-      
-      // Add custom class for custom locations
-      if (location.includes('(Use as entered)')) {
-        option.classList.add('custom');
-      }
-      
-      option.textContent = location;
-      option.addEventListener('click', () => selectLocation(location));
-      dropdown.appendChild(option);
-    });
-    showDropdown();
-  }
-  
-  function selectLocation(location) {
-    // Handle custom locations and geocoded results
-    if (location.includes('(Use as entered)')) {
-      // Extract the custom location from the display name
-      const customLocation = location.replace('"', '').replace('" (Use as entered)', '');
-      input.value = customLocation;
-      hiddenInput.value = customLocation;
-    } else {
-      input.value = location;
-      hiddenInput.value = location;
-    }
-    hideDropdown();
-  }
-  
-  function highlightOption(index) {
-    const options = dropdown.querySelectorAll('.location-option');
-    options.forEach((option, i) => {
-      option.classList.toggle('highlighted', i === index);
-    });
-  }
-  
-  // Debounce timer for API calls
-  let debounceTimer = null;
-  
-  // Event listeners
-  input.addEventListener('input', (e) => {
-    // Clear previous timer
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-    
-    // Set new timer to delay API call
-    debounceTimer = setTimeout(() => {
-      filterLocations(e.target.value);
-    }, 300); // 300ms delay
-  });
-  
-  input.addEventListener('focus', () => {
-    // Only show dropdown if user has typed something
-    if (input.value.trim().length > 0) {
-      filterLocations(input.value);
-    }
-  });
-  
-  input.addEventListener('blur', () => {
-    // Delay hiding to allow clicks on options
-    setTimeout(hideDropdown, 150);
-  });
-  
-  input.addEventListener('keydown', (e) => {
-    if (dropdown.style.display === 'none') return;
-    
-    switch(e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        selectedIndex = Math.min(selectedIndex + 1, filteredLocations.length - 1);
-        highlightOption(selectedIndex);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        selectedIndex = Math.max(selectedIndex - 1, -1);
-        highlightOption(selectedIndex);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < filteredLocations.length) {
-          selectLocation(filteredLocations[selectedIndex]);
-        }
-        break;
-      case 'Escape':
-        hideDropdown();
-        break;
-    }
-  });
-  
-  // Hide dropdown when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-      hideDropdown();
-    }
-  });
+<style>
+.profile-form {
+    max-width: 800px;
+    margin-top: 2rem;
 }
 
-// Initialize location selector when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  initializeApplicantLocationSelector();
-});
+.form-section {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.form-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.privacy-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.contact-preferences {
+    border-top: 1px solid #ddd;
+    padding-top: 1rem;
+}
+
+.contact-preferences h4 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.privacy-option {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: auto;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #ddd;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn.secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* Projects Section Styles */
+.add-project-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.add-project-section h4 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    border-bottom: 1px solid #28a745;
+    padding-bottom: 0.5rem;
+}
+
+.project-form-inline {
+    max-width: 100%;
+}
+
+.projects-display h4 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    border-bottom: 1px solid #007bff;
+    padding-bottom: 0.5rem;
+}
+
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.project-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.project-header h5 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.project-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-small {
+    padding: 0.25rem 0.75rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.edit-btn {
+    background: #007bff;
+    color: white;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-small:hover {
+    opacity: 0.9;
+}
+
+.project-content {
+    color: #555;
+}
+
+.project-description {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.project-technologies {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.project-url {
+    margin-bottom: 0.5rem;
+}
+
+.project-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.project-link:hover {
+    text-decoration: underline;
+}
+
+.project-date {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
+.no-projects {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .privacy-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .project-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .project-actions {
+        margin-top: 0.5rem;
+    }
+}
+</style>
+
+<script>
+function addProject() {
+    const title = document.getElementById('project_title').value.trim();
+    const description = document.getElementById('project_description').value.trim();
+    const technologies = document.getElementById('project_technologies').value.trim();
+    const url = document.getElementById('project_url').value.trim();
+    
+    if (!title || !description) {
+        alert('Please fill in the project title and description.');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'add');
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('technologies', technologies);
+    formData.append('url', url);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    // Submit via AJAX
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error adding project. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding project. Please try again.');
+    });
+}
+
+function editProject(id, title, description, technologies, url) {
+    const newTitle = prompt('Project Title:', title);
+    if (newTitle === null) return;
+    
+    const newDescription = prompt('Description:', description);
+    if (newDescription === null) return;
+    
+    const newTechnologies = prompt('Technologies:', technologies);
+    if (newTechnologies === null) return;
+    
+    const newUrl = prompt('Project URL:', url);
+    if (newUrl === null) return;
+    
+    if (!newTitle.trim() || !newDescription.trim()) {
+        alert('Please fill in the project title and description.');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'edit');
+    formData.append('project_id', id);
+    formData.append('title', newTitle.trim());
+    formData.append('description', newDescription.trim());
+    formData.append('technologies', newTechnologies.trim());
+    formData.append('url', newUrl.trim());
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    // Submit via AJAX
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error updating project. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating project. Please try again.');
+    });
+}
+
+function deleteProject(id) {
+    if (!confirm('Are you sure you want to delete this project?')) {
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('project_id', id);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    // Submit via AJAX
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error deleting project. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting project. Please try again.');
+    });
+}
 </script>
 {% endblock content %}

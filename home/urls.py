@@ -36,6 +36,9 @@ urlpatterns = [
     path("jobs/my-applications/", RedirectView.as_view(url="/seeker/applications/", permanent=False), name="jobs_my_applications"),
     path("jobs/profile/edit/", RedirectView.as_view(url="/seeker/profile/", permanent=False), name="jobs_profile_redirect"),
     path("applications/", RedirectView.as_view(url="/seeker/applications/", permanent=False), name="applications_board"),
+    
+    # Candidate search for recruiters
+    path("search-candidates/", views.search_candidates, name="search_candidates"),
 ]
 
 

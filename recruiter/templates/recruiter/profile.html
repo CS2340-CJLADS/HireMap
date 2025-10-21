@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+
+<div class="job-search-container">
+    <div class="page-container">
+        <div class="dashboard-section">
+            <h2>My Profile</h2>
+            <p>Manage your recruiter profile information and company details.</p>
+            
+            <div class="profile-content">
+                <div class="profile-info">
+                    <h3>{{ template_data.recruiter.first_name }} {{ template_data.recruiter.last_name }}</h3>
+                    <p><strong>Email:</strong> {{ template_data.recruiter.user.username }}</p>
+                    <p><strong>Company:</strong> 
+                        {% if template_data.recruiter.company_name and template_data.recruiter.company_name != 'None' and template_data.recruiter.company_name.strip %}
+                            {{ template_data.recruiter.company_name }}
+                        {% else %}
+                            <em>Not provided</em>
+                        {% endif %}
+                    </p>
+                    <p><strong>Location:</strong> 
+                        {% if template_data.recruiter.location and template_data.recruiter.location != 'None' and template_data.recruiter.location.strip %}
+                            {{ template_data.recruiter.location }}
+                        {% else %}
+                            <em>Not provided</em>
+                        {% endif %}
+                    </p>
+                    <p><strong>User Type:</strong> 
+                        <span class="user-type-badge">Recruiter</span>
+                    </p>
+                </div>
+                
+                <div class="profile-actions">
+                    <a href="{% url 'accounts:recruiter_profile_edit' %}" class="btn">Edit Profile</a>
+                    <a href="{% url 'recruiter:dashboard' %}" class="btn secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+    background: #e3f2fd; 
+    color: #1976d2; 
+}
+
+.profile-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.profile-info {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.profile-info h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.profile-info p {
+    margin: 0.75rem 0;
+    color: #555;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn.secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .profile-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock content %}

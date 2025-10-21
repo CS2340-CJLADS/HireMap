@@ -103,7 +103,7 @@ def profile(request):
         'title': 'My Profile',
         'recruiter': recruiter
     }
-    return render(request, 'accounts/recruiter_profile.html', {'template_data': template_data})
+    return render(request, 'recruiter/profile.html', {'template_data': template_data})
 
 @login_required
 @recruiter_required
@@ -157,10 +157,10 @@ def job_edit(request, job_id):
     job = get_object_or_404(JobPosting, id=job_id, recruiter=recruiter)
     
     if request.method == 'POST':
-        # Get the action (publish or draft)
-        action = request.POST.get('action', 'publish')
-        is_draft = action == 'draft'
+        # Get the action (publish, draft, save, or unpublish)
+        action = request.POST.get('action', 'save')
         
+        # Update job fields
         job.title = request.POST.get('title', '')
         job.description = request.POST.get('description', '')
         job.skills_required = request.POST.get('skills_required', '')
@@ -169,7 +169,16 @@ def job_edit(request, job_id):
         job.salary_max = float(request.POST.get('salary_max', 0))
         job.remote = request.POST.get('remote') == 'on'
         job.visa_sponsorship = request.POST.get('visa_sponsorship') == 'on'
-        job.is_draft = is_draft
+        
+        # Handle different actions
+        if action == 'publish':
+            job.is_draft = False
+        elif action == 'draft':
+            job.is_draft = True
+        elif action == 'unpublish':
+            job.is_draft = True
+        # For 'save' action, keep current draft status
+        
         job.save()
         return redirect('recruiter:jobs')
     

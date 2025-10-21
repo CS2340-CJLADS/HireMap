@@ -1,25 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
 
 <div class="job-search-container">
-    <!-- Navigation Bar -->
-    <nav class="main-nav">
-        <div class="nav-content">
-            <div class="nav-brand">
-                <h2>HireMap</h2>
-            </div>
-            <div class="nav-links">
-                <a href="{% url 'seeker:dashboard' %}" class="nav-link">Jobs</a>
-                <a href="{% url 'seeker:applications' %}" class="nav-link">My Applications</a>
-                <a href="{% url 'seeker:profile' %}" class="nav-link active">My Profile</a>
-                <a href="{% url 'accounts:accounts.logout' %}" class="nav-link">Logout</a>
-            </div>
-        </div>
-    </nav>
-
     <div class="page-container">
         <div class="dashboard-section">
             <h2>My Profile</h2>
@@ -71,8 +55,43 @@
                     </p>
                 </div>
                 
+                <!-- Projects Section -->
+                {% if template_data.projects %}
+                    <div class="projects-section">
+                        <h3>Projects</h3>
+                        <div class="projects-grid">
+                            {% for project in template_data.projects %}
+                                <div class="project-card">
+                                    <div class="project-header">
+                                        <h4>{{ project.title }}</h4>
+                                    </div>
+                                    <div class="project-content">
+                                        <p class="project-description">{{ project.description }}</p>
+                                        
+                                        {% if project.technologies %}
+                                            <div class="project-technologies">
+                                                <strong>Technologies:</strong> {{ project.technologies }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if project.url %}
+                                            <div class="project-url">
+                                                <a href="{{ project.url }}" target="_blank" class="project-link">View Project →</a>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="project-date">
+                                            Added: {{ project.created_at|date:"M d, Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
                 <div class="profile-actions">
-                    <a href="{% url 'home:jobs_profile_redirect' %}" class="btn">Edit Profile</a>
+                    <a href="{% url 'accounts:profile_edit' %}" class="btn">Edit Profile</a>
                     <a href="{% url 'seeker:dashboard' %}" class="btn secondary">Back to Jobs</a>
                 </div>
             </div>
@@ -159,8 +178,80 @@
     opacity: 0.9;
 }
 
+/* Projects Section */
+.projects-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #ddd;
+}
+
+.projects-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.project-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.project-header h4 {
+    margin: 0 0 1rem 0;
+    color: #333;
+}
+
+.project-content {
+    color: #555;
+}
+
+.project-description {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.project-technologies {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.project-url {
+    margin-bottom: 0.5rem;
+}
+
+.project-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.project-link:hover {
+    text-decoration: underline;
+}
+
+.project-date {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+}
+
 @media (max-width: 768px) {
     .profile-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .projects-grid {
         grid-template-columns: 1fr;
     }
 }
