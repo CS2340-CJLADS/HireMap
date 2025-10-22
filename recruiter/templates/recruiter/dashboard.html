@@ -248,6 +248,7 @@
                             
                             <div class="applicant-actions">
                                 <a href="#" id="email-applicant-btn" class="email-btn">Email Applicant</a>
+                                <a href="#" id="message-applicant-btn" class="message-btn">Message Applicant</a>
                             </div>
                         </div>
                     </div>
@@ -523,6 +524,10 @@ function showApplicantProfile(application) {
     // Set up email button
     const emailBtn = document.getElementById('email-applicant-btn');
     emailBtn.href = `mailto:${application.email}`;
+    
+    // Set up message button
+    const messageBtn = document.getElementById('message-applicant-btn');
+    messageBtn.href = `/messages/?other_user_id=${application.applicant_id}`;
     
     // Fetch applicant details from recruiter endpoint
     fetch(`/recruiter/applicants/${application.applicant_id}/`)
@@ -1338,6 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border-top: 1px solid #e9ecef;
     display: flex;
     justify-content: center;
+    gap: 1rem;
 }
 
 .email-btn {
@@ -1356,6 +1362,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .email-btn:hover {
     background: #1a6b5e;
+    transform: translateY(-1px);
+    color: white;
+    text-decoration: none;
+}
+
+.message-btn {
+    background: #13E3B2;
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.message-btn:hover {
+    background: #0fb896;
     transform: translateY(-1px);
     color: white;
     text-decoration: none;

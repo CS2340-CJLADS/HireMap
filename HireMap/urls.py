@@ -22,6 +22,9 @@ urlpatterns = [
     path("recruiter/", include(("recruiter.urls", "recruiter"), namespace="recruiter")),
     path("seeker/", include(("seeker.urls", "seeker"), namespace="seeker")),
 
+    # Messages
+    path("messages/", include(("messages.urls", "messages"), namespace="messages")),
+
     # Home (shared pages)
     path("", include(("home.urls", "home"), namespace="home")),
 ]

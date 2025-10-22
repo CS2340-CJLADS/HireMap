@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Message
-import time
 from django.db.models import Q
 
 # Create your views here.
@@ -21,30 +20,37 @@ def index(request):
                     (Q(sender=request.user) & Q(recipient__id=other_user_id)) |
                     (Q(sender__id=other_user_id) & Q(recipient=request.user))
                 ).order_by('timestamp')
-            if messages.exists():
-                template_data['other_user'] = User.objects.get(id=other_user_id) # sends over user object for easier frontend access
+            try:
+                template_data['other_user'] = User.objects.get(id=other_user_id)
                 template_data['messages'] = messages
+            except User.DoesNotExist:
+                template_data['error'] = 'User not found'
     if request.method == 'POST':
-        other_user_id = template_data.get('other_user_id')
+        other_user_id = request.POST.get('other_user_id')
         if other_user_id:
-            create_message(request, other_user_id)
-            template_data['other_user'] = User.objects.get(id=other_user_id)
-            template_data['messages'] = Message.objects.filter(
-                (Q(sender=request.user) & Q(recipient__id=other_user_id)) |
-                (Q(sender__id=other_user_id) & Q(recipient=request.user))
-            ).order_by('timestamp')
+            success = create_message(request, other_user_id)
+            if success:
+                template_data['other_user'] = User.objects.get(id=other_user_id)
+                template_data['messages'] = Message.objects.filter(
+                    (Q(sender=request.user) & Q(recipient__id=other_user_id)) |
+                    (Q(sender__id=other_user_id) & Q(recipient=request.user))
+                ).order_by('timestamp')
+            else:
+                template_data['error'] = 'Failed to send message'
     return render(request, 'messages/index.html', {'template_data': template_data})
 
 @login_required
 def create_message(request, recipient_id):
     content = request.POST.get('content')
-    if (request.user.recruiter.exists() or Message.objects.filter(
-                (Q(sender=request.user) & Q(recipient__id=recipient_id)) |
-                (Q(sender__id=recipient_id) & Q(recipient=request.user))
-            ).exists()) and recipient_id and content:
-        recipient = User.objects.get(id=recipient_id)
-        message = Message.objects.create(sender=request.user, recipient=recipient, content=content, timestamp=int(time.time()))
-        message.save()
+    if recipient_id and content:
+        try:
+            recipient = User.objects.get(id=recipient_id)
+            message = Message.objects.create(sender=request.user, recipient=recipient, content=content)
+            message.save()
+            return True
+        except User.DoesNotExist:
+            return False
+    return False
 
 @login_required
 def sidebar_messages(request, search_term=None):
@@ -52,18 +58,25 @@ def sidebar_messages(request, search_term=None):
     if hasattr(request.user, 'applicant'):
         sidebar_messages = Message.objects.filter(
             Q(sender=request.user) | Q(recipient=request.user)
-        ).order_by('-timestamp').filter(
-                    Q(sender__recruiter__company__icontains=search_term) | 
-                    Q(sender__recruiter__first_name__icontains=search_term) |
-                    Q(sender__recruiter__last_name__icontains=search_term)
-                    )
+        ).order_by('-timestamp')
+        if search_term:
+            sidebar_messages = sidebar_messages.filter(
+                Q(sender__recruiter__company__icontains=search_term) | 
+                Q(sender__recruiter__first_name__icontains=search_term) |
+                Q(sender__recruiter__last_name__icontains=search_term)
+            )
     elif hasattr(request.user, 'recruiter'):
         sidebar_messages = Message.objects.filter(
             Q(sender=request.user) | Q(recipient=request.user)
-        ).order_by('-timestamp').filter(
-                    Q(sender__applicant__first_name__icontains=search_term) |
-                    Q(sender__applicant__last_name__icontains=search_term)
-                    )
+        ).order_by('-timestamp')
+        if search_term:
+            sidebar_messages = sidebar_messages.filter(
+                Q(sender__applicant__first_name__icontains=search_term) |
+                Q(sender__applicant__last_name__icontains=search_term)
+            )
+    else:
+        # User doesn't have applicant or recruiter profile
+        sidebar_messages = Message.objects.none()
     unique_pairs = set()
     deduped_messages = []
     for msg in sidebar_messages:
