@@ -48,6 +48,7 @@
 							<a href="{% url 'home:search_candidates' %}" class="nav-link {% if request.resolver_match.url_name == 'search_candidates' %}active{% endif %}">Find Candidates</a>
 							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
 						{% endif %}
+						<a href="{% url 'messages:index' %}" class="nav-link {% if request.resolver_match.namespace == 'messages' %}active{% endif %}">Messages</a>
 						<a href="{% url 'accounts:logout' %}" class="nav-link">Logout</a>
 					{% else %}
 						<!-- Public Navigation -->
