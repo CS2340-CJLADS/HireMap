@@ -43,10 +43,10 @@
 							<a href="{% url 'seeker:applications' %}" class="nav-link {% if request.resolver_match.url_name == 'applications' %}active{% endif %}">My Applications</a>
 							<a href="{% url 'seeker:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
 						{% elif user.recruiter %}
-							<!-- Recruiter Navigation -->
+							<!-- Recruiter Navigation (Dashboard, Find Candidates, My Profile) -->
 							<a href="{% url 'recruiter:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
-							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
 							<a href="{% url 'home:search_candidates' %}" class="nav-link {% if request.resolver_match.url_name == 'search_candidates' %}active{% endif %}">Find Candidates</a>
+							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
 						{% endif %}
 						<a href="{% url 'accounts:logout' %}" class="nav-link">Logout</a>
 					{% else %}
