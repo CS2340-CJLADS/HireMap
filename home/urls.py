@@ -18,8 +18,8 @@ ACCOUNTS_SIGNUP = TemplateView.as_view(template_name="accounts/signup.html")
 ACCOUNTS_LOGIN = TemplateView.as_view(template_name="accounts/login.html")
 
 urlpatterns = [
-    # Redirect to appropriate dashboard based on user type
-    path("", RedirectView.as_view(url="/seeker/", permanent=False), name="index"),
+    # Redirect to homepage with login/signup options
+    path("", RedirectView.as_view(url="/accounts/", permanent=False), name="index"),
     
     # Redirect old routes to new structure
     path("job-search/", RedirectView.as_view(url="/seeker/", permanent=False), name="job_search_dashboard"),
