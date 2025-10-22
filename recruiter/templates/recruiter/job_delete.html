@@ -7,7 +7,7 @@
         <div class="dashboard-section">
             <div class="section-header">
                 <h2>Delete Job Posting</h2>
-                <a href="{% url 'recruiter:jobs' %}" class="btn secondary">Back to Jobs</a>
+                <a href="{% url 'recruiter:dashboard' %}" class="btn secondary">Back to Dashboard</a>
             </div>
             
             <div class="delete-confirmation">
@@ -32,7 +32,7 @@
                     {% csrf_token %}
                     <div class="form-actions">
                         <button type="submit" class="btn danger">Yes, Delete Job</button>
-                        <a href="{% url 'recruiter:jobs' %}" class="btn secondary">Cancel</a>
+                        <a href="{% url 'recruiter:dashboard' %}" class="btn secondary">Cancel</a>
                     </div>
                 </form>
             </div>

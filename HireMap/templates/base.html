@@ -15,9 +15,25 @@
 		<nav class="main-nav">
 			<div class="nav-content">
 				<div class="nav-brand">
-					<a href="{% url 'home:index' %}" style="text-decoration: none; color: inherit;">
-						<h2>HireMap</h2>
-					</a>
+					{% if user.is_authenticated %}
+						{% if user.applicant %}
+							<a href="{% url 'seeker:dashboard' %}" style="text-decoration: none; color: inherit;">
+								<h2>HireMap</h2>
+							</a>
+						{% elif user.recruiter %}
+							<a href="{% url 'recruiter:dashboard' %}" style="text-decoration: none; color: inherit;">
+								<h2>HireMap</h2>
+							</a>
+						{% else %}
+							<a href="{% url 'home:index' %}" style="text-decoration: none; color: inherit;">
+								<h2>HireMap</h2>
+							</a>
+						{% endif %}
+					{% else %}
+						<a href="{% url 'home:index' %}" style="text-decoration: none; color: inherit;">
+							<h2>HireMap</h2>
+						</a>
+					{% endif %}
 				</div>
 				<div class="nav-links">
 					{% if user.is_authenticated %}
@@ -29,7 +45,6 @@
 						{% elif user.recruiter %}
 							<!-- Recruiter Navigation -->
 							<a href="{% url 'recruiter:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
-							<a href="{% url 'recruiter:jobs' %}" class="nav-link {% if request.resolver_match.url_name == 'jobs' %}active{% endif %}">My Jobs</a>
 							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
 							<a href="{% url 'home:search_candidates' %}" class="nav-link {% if request.resolver_match.url_name == 'search_candidates' %}active{% endif %}">Find Candidates</a>
 						{% endif %}

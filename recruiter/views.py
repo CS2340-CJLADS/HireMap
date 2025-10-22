@@ -107,19 +107,6 @@ def profile(request):
 
 @login_required
 @recruiter_required
-def jobs(request):
-    """Manage job postings"""
-    recruiter = request.user.recruiter
-    jobs = JobPosting.objects.filter(recruiter=recruiter).order_by('-created_at')
-    
-    template_data = {
-        'title': 'Manage Jobs',
-        'jobs': jobs,
-    }
-    return render(request, 'recruiter/jobs.html', {'template_data': template_data})
-
-@login_required
-@recruiter_required
 def job_new(request):
     """Create new job posting"""
     recruiter = request.user.recruiter
@@ -142,7 +129,7 @@ def job_new(request):
             recruiter=recruiter,
             is_draft=is_draft,
         )
-        return redirect('recruiter:jobs')
+        return redirect('recruiter:dashboard')
     
     template_data = {
         'title': 'Post New Job',
@@ -180,7 +167,7 @@ def job_edit(request, job_id):
         # For 'save' action, keep current draft status
         
         job.save()
-        return redirect('recruiter:jobs')
+        return redirect('recruiter:dashboard')
     
     template_data = {
         'title': 'Edit Job',
@@ -201,6 +188,22 @@ def job_applications(request, job_id):
         applicant__user=recruiter.user  # Exclude applications where applicant is the same as recruiter
     ).select_related('applicant').order_by('-created_at')
     
+    # Check if JSON response is requested
+    if request.GET.get('format') == 'json':
+        from django.http import JsonResponse
+        data = []
+        for app in applications:
+            data.append({
+                'id': app.id,
+                'name': f"{app.applicant.first_name} {app.applicant.last_name}",
+                'email': app.applicant.user.email,
+                'status': 'Applied',  # Default status
+                'application_date': app.created_at.strftime('%Y-%m-%d'),
+                'message': app.message,
+                'applicant_id': app.applicant.pk,  # Use pk instead of id
+            })
+        return JsonResponse(data, safe=False)
+    
     template_data = {
         'title': f'Applications for {job.title}',
         'job': job,
@@ -217,7 +220,7 @@ def job_delete(request, job_id):
     
     if request.method == 'POST':
         job.delete()
-        return redirect('recruiter:jobs')
+        return redirect('recruiter:dashboard')
     
     template_data = {
         'title': 'Delete Job',
