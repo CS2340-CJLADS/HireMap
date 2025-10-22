@@ -6,7 +6,6 @@ app_name = "recruiter"
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("profile/", views.profile, name="profile"),
-    path("jobs/", views.jobs, name="jobs"),
     path("jobs/new/", views.job_new, name="job_new"),
     path("jobs/<int:job_id>/edit/", views.job_edit, name="job_edit"),
     path("jobs/<int:job_id>/delete/", views.job_delete, name="job_delete"),

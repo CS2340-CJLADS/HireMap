@@ -1,0 +1,651 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="job-search-container">
+    <div class="page-container">
+    <!-- Search & Filters Bar -->
+    <div class="search-filters-bar">
+        <form method="get" class="search-form" id="search-form">
+            <div class="search-row">
+                <div class="search-text">
+                    <input type="text" name="search" placeholder="Search candidates by name, skills, education..." 
+                           value="{{ template_data.filters.search|default:'' }}" class="search-input" id="search-input" />
+                    <button type="submit" class="search-icon" aria-label="Search">🔍</button>
+                </div>
+                <div class="filter-actions">
+                    <button type="button" id="clear-filters" class="clear-filters-btn">Clear All</button>
+                </div>
+                <div class="search-filters-inline">
+                    <div class="filter-item">
+                        <input type="text" name="skills" id="skills" placeholder="e.g., Python, React, AWS..." 
+                               value="{{ template_data.filters.skills|default:'' }}" class="filter-input" />
+                    </div>
+                    <div class="filter-item">
+                        <input type="text" name="location" id="location" placeholder="e.g., San Francisco, Remote, New York..." 
+                               value="{{ template_data.filters.location|default:'' }}" class="filter-input" />
+                    </div>
+                    <div class="filter-item">
+                        <select name="availability" id="availability" class="filter-input">
+                            <option value="">All Availability</option>
+                            <option value="available" {% if template_data.filters.availability == 'available' %}selected{% endif %}>Available Now</option>
+                            <option value="open-to-work" {% if template_data.filters.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
+                            <option value="not-looking" {% if template_data.filters.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <input type="text" name="education" id="education" placeholder="e.g., Computer Science, MBA..." 
+                               value="{{ template_data.filters.education|default:'' }}" class="filter-input" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Split Screen Layout -->
+    <div class="split-screen">
+        <!-- Left Panel: Candidate List -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h3>Available Candidates ({{ template_data.total_candidates }})</h3>
+            </div>
+            <div class="job-list" id="candidate-list">
+                <div class="job-listings-grid">
+                    {% for candidate_data in template_data.applicants_with_projects %}
+                    {% with candidate=candidate_data.applicant %}
+                    <div class="job-listing candidate-listing" data-candidate-id="{{ candidate.pk }}" onclick="showCandidateDetails('{{ candidate.pk }}')">
+                        <div class="job-tile candidate-tile">
+                            <div class="job-tile-company">{{ candidate.first_name }} {{ candidate.last_name }}</div>
+                            <div class="job-tile-position">{{ candidate.skills|truncatechars:50|default:"No skills listed" }}</div>
+                            
+                            <div class="job-tile-separator"></div>
+                            
+                            <div class="job-tile-range">{{ candidate.location|default:"Location not specified" }}</div>
+                            <div class="job-tile-location">
+                                <span class="availability-badge availability-{{ candidate.availability }}">{{ candidate.get_availability_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% empty %}
+                    <div class="no-jobs-message">
+                        <p>No candidates found matching your criteria.</p>
+                        <p>Try adjusting your search filters or check back later for new candidates.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Dynamic Content -->
+        <div class="right-panel" id="right-panel">
+            <!-- Default: Dashboard -->
+            <div id="dashboard-content" class="panel-content">
+                <div class="dashboard-container">
+                    <div class="dashboard-section">
+                        <div class="section-name">Current Search</div>
+                        <div class="saved-searches-list" id="current-search-tags">
+                            {% if template_data.filters.search %}
+                            <span class="saved-search-item">"{{ template_data.filters.search }}"</span>
+                            {% endif %}
+                            {% if template_data.filters.skills %}
+                            <span class="saved-search-item">{{ template_data.filters.skills }}</span>
+                            {% endif %}
+                            {% if template_data.filters.location %}
+                            <span class="saved-search-item">{{ template_data.filters.location }}</span>
+                            {% endif %}
+                            {% if template_data.filters.availability %}
+                            <span class="saved-search-item">{{ template_data.filters.availability|title }}</span>
+                            {% endif %}
+                            {% if template_data.filters.education %}
+                            <span class="saved-search-item">{{ template_data.filters.education }}</span>
+                            {% endif %}
+                            {% if not template_data.filters.search and not template_data.filters.skills and not template_data.filters.location and not template_data.filters.availability and not template_data.filters.education %}
+                            <span class="saved-search-item">All Candidates</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-section">
+                        <div class="section-name">Search Tips</div>
+                        <div class="search-tips-message">
+                            <p>Use the search filters to find the perfect candidates:</p>
+                            <ul>
+                                <li><strong>Search:</strong> Find candidates by name, skills, or experience</li>
+                                <li><strong>Skills:</strong> Filter by specific technical skills</li>
+                                <li><strong>Location:</strong> Find candidates in specific locations</li>
+                                <li><strong>Availability:</strong> Filter by job search status</li>
+                                <li><strong>Education:</strong> Search by educational background</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Candidate Details (hidden by default) -->
+            <div id="candidate-details-content" class="panel-content" style="display: none;">
+                <div class="candidate-details-content">
+                    <div class="candidate-details-header">
+                        <button id="back-to-dashboard" class="back-btn">← Back to Search</button>
+                    </div>
+                    <div id="candidate-details-loading" class="loading-state" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Loading candidate details...</p>
+                    </div>
+                    <div id="candidate-details-body">
+                        <div class="candidate-description-container">
+                            <!-- Header Section -->
+                            <div class="candidate-description-header">
+                                <div class="candidate-description-name" id="candidate-description-name">Candidate Name</div>
+                                <div class="candidate-description-title" id="candidate-description-title">Professional Title</div>
+                            </div>
+                            
+                            <!-- Description Sections -->
+                            <div class="candidate-description-sections">
+                                <div class="candidate-description-section">
+                                    <div class="section-title">Contact Information</div>
+                                    <div class="section-content">
+                                        <div id="candidate-description-location">Location</div>
+                                        <div id="candidate-description-availability">Availability</div>
+                                        <div id="candidate-description-email">Email</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="candidate-description-section">
+                                    <div class="section-title">Skills</div>
+                                    <div class="section-content" id="candidate-description-skills">Skills</div>
+                                </div>
+                                
+                                <div class="candidate-description-section">
+                                    <div class="section-title">Education</div>
+                                    <div class="section-content" id="candidate-description-education">Education</div>
+                                </div>
+                                
+                                <div class="candidate-description-section">
+                                    <div class="section-title">Experience</div>
+                                    <div class="section-content" id="candidate-description-experience">Experience</div>
+                                </div>
+                                
+                                <div class="candidate-description-section">
+                                    <div class="section-title">Projects</div>
+                                    <div class="section-content" id="candidate-description-projects">Projects</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Contact Section -->
+                            <div class="candidate-description-actions">
+                                <a href="#" id="email-candidate-btn" class="email-btn">Email Candidate</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Candidate data from server -->
+<script type="application/json" id="candidate-data">
+{% if template_data.applicants_with_projects %}
+[
+{% for candidate_data in template_data.applicants_with_projects %}
+{% with candidate=candidate_data.applicant %}
+{
+    "id": "{{ candidate.pk }}",
+    "first_name": "{{ candidate.first_name|escapejs }}",
+    "last_name": "{{ candidate.last_name|escapejs }}",
+    "email": "{{ candidate.user.email|escapejs }}",
+    "location": "{{ candidate.location|escapejs }}",
+    "availability": "{{ candidate.availability }}",
+    "availability_display": "{{ candidate.get_availability_display|escapejs }}",
+    "skills": "{{ candidate.skills|escapejs }}",
+    "education": "{{ candidate.education|escapejs }}",
+    "experience": "{{ candidate.experience|escapejs }}",
+    "projects": [
+        {% for project in candidate_data.projects %}
+        {
+            "title": "{{ project.title|escapejs }}",
+            "description": "{{ project.description|escapejs }}",
+            "technologies": "{{ project.technologies|escapejs }}",
+            "url": "{{ project.url|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+}{% if not forloop.last %},{% endif %}
+{% endwith %}
+{% endfor %}
+]
+{% else %}
+[]
+{% endif %}
+</script>
+
+<script>
+// Candidate Details Logic
+let currentCandidateId = null;
+let candidateData = {};
+
+// Load candidate data from JSON
+const candidateDataElement = document.getElementById('candidate-data');
+if (candidateDataElement) {
+    const candidateDataArray = JSON.parse(candidateDataElement.textContent);
+    candidateDataArray.forEach(candidate => {
+        candidateData[candidate.id] = candidate;
+    });
+}
+
+function showCandidateDetails(candidateId) {
+    currentCandidateId = candidateId;
+    
+    // Remove active class from all candidate listings
+    document.querySelectorAll('.candidate-listing').forEach(listing => {
+        listing.classList.remove('active');
+    });
+    
+    // Add active class to selected listing
+    const selectedListing = document.querySelector(`[data-candidate-id="${candidateId}"]`);
+    if (selectedListing) {
+        selectedListing.classList.add('active');
+    }
+    
+    // Show loading state
+    document.getElementById('candidate-details-loading').style.display = 'block';
+    document.getElementById('candidate-details-body').style.display = 'none';
+    document.getElementById('candidate-details-content').style.display = 'block';
+    document.getElementById('dashboard-content').style.display = 'none';
+    
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+        if (candidateData[candidateId]) {
+            const candidate = candidateData[candidateId];
+            
+            // Update candidate details
+            document.getElementById('candidate-description-name').textContent = candidate.first_name + ' ' + candidate.last_name;
+            document.getElementById('candidate-description-title').textContent = candidate.skills ? candidate.skills.split(',')[0] + ' Developer' : 'Software Developer';
+            document.getElementById('candidate-description-location').textContent = candidate.location || 'Location not specified';
+            document.getElementById('candidate-description-availability').textContent = candidate.availability_display;
+            document.getElementById('candidate-description-email').textContent = candidate.email;
+            document.getElementById('candidate-description-skills').textContent = candidate.skills || 'No skills listed';
+            document.getElementById('candidate-description-education').textContent = candidate.education || 'No education information provided';
+            document.getElementById('candidate-description-experience').textContent = candidate.experience || 'No experience information provided';
+            
+            // Update projects
+            let projectsHtml = '';
+            if (candidate.projects && candidate.projects.length > 0) {
+                candidate.projects.forEach(project => {
+                    projectsHtml += `
+                        <div class="project-item">
+                            <div class="project-title">${project.title}</div>
+                            <div class="project-description">${project.description}</div>
+                            <div class="project-technologies">Technologies: ${project.technologies || 'Not specified'}</div>
+                            ${project.url ? `<div class="project-url"><a href="${project.url}" target="_blank">View Project</a></div>` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                projectsHtml = '<div class="no-projects">No projects listed</div>';
+            }
+            document.getElementById('candidate-description-projects').innerHTML = projectsHtml;
+            
+            // Update email button
+            const emailBtn = document.getElementById('email-candidate-btn');
+            emailBtn.href = `mailto:${candidate.email}`;
+        } else {
+            // Handle missing candidate data
+            document.getElementById('candidate-description-name').textContent = 'Candidate Not Found';
+            document.getElementById('candidate-description-title').textContent = 'Information not available';
+            document.getElementById('candidate-description-location').textContent = 'Not available';
+            document.getElementById('candidate-description-availability').textContent = 'Not available';
+            document.getElementById('candidate-description-email').textContent = 'Not available';
+            document.getElementById('candidate-description-skills').textContent = 'Not available';
+            document.getElementById('candidate-description-education').textContent = 'Not available';
+            document.getElementById('candidate-description-experience').textContent = 'Not available';
+            document.getElementById('candidate-description-projects').innerHTML = '<div class="no-projects">Not available</div>';
+        }
+        
+        // Hide loading, show content
+        document.getElementById('candidate-details-loading').style.display = 'none';
+        document.getElementById('candidate-details-body').style.display = 'block';
+    }, 500);
+}
+
+// Back to dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('back-to-dashboard');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            document.getElementById('candidate-details-content').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'block';
+            
+            // Clear active state from all candidate listings
+            document.querySelectorAll('.candidate-listing').forEach(listing => {
+                listing.classList.remove('active');
+            });
+            
+            currentCandidateId = null;
+        });
+    }
+});
+
+// Filter Management
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('search-form');
+    const clearBtn = document.getElementById('clear-filters');
+    const searchInput = document.getElementById('search-input');
+    const skillsInput = document.getElementById('skills');
+    const locationInput = document.getElementById('location');
+    const availabilitySelect = document.getElementById('availability');
+    const educationInput = document.getElementById('education');
+    
+    // Auto-submit on filter change
+    function autoSubmit() {
+        form.submit();
+    }
+    
+    // Clear all filters
+    function clearFilters() {
+        searchInput.value = '';
+        skillsInput.value = '';
+        locationInput.value = '';
+        availabilitySelect.value = '';
+        educationInput.value = '';
+        form.submit();
+    }
+    
+    // Event listeners
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearFilters);
+    }
+    
+    if (skillsInput) {
+        let skillsTimeout;
+        skillsInput.addEventListener('input', function() {
+            clearTimeout(skillsTimeout);
+            skillsTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+    
+    if (locationInput) {
+        let locationTimeout;
+        locationInput.addEventListener('input', function() {
+            clearTimeout(locationTimeout);
+            locationTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+    
+    if (availabilitySelect) {
+        availabilitySelect.addEventListener('change', autoSubmit);
+    }
+    
+    if (educationInput) {
+        let educationTimeout;
+        educationInput.addEventListener('input', function() {
+            clearTimeout(educationTimeout);
+            educationTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+    
+    // Search input with debounce
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(autoSubmit, 800);
+        });
+    }
+});
+</script>
+
+<style>
+/* Candidate-specific styles */
+.candidate-listing {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.candidate-listing:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-listing.active {
+    border-color: #13E3B2;
+    background: linear-gradient(135deg, rgba(19, 227, 178, 0.18) 0%, rgba(101, 243, 243, 0.18) 100%);
+}
+
+.candidate-tile {
+    background: linear-gradient(135deg, rgba(19, 227, 178, 0.08) 0%, rgba(101, 243, 243, 0.08) 100%);
+    border: 1px solid rgba(19, 227, 178, 0.1);
+}
+
+.availability-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.availability-available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.availability-open-to-work {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.availability-not-looking {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.candidate-description-container {
+    padding: 2rem;
+}
+
+.candidate-description-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(19, 227, 178, 0.2);
+}
+
+.candidate-description-name {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.candidate-description-title {
+    font-size: 18px;
+    color: #666;
+}
+
+.candidate-description-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.candidate-description-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.section-content {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.project-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.project-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.project-description {
+    color: #666;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.project-technologies {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.project-url a {
+    color: #13E3B2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.project-url a:hover {
+    text-decoration: underline;
+}
+
+.no-projects {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.candidate-description-actions {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: center;
+}
+
+.email-btn {
+    background: #13E3B2;
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.email-btn:hover {
+    background: #0fb894;
+    transform: translateY(-1px);
+    color: white;
+    text-decoration: none;
+}
+
+.search-tips-message {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.search-tips-message p {
+    margin: 0 0 1rem 0;
+    font-weight: 500;
+    color: #495057;
+}
+
+.search-tips-message ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #6c757d;
+}
+
+.search-tips-message li {
+    margin-bottom: 0.5rem;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #13E3B2;
+    box-shadow: 0 0 0 2px rgba(19, 227, 178, 0.25);
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.clear-filters-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clear-filters-btn:hover {
+    background: #5a6268;
+}
+
+.saved-search-item {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin: 0.25rem;
+    display: inline-block;
+}
+
+.saved-searches-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .filter-actions {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+    
+    .candidate-description-container {
+        padding: 1rem;
+    }
+    
+    .candidate-description-name {
+        font-size: 24px;
+    }
+}
+</style>
+{% endblock content %}

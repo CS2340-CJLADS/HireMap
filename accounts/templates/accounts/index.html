@@ -1,4 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+<div class="container">
+  <div class="hero">
+    <h1>HireMap</h1>
+  </div>
+
+  <section class="section">
+    <div class="card" style="max-width: 400px; margin: 0 auto;">
+      <div style="text-align: center;">
+        <a href="{% url 'accounts:login' %}" class="btn" style="margin-bottom: 1rem; display: block;">Log In</a>
+        <a href="{% url 'accounts:signup' %}" class="btn secondary" style="display: block;">Sign Up</a>
+      </div>
+    </div>
+  </section>
+</div>
 {% endblock content %}
