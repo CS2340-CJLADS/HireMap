@@ -529,73 +529,83 @@ function showApplicantProfile(application) {
     const messageBtn = document.getElementById('message-applicant-btn');
     messageBtn.href = `/messages/?other_user_id=${application.applicant_id}`;
     
-    // Fetch applicant details from recruiter endpoint
-    fetch(`/recruiter/applicants/${application.applicant_id}/`)
-        .then(response => response.text())
-        .then(html => {
-            // Parse the HTML to extract profile data
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            
-            // Extract profile information from the actual template structure
-            const skillsElement = doc.querySelector('.card:has(h3:contains("Skills")) p');
-            const educationElement = doc.querySelector('.card:has(h3:contains("Education")) p');
-            const experienceElement = doc.querySelector('.card:has(h3:contains("Experience")) p');
-            const locationElement = doc.querySelector('p:contains("Location:")');
-            
-            // Fallback method - look for text content in cards
-            const cards = doc.querySelectorAll('.card');
-            let skills = 'Not provided';
-            let education = 'Not provided';
-            let experience = 'Not provided';
-            let location = 'Not provided';
-            
-            cards.forEach(card => {
-                const heading = card.querySelector('h3');
-                if (heading) {
-                    const headingText = heading.textContent.trim();
-                    const content = card.querySelector('p');
-                    
-                    if (headingText === 'Skills' && content) {
-                        skills = content.textContent.trim();
-                    } else if (headingText === 'Education' && content) {
-                        education = content.textContent.trim();
-                    } else if (headingText === 'Experience' && content) {
-                        experience = content.textContent.trim();
-                    }
-                }
-            });
-            
-            // Extract location from contact information
-            const contactCard = Array.from(cards).find(card => 
-                card.querySelector('h3')?.textContent.trim() === 'Contact Information'
-            );
-            if (contactCard) {
-                const locationP = Array.from(contactCard.querySelectorAll('p')).find(p => 
-                    p.textContent.includes('Location:')
-                );
-                if (locationP) {
-                    location = locationP.textContent.replace('Location:', '').trim();
-                    if (location === 'Not provided' || location === '') {
-                        location = 'Not provided';
-                    }
-                }
-            }
-            
-            document.getElementById('applicant-skills').textContent = skills;
-            document.getElementById('applicant-education').textContent = education;
-            document.getElementById('applicant-experience').textContent = experience;
-            document.getElementById('applicant-location').textContent = location;
+    fetch(`/recruiter/get_applicant_info/${application.applicant_id}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('applicant-skills').textContent = data.skills || 'Not provided';
+            document.getElementById('applicant-education').textContent = data.education || 'Not provided';
+            document.getElementById('applicant-experience').textContent = data.experience || 'Not provided';
+            document.getElementById('applicant-location').textContent = data.location || 'Not provided';
         })
-        .catch(error => {
-            console.error('Error fetching applicant profile:', error);
-            // Set default values if fetch fails
-            document.getElementById('applicant-skills').textContent = 'Not available';
-            document.getElementById('applicant-education').textContent = 'Not available';
-            document.getElementById('applicant-experience').textContent = 'Not available';
-            document.getElementById('applicant-location').textContent = 'Not available';
-        });
+
+//     // Fetch applicant details from recruiter endpoint
+//     fetch(`/recruiter/applicants/${application.applicant_id}/`)
+//         .then(response => response.text())
+//         .then(html => {
+//             // Parse the HTML to extract profile data
+//             const parser = new DOMParser();
+//             const doc = parser.parseFromString(html, 'text/html');
+            
+//             // Extract profile information from the actual template structure
+//             const skillsElement = doc.querySelector('.card:has(h3:contains("Skills")) p');
+//             const educationElement = doc.querySelector('.card:has(h3:contains("Education")) p');
+//             const experienceElement = doc.querySelector('.card:has(h3:contains("Experience")) p');
+//             const locationElement = doc.querySelector('p:contains("Location:")');
+            
+//             // Fallback method - look for text content in cards
+//             const cards = doc.querySelectorAll('.card');
+//             let skills = 'Not provided';
+//             let education = 'Not provided';
+//             let experience = 'Not provided';
+//             let location = 'Not provided';
+            
+//             cards.forEach(card => {
+//                 const heading = card.querySelector('h3');
+//                 if (heading) {
+//                     const headingText = heading.textContent.trim();
+//                     const content = card.querySelector('p');
+                    
+//                     if (headingText === 'Skills' && content) {
+//                         skills = content.textContent.trim();
+//                     } else if (headingText === 'Education' && content) {
+//                         education = content.textContent.trim();
+//                     } else if (headingText === 'Experience' && content) {
+//                         experience = content.textContent.trim();
+//                     }
+//                 }
+//             });
+            
+//             // Extract location from contact information
+//             const contactCard = Array.from(cards).find(card => 
+//                 card.querySelector('h3')?.textContent.trim() === 'Contact Information'
+//             );
+//             if (contactCard) {
+//                 const locationP = Array.from(contactCard.querySelectorAll('p')).find(p => 
+//                     p.textContent.includes('Location:')
+//                 );
+//                 if (locationP) {
+//                     location = locationP.textContent.replace('Location:', '').trim();
+//                     if (location === 'Not provided' || location === '') {
+//                         location = 'Not provided';
+//                     }
+//                 }
+//             }
+            
+//             document.getElementById('applicant-skills').textContent = skills;
+//             document.getElementById('applicant-education').textContent = education;
+//             document.getElementById('applicant-experience').textContent = experience;
+//             document.getElementById('applicant-location').textContent = location;
+//         })
+//         .catch(error => {
+//             console.error('Error fetching applicant profile:', error);
+//             // Set default values if fetch fails
+//             document.getElementById('applicant-skills').textContent = 'Not available';
+//             document.getElementById('applicant-education').textContent = 'Not available';
+//             document.getElementById('applicant-experience').textContent = 'Not available';
+//             document.getElementById('applicant-location').textContent = 'Not available';
+//         });
 }
+
 
 function showKanbanView() {
     // Hide applications view and show kanban view

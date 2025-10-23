@@ -197,11 +197,12 @@ def job_applications(request, job_id):
             data.append({
                 'id': app.id,
                 'name': f"{app.applicant.first_name} {app.applicant.last_name}",
-                'email': app.applicant.user.email,
+                'email': app.applicant.user.username,
                 'status': 'Applied',  # Default status
                 'application_date': app.created_at.strftime('%Y-%m-%d'),
                 'message': app.message,
                 'applicant_id': app.applicant.pk,  # Use pk instead of id
+
             })
         return JsonResponse(data, safe=False)
     
@@ -291,3 +292,23 @@ def search_candidates(request):
     }
     
     return render(request, 'recruiter/search_candidates.html', {'template_data': template_data})
+
+@login_required
+@recruiter_required
+def get_applicant_info(request, applicant_id):
+    """Get applicant info as JSON (for AJAX requests)"""
+    from django.http import JsonResponse
+    applicant = get_object_or_404(Applicant, pk=applicant_id)
+    
+    data = {}
+
+    if applicant.get_privacy_settings().show_skills:
+        data['skills'] = applicant.skills
+    if applicant.get_privacy_settings().show_education:
+        data['education'] = applicant.education
+    if applicant.get_privacy_settings().show_experience:
+        data['experience'] = applicant.experience
+    if applicant.get_privacy_settings().show_location:
+        data['location'] = applicant.location
+    
+    return JsonResponse(data)
