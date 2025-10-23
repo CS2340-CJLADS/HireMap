@@ -203,6 +203,9 @@ def get_recommended_applicants(job_posting, min_score=0.15, limit=10):
                 print("Score below minimum threshold")
 
         matches.sort(key=lambda x: x[1], reverse=True)
+        output = []
+        for match in matches:
+            output.append(match[0])
         return matches[:limit]
         
     except Exception as e:

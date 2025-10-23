@@ -150,15 +150,15 @@
                     <div class="dashboard-section">
                         <div class="section-name">Recommended Based on your skills</div>
                         <div class="recommended-jobs-list">
-                            {% for job in template_data.job_postings|slice:":2" %}
+                            {% for job in template_data.recommended_jobs %}
                             <div class="recommended-job-tile" onclick="showJobDetails('{{ job.id }}')">
-                                <div class="job-tile-company">{{ job.recruiter.company_name|default:"Company" }}</div>
-                                <div class="job-tile-position">{{ job.title }}</div>
+                                <div class="job-tile-company">{{ job.0.recruiter.company_name|default:"Company" }}</div>
+                                <div class="job-tile-position">{{ job.0.title }}</div>
                                 
                                 <div class="job-tile-separator"></div>
                                 
-                                <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
-                                <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
+                                <div class="job-tile-range">${{ job.0.salary_min|floatformat:0 }} - ${{ job.0.salary_max|floatformat:0 }}</div>
+                                <div class="job-tile-location">{% if job.0.remote %}{{ job.0.location }} (Remote){% else %}{{ job.0.location }}{% endif %}</div>
                             </div>
                             {% empty %}
                             <div class="no-recommendations-message">
