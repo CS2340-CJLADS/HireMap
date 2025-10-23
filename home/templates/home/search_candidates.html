@@ -56,11 +56,11 @@
                     <div class="job-listing candidate-listing" data-candidate-id="{{ candidate.pk }}" onclick="showCandidateDetails('{{ candidate.pk }}')">
                         <div class="job-tile candidate-tile">
                             <div class="job-tile-company">{{ candidate.first_name }} {{ candidate.last_name }}</div>
-                            <div class="job-tile-position">{{ candidate.skills|truncatechars:50|default:"No skills listed" }}</div>
+                            <div class="job-tile-position">{{ candidate_data.skills|truncatechars:50|default:"No skills listed" }}</div>
                             
                             <div class="job-tile-separator"></div>
                             
-                            <div class="job-tile-range">{{ candidate.location|default:"Location not specified" }}</div>
+                            <div class="job-tile-range">{{ candidate_data.location|default:"Location not specified" }}</div>
                             <div class="job-tile-location">
                                 <span class="availability-badge availability-{{ candidate.availability }}">{{ candidate.get_availability_display }}</span>
                             </div>
@@ -192,16 +192,16 @@
 {% for candidate_data in template_data.applicants_with_projects %}
 {% with candidate=candidate_data.applicant %}
 {
-    "id": "{{ candidate.pk }}",
+    "id": "{{ candidate.user.id|escapejs }}",
     "first_name": "{{ candidate.first_name|escapejs }}",
     "last_name": "{{ candidate.last_name|escapejs }}",
-    "email": "{{ candidate.user.email|escapejs }}",
-    "location": "{{ candidate.location|escapejs }}",
-    "availability": "{{ candidate.availability }}",
+    "email": "{{ candidate.user.username|escapejs }}",
+    "location": "{{ candidate_data.location|escapejs }}",
+    "availability": "{{ candidate_data.availability }}",
     "availability_display": "{{ candidate.get_availability_display|escapejs }}",
-    "skills": "{{ candidate.skills|escapejs }}",
-    "education": "{{ candidate.education|escapejs }}",
-    "experience": "{{ candidate.experience|escapejs }}",
+    "skills": "{{ candidate_data.skills|escapejs }}",
+    "education": "{{ candidate_data.education|escapejs }}",
+    "experience": "{{ candidate_data.experience|escapejs }}",
     "projects": [
         {% for project in candidate_data.projects %}
         {

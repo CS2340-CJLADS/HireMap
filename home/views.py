@@ -209,10 +209,25 @@ def search_candidates(request):
     applicants_with_projects = []
     for applicant in applicants:
         projects = Project.objects.filter(applicant=applicant)
-        applicants_with_projects.append({
+        temp = {
             'applicant': applicant,
             'projects': projects
-        })
+            }
+        if applicant.get_privacy_settings().show_skills:
+            temp['skills'] = applicant.skills
+        if applicant.get_privacy_settings().show_education:
+            temp['education'] = applicant.education
+        if applicant.get_privacy_settings().show_experience:
+            temp['experience'] = applicant.experience
+        if applicant.get_privacy_settings().show_links:
+            temp['links'] = applicant.links
+        if applicant.get_privacy_settings().show_phone:
+            temp['phone'] = applicant.phone
+        if applicant.get_privacy_settings().show_location:
+            temp['location'] = applicant.location
+        if applicant.get_privacy_settings().show_availability:
+            temp['availability'] = applicant.availability
+        applicants_with_projects.append(temp)
     
     template_data = {
         'title': 'Search Candidates',
