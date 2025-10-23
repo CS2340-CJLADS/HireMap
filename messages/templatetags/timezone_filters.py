@@ -1,7 +1,6 @@
 from django import template
 from django.utils import timezone
 from django.utils.dateformat import format
-import pytz
 
 register = template.Library()
 
