@@ -14,7 +14,7 @@ def index(request):
         search = request.GET.get('search')
         if search:
             template_data['sidebar_messages'] = sidebar_messages(request, search)
-        other_user_id = request.GET.get('other_user_id') # still tentative if id or username should be used
+        other_user_id = request.GET.get('other_user_id')
         if other_user_id:
             messages = Message.objects.filter(
                     (Q(sender=request.user) & Q(recipient__id=other_user_id)) |
@@ -42,7 +42,10 @@ def index(request):
 @login_required
 def create_message(request, recipient_id):
     content = request.POST.get('content')
-    if recipient_id and content:
+    if (Message.objects.filter(
+                (Q(sender=request.user) & Q(recipient__id=recipient_id)) |
+                (Q(sender__id=recipient_id) & Q(recipient=request.user))
+            ) or request.user.recruiter) and recipient_id and content:
         try:
             recipient = User.objects.get(id=recipient_id)
             message = Message.objects.create(sender=request.user, recipient=recipient, content=content)
