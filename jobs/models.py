@@ -23,12 +23,21 @@ class JobPosting(models.Model):
     
 
 class Application(models.Model):
-    id = models.AutoField(primary_key = True)
-    applicant = models.ForeignKey('accounts.Applicant', on_delete = models.CASCADE)
-    # Basically all applicant information will be pulled from here
-    listing = models.ForeignKey('jobs.JobPosting', on_delete = models.CASCADE)
-    message = models.TextField(blank = True)
+    STATUS_CHOICES = [
+        ("applied", "Applied"),
+        ("under_review", "Under Review"),
+        ("interview", "Interview"),
+        ("offer", "Offer"),
+        ("closed", "Closed"),
+    ]
+
+    id = models.AutoField(primary_key=True)
+    applicant = models.ForeignKey('accounts.Applicant', on_delete=models.CASCADE)
+    listing = models.ForeignKey('jobs.JobPosting', on_delete=models.CASCADE)
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="applied")
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -36,4 +45,4 @@ class Application(models.Model):
         ]
 
     def __str__(self):
-        return str(self.id) + " - applicant: " + self.applicant.__str__() + ", listing: " + self.listing.__str__()
+        return f"{self.id} - {self.applicant} ({self.status})"
