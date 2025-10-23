@@ -213,6 +213,9 @@ def job_applications(request, job_id):
         applicant__user=recruiter.user  # Exclude applications where applicant is the same as recruiter
     ).select_related('applicant').order_by('-created_at')
     
+    # Get recommended applicants for this job
+    recommended_applicants = get_recommended_applicants(job, min_score=0.05, limit=10)
+    
     # Check if JSON response is requested
     if request.GET.get('format') == 'json':
         from django.http import JsonResponse
@@ -233,6 +236,7 @@ def job_applications(request, job_id):
         'title': f'Applications for {job.title}',
         'job': job,
         'applications': applications,
+        'recommended_applicants': recommended_applicants,
     }
     return render(request, 'recruiter/job_applications.html', {'template_data': template_data})
 
@@ -388,7 +392,7 @@ def search_candidates(request):
     recommended_applicants = []
     if job_id:
         job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
-        recommended_applicants = get_recommended_applicants(job, limit=10)
+        recommended_applicants = get_recommended_applicants(job, min_score=0.05, limit=10)
     
     template_data = {
         'title': 'Search Candidates',
@@ -763,3 +767,49 @@ def create_notifications_for_saved_search(saved_search):
             message=f'{candidate.first_name} {candidate.last_name} matches your saved search criteria.',
             saved_search=saved_search
         )
+
+@login_required
+@recruiter_required
+def get_recommended_applicants_json(request, job_id):
+    """Get recommended applicants for a job as JSON (for AJAX requests)"""
+    recruiter = request.user.recruiter
+    job = get_object_or_404(JobPosting, id=job_id, recruiter=recruiter)
+    
+    # Get recommended applicants
+    recommended_applicants = get_recommended_applicants(job, min_score=0.05, limit=10)
+    
+    data = []
+    for applicant, score in recommended_applicants:
+        # Check if applicant already applied to this job
+        has_applied = Application.objects.filter(
+            listing=job, 
+            applicant=applicant
+        ).exists()
+        
+        # Get basic info that respects privacy settings
+        applicant_data = {
+            'id': applicant.user.pk,
+            'name': f"{applicant.first_name} {applicant.last_name}",
+            'email': applicant.user.username,
+            'score': round(score, 2),
+            'has_applied': has_applied,
+        }
+        
+        # Add optional fields based on privacy settings
+        privacy = applicant.get_privacy_settings()
+        if privacy.show_skills:
+            applicant_data['skills'] = applicant.skills
+        if privacy.show_education:
+            applicant_data['education'] = applicant.education
+        if privacy.show_experience:
+            applicant_data['experience'] = applicant.experience
+        if privacy.show_location:
+            applicant_data['location'] = applicant.location
+        if privacy.show_availability:
+            applicant_data['availability'] = applicant.availability
+        if privacy.show_phone:
+            applicant_data['phone'] = applicant.phone
+        
+        data.append(applicant_data)
+    
+    return JsonResponse(data, safe=False)

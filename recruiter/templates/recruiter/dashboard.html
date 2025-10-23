@@ -184,6 +184,22 @@
                          <div class="applications-grid" id="applications-grid">
                              <!-- Application cards will be populated here -->
                                 </div>
+                         
+                         <!-- Recommended Applicants Section -->
+                         <div class="recommended-section">
+                             <div class="recommended-header">
+                                 <h3>Recommended Candidates</h3>
+                                 <span class="recommended-info">Based on job requirements and candidate skills</span>
+                             </div>
+                             <div id="recommended-loading" class="loading-state" style="display: none;">
+                                 <div class="spinner"></div>
+                                 <p>Loading recommendations...</p>
+                             </div>
+                             <div class="recommended-grid" id="recommended-grid">
+                                 <!-- Recommended applicant cards will be populated here -->
+                             </div>
+                         </div>
+                         
                          <div class="applications-footer">
                              <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
                              <button class="view-posting-btn" id="view-posting-btn" onclick="showJobPosting()">View the Posting</button>
@@ -541,6 +557,112 @@ function loadApplicationsForJob(jobId) {
                 </div>
             `;
          });
+         
+    // Also load recommended applicants
+    loadRecommendedApplicants(jobId);
+}
+
+function loadRecommendedApplicants(jobId) {
+    // Show loading state for recommendations
+    document.getElementById('recommended-loading').style.display = 'block';
+    document.getElementById('recommended-grid').style.display = 'none';
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Fetch recommended applicants
+    fetch(`/recruiter/jobs/${jobId}/recommended/`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'X-CSRFToken': csrfToken })
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(recommendedApplicants => {
+        const recommendedGrid = document.getElementById('recommended-grid');
+        recommendedGrid.innerHTML = '';
+        
+        if (recommendedApplicants.length === 0) {
+            recommendedGrid.innerHTML = `
+                <div class="no-recommendations-message">
+                    <p>No recommended candidates found.</p>
+                    <p>Recommendations are based on job requirements and candidate skills.</p>
+                </div>
+            `;
+        } else {
+            recommendedApplicants.forEach(applicant => {
+                const recommendedCard = document.createElement('div');
+                recommendedCard.className = 'recommended-card';
+                
+                const appliedBadge = applicant.has_applied ? 
+                    '<span class="applied-badge">Already Applied</span>' : '';
+                
+                const skillsText = applicant.skills ? 
+                    `<div class="applicant-skills">${applicant.skills.substring(0, 100)}${applicant.skills.length > 100 ? '...' : ''}</div>` : '';
+                
+                const locationText = applicant.location ? 
+                    `<div class="applicant-location">📍 ${applicant.location}</div>` : '';
+                
+                recommendedCard.innerHTML = `
+                    <div class="recommended-header">
+                        <div class="applicant-info">
+                            <h4>${applicant.name}</h4>
+                        </div>
+                        <div class="badges">
+                            <span class="recommended-badge">Recommended</span>
+                            ${appliedBadge}
+                        </div>
+                    </div>
+                    <div class="applicant-details">
+                        ${locationText}
+                        ${skillsText}
+                    </div>
+                    <div class="recommended-actions">
+                        <button class="view-profile-btn" onclick="showApplicantProfile({applicant_id: ${applicant.id}, name: '${applicant.name}', email: '${applicant.email}'})">
+                            View Profile
+                        </button>
+                        ${!applicant.has_applied ? 
+                            `<button class="message-btn" onclick="messageApplicant(${applicant.id}, '${applicant.name}')">Message</button>` : 
+                            ''
+                        }
+                    </div>
+                `;
+                
+                recommendedGrid.appendChild(recommendedCard);
+            });
+        }
+        
+        // Hide loading, show content
+        document.getElementById('recommended-loading').style.display = 'none';
+        document.getElementById('recommended-grid').style.display = 'block';
+    })
+    .catch(error => {
+        console.error('Error fetching recommended applicants:', error);
+        const recommendedGrid = document.getElementById('recommended-grid');
+        recommendedGrid.innerHTML = `
+            <div class="no-recommendations-message">
+                <p>Error loading recommendations: ${error.message}</p>
+                <p>Please try again later.</p>
+            </div>
+        `;
+        document.getElementById('recommended-loading').style.display = 'none';
+        document.getElementById('recommended-grid').style.display = 'block';
+    });
+}
+
+function messageApplicant(applicantId, applicantName) {
+    // This function could open a messaging modal or redirect to messaging page
+    // For now, let's redirect to the search candidates page with the specific applicant
+    window.location.href = `/recruiter/search-candidates/?candidate_id=${applicantId}`;
 }
 
 function showJobPosting() {
@@ -1397,6 +1519,150 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid #e9ecef;
+}
+
+/* Recommended Applicants Styles */
+.recommended-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e9ecef;
+}
+
+.recommended-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.recommended-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.4rem;
+}
+
+.recommended-info {
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.recommended-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.recommended-card {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.08) 0%, rgba(108, 117, 125, 0.08) 100%);
+    border: 1px solid rgba(13, 110, 253, 0.15);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.recommended-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+.recommended-card .recommended-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.applicant-info h4 {
+    margin: 0 0 0.25rem 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.recommended-badge {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-end;
+}
+
+.applied-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.applicant-details {
+    margin-bottom: 1rem;
+}
+
+.applicant-location {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.applicant-skills {
+    color: #555;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 0.5rem;
+    border-radius: 6px;
+}
+
+.recommended-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-profile-btn, .message-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-profile-btn {
+    background: #0d6efd;
+    color: white;
+}
+
+.view-profile-btn:hover {
+    background: #0b5ed7;
+}
+
+.message-btn {
+    background: #28a745;
+    color: white;
+}
+
+.message-btn:hover {
+    background: #218838;
+}
+
+.no-recommendations-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
 }
 
 .view-posting-btn {
