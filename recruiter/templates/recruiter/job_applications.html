@@ -3,221 +3,366 @@
 {% load static %}
 
 <div class="job-search-container">
-    <div class="page-container">
-        <div class="dashboard-section">
-            <div class="section-header">
-                <h2>Applications for: {{ template_data.job.title }}</h2>
-                <a href="{% url 'recruiter:jobs' %}" class="btn secondary">Back to Jobs</a>
+  <div class="page-container">
+    <div class="dashboard-section">
+      <div class="section-header">
+        <h2>Applications for: {{ template_data.job.title }}</h2>
+        <a href="{% url 'recruiter:jobs' %}" class="btn secondary">Back to Jobs</a>
+      </div>
+
+      <div class="job-info">
+        <h3>{{ template_data.job.title }}</h3>
+        <p class="job-meta">
+          <span class="location">
+            {% if template_data.job.remote %}Remote{% else %}{{ template_data.job.location }}{% endif %}
+          </span>
+          <span class="salary">
+            ${{ template_data.job.salary_min|floatformat:0 }} -
+            ${{ template_data.job.salary_max|floatformat:0 }}
+          </span>
+          <span
+            class="status {% if template_data.job.is_draft %}draft{% elif template_data.job.is_closed %}closed{% else %}active{% endif %}">
+            {% if template_data.job.is_draft %}Draft{% elif template_data.job.is_closed %}Closed{% else %}Active{% endif %}
+          </span>
+        </p>
+      </div>
+
+      <!-- ===== Toggle Buttons ===== -->
+      <div class="view-toggle">
+        <button id="listViewBtn" class="btn secondary">List View</button>
+        <button id="kanbanViewBtn" class="btn primary">Kanban View</button>
+      </div>
+
+      <!-- ===== Kanban Board Container ===== -->
+      <div id="kanbanBoard" class="kanban-board" style="display:none;">
+        <p>Loading board...</p>
+      </div>
+
+      <!-- ===== Default List View ===== -->
+      {% if template_data.applications %}
+      <div class="applications-list">
+        {% for application in template_data.applications %}
+        <div class="application-item">
+          <div class="application-header">
+            <div class="applicant-info">
+              <h4>{{ application.applicant.first_name }} {{ application.applicant.last_name }}</h4>
+              <p class="applicant-email">{{ application.applicant.user.username }}</p>
+              {% if application.applicant.phone %}
+              <p class="applicant-phone">📱 {{ application.applicant.phone }}</p>
+              {% endif %}
+              {% if application.applicant.location %}
+              <p class="applicant-location">📍 {{ application.applicant.location }}</p>
+              {% endif %}
             </div>
-            
-            <div class="job-info">
-                <h3>{{ template_data.job.title }}</h3>
-                <p class="job-meta">
-                    <span class="location">{% if template_data.job.remote %}Remote{% else %}{{ template_data.job.location }}{% endif %}</span>
-                    <span class="salary">${{ template_data.job.salary_min|floatformat:0 }} - ${{ template_data.job.salary_max|floatformat:0 }}</span>
-                    <span class="status {% if template_data.job.is_draft %}draft{% elif template_data.job.is_closed %}closed{% else %}active{% endif %}">
-                        {% if template_data.job.is_draft %}Draft{% elif template_data.job.is_closed %}Closed{% else %}Active{% endif %}
-                    </span>
-                </p>
+            <div class="application-meta">
+              <span class="application-date">{{ application.created_at|date:"M d, Y" }}</span>
+              <span class="application-time">{{ application.created_at|time:"g:i A" }}</span>
             </div>
-            
-            {% if template_data.applications %}
-            <div class="applications-list">
-                {% for application in template_data.applications %}
-                <div class="application-item">
-                    <div class="application-header">
-                        <div class="applicant-info">
-                            <h4>{{ application.applicant.first_name }} {{ application.applicant.last_name }}</h4>
-                            <p class="applicant-email">{{ application.applicant.user.username }}</p>
-                            {% if application.applicant.phone %}
-                            <p class="applicant-phone">📱 {{ application.applicant.phone }}</p>
-                            {% endif %}
-                            {% if application.applicant.location %}
-                            <p class="applicant-location">📍 {{ application.applicant.location }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="application-meta">
-                            <span class="application-date">{{ application.created_at|date:"M d, Y" }}</span>
-                            <span class="application-time">{{ application.created_at|time:"g:i A" }}</span>
-                        </div>
-                    </div>
-                    
-                    {% if application.message %}
-                    <div class="application-message">
-                        <strong>Application Message:</strong>
-                        <p>{{ application.message }}</p>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="application-actions">
-                        {% if application.applicant.id %}
-                        <a href="{% url 'recruiter:view_applicant' application.applicant.id %}" class="btn primary">View Profile</a>
-                        {% endif %}
-                        <a href="mailto:{{ application.applicant.user.username }}" class="btn secondary">Contact</a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <h3>No applications yet</h3>
-                <p>This job posting hasn't received any applications yet.</p>
-                <a href="{% url 'recruiter:jobs' %}" class="btn primary">Back to Jobs</a>
-            </div>
+          </div>
+
+          {% if application.message %}
+          <div class="application-message">
+            <strong>Application Message:</strong>
+            <p>{{ application.message }}</p>
+          </div>
+          {% endif %}
+
+          <div class="application-actions">
+            {% if application.applicant.id %}
+            <a href="{% url 'recruiter:view_applicant' application.applicant.id %}" class="btn primary">View Profile</a>
             {% endif %}
+            <a href="mailto:{{ application.applicant.user.username }}" class="btn secondary">Contact</a>
+          </div>
         </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <h3>No applications yet</h3>
+        <p>This job posting hasn't received any applications yet.</p>
+        <a href="{% url 'recruiter:jobs' %}" class="btn primary">Back to Jobs</a>
+      </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 
+<!-- ===== Styling ===== -->
 <style>
 .job-info {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
 }
-
 .job-info h3 {
-    margin: 0 0 0.5rem 0;
-    color: #333;
+  margin: 0 0 0.5rem 0;
+  color: #333;
 }
-
 .job-meta {
-    display: flex;
-    gap: 1rem;
-    margin: 0;
-    color: #666;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  color: #666;
 }
-
 .job-meta span {
-    padding: 0.25rem 0.75rem;
-    background: #e9ecef;
-    border-radius: 4px;
-    font-size: 0.9rem;
+  padding: 0.25rem 0.75rem;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
 
+/* ---- List View ---- */
 .applications-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-
 .application-item {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1.5rem;
-    background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: white;
 }
-
 .application-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
-
 .applicant-info h4 {
-    margin: 0 0 0.25rem 0;
-    color: #333;
+  margin: 0 0 0.25rem 0;
+  color: #333;
 }
-
 .applicant-email,
 .applicant-phone,
 .applicant-location {
-    margin: 0.25rem 0;
-    color: #666;
-    font-size: 0.9rem;
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
 }
-
 .application-meta {
-    text-align: right;
-    color: #666;
-    font-size: 0.9rem;
+  text-align: right;
+  color: #666;
+  font-size: 0.9rem;
 }
-
 .application-date {
-    display: block;
-    font-weight: 500;
+  display: block;
+  font-weight: 500;
 }
-
 .application-time {
-    display: block;
-    color: #999;
+  display: block;
+  color: #999;
 }
-
 .application-message {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
 }
-
-.application-message strong {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #333;
-}
-
 .application-actions {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }
-
 .btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: inline-block;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-block;
 }
-
-.btn.primary {
-    background: #007bff;
-    color: white;
-}
-
-.btn.secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.btn:hover {
-    opacity: 0.9;
-}
-
+.btn.primary { background: #007bff; color: white; }
+.btn.secondary { background: #6c757d; color: white; }
+.btn:hover { opacity: 0.9; }
 .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #666;
+  text-align: center;
+  padding: 3rem;
+  color: #666;
 }
-
-.empty-state h3 {
-    margin-bottom: 1rem;
-    color: #333;
-}
-
 .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
 }
 
-@media (max-width: 768px) {
-    .application-header {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .application-meta {
-        text-align: left;
-    }
-    
-    .application-actions {
-        flex-direction: column;
-    }
+/* ---- Kanban ---- */
+.view-toggle {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.kanban-column {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 400px;
+}
+.kanban-column h4 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #333;
+}
+.kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.kanban-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: grab;
+}
+@media (max-width: 768px) {
+  .application-header { flex-direction: column; gap: 1rem; }
+  .application-meta { text-align: left; }
+  .application-actions { flex-direction: column; }
+  .kanban-board { grid-template-columns: 1fr; }
+}
+
+/* ===== Unified Status Color System ===== */
+
+/* Core theme colors */
+:root {
+  --color-applied: #adb5bd;        /* gray */
+  --color-under-review: #0dcaf0;   /* cyan */
+  --color-interview: #0d6efd;      /* blue */
+  --color-offer: #198754;          /* green */
+  --color-closed: #dc3545;         /* red */
+}
+
+/* Kanban column header colors */
+.kanban-column[data-stage="Applied"] h4 { color: var(--color-applied); }
+.kanban-column[data-stage="Under Review"] h4 { color: var(--color-under-review); }
+.kanban-column[data-stage="Interview"] h4 { color: var(--color-interview); }
+.kanban-column[data-stage="Offer"] h4 { color: var(--color-offer); }
+.kanban-column[data-stage="Closed"] h4 { color: var(--color-closed); }
+
+/* Kanban card color edge */
+.kanban-card {
+  border-left: 5px solid transparent;
+}
+.kanban-column[data-stage="Applied"] .kanban-card { border-left-color: var(--color-applied); }
+.kanban-column[data-stage="Under Review"] .kanban-card { border-left-color: var(--color-under-review); }
+.kanban-column[data-stage="Interview"] .kanban-card { border-left-color: var(--color-interview); }
+.kanban-column[data-stage="Offer"] .kanban-card { border-left-color: var(--color-offer); }
+.kanban-column[data-stage="Closed"] .kanban-card { border-left-color: var(--color-closed); }
+
+/* Status badges (optional, for list view or future use) */
+.application-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #fff;
+  font-weight: 500;
+}
+.status-applied { background: var(--color-applied); }
+.status-under_review,
+.status-under-review { background: var(--color-under-review); }
+.status-interview { background: var(--color-interview); }
+.status-offer { background: var(--color-offer); }
+.status-closed { background: var(--color-closed); }
+
 </style>
+
+<!-- ===== Script ===== -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const jobId = "{{ template_data.job.id }}";
+  const board = document.getElementById("kanbanBoard");
+  const listViewBtn = document.getElementById("listViewBtn");
+  const kanbanViewBtn = document.getElementById("kanbanViewBtn");
+  const appList = document.querySelector(".applications-list");
+
+  listViewBtn.addEventListener("click", () => {
+    board.style.display = "none";
+    if (appList) appList.style.display = "flex";
+  });
+
+  kanbanViewBtn.addEventListener("click", () => {
+    if (appList) appList.style.display = "none";
+    board.style.display = "grid";
+    loadKanban();
+  });
+
+  async function loadKanban() {
+    board.innerHTML = "<p>Loading...</p>";
+    try {
+      const res = await fetch(`/api/recruiter/board/?job=${jobId}`);
+      const data = await res.json();
+      renderBoard(data);
+    } catch {
+      board.innerHTML = "<p>Error loading board.</p>";
+    }
+  }
+
+  function renderBoard(data) {
+    const stages = ["Applied", "Under Review", "Interview", "Offer", "Closed"];
+    board.innerHTML = stages
+      .map(
+        (stage) => `
+      <div class="kanban-column" data-stage="${stage}">
+        <h4>${stage}</h4>
+        <div class="kanban-cards">
+          ${(data[stage.toLowerCase().replace(/ /g, "_")] || [])
+            .map(
+              (app) => `
+            <div class="kanban-card" draggable="true" data-id="${app.id}">
+              <strong>${app.applicant}</strong><br>
+              <small>${app.listing_title}</small>
+            </div>`
+            )
+            .join("")}
+        </div>
+      </div>`
+      )
+      .join("");
+    enableDrag();
+  }
+
+  function enableDrag() {
+    const cards = board.querySelectorAll(".kanban-card");
+    const columns = board.querySelectorAll(".kanban-column");
+
+    cards.forEach((card) => {
+      card.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("id", card.dataset.id);
+      });
+    });
+
+    columns.forEach((col) => {
+      col.addEventListener("dragover", (e) => e.preventDefault());
+      col.addEventListener("drop", async (e) => {
+        const id = e.dataTransfer.getData("id");
+        const newStage = col.dataset.stage;
+        const card = document.querySelector(`[data-id='${id}']`);
+        col.querySelector(".kanban-cards").appendChild(card);
+
+        try {
+          await fetch(`/api/applications/${id}/status/`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStage.toLowerCase().replace(/ /g, "_") }),
+          });
+        } catch {
+          alert("Failed to update status");
+        }
+      });
+    });
+  }
+});
+</script>
 {% endblock content %}

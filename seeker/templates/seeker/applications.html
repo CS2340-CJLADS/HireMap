@@ -25,8 +25,19 @@
             </form>
         </div>
 
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button id="listViewBtn" class="btn secondary">List View</button>
+            <button id="kanbanViewBtn" class="btn primary">Kanban View</button>
+        </div>
+
+        <!-- Kanban Board (Read-Only) -->
+        <div id="kanbanBoard" class="kanban-board" style="display:none;">
+            <p>Loading your applications...</p>
+        </div>
+
         <!-- Split Screen Layout -->
-        <div class="split-screen">
+        <div class="split-screen" id="listView">
             <!-- Left Panel: Applications List -->
             <div class="left-panel">
                 <div class="panel-header">
@@ -34,7 +45,7 @@
                 </div>
                 <div class="applications-container" id="applications-list">
                     {% for application in template_data.applications %}
-                    <div class="application-bar" data-application-id="{{ application.id }}">
+                    <div class="application-bar" data-application-id="{{ application.id }}" data-status="{{ application.status }}">
                         <div class="application-company">{{ application.listing.recruiter.company_name }}</div>
                         <div class="application-position">{{ application.listing.title }}</div>
                         <div class="application-location">
@@ -44,8 +55,8 @@
                                 {{ application.listing.location }}
                             {% endif %}
                         </div>
-                        <div class="application-status status-applied">
-                            Applied
+                        <div class="application-status status-{{ application.status|lower|cut:' ' }}">
+                            {{ application.status }}
                         </div>
                     </div>
                     {% empty %}
@@ -58,7 +69,6 @@
 
             <!-- Right Panel: Application Details -->
             <div class="right-panel" id="right-panel">
-                <!-- Default: Dashboard -->
                 <div id="dashboard-content" class="panel-content">
                     <div class="applications-dashboard">
                         <h3>Your Applications</h3>
@@ -75,7 +85,7 @@
                     </div>
                 </div>
 
-                <!-- Application Details (hidden by default) -->
+                <!-- Job Details -->
                 <div id="job-details-content" class="panel-content" style="display: none;">
                     <div class="job-details-content">
                         <div class="job-details-header">
@@ -87,13 +97,11 @@
                         </div>
                         <div id="job-details-body">
                             <div class="job-description-container">
-                                <!-- Header Section -->
                                 <div class="job-description-header">
                                     <div class="job-description-company" id="job-description-company">Company</div>
                                     <div class="job-description-position" id="job-description-position">Position</div>
                                 </div>
-                                
-                                <!-- Description Sections -->
+
                                 <div class="job-description-sections">
                                     <div class="job-description-section">
                                         <div class="section-title">About</div>
@@ -103,22 +111,17 @@
                                             <div id="job-description-visa">Visa</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="job-description-section">
                                         <div class="section-title">Skills</div>
                                         <div class="section-content" id="job-description-skills">Skills</div>
                                     </div>
-                                    
-                                    <div class="job-description-section">
-                                        <div class="section-title">Requirements</div>
-                                        <div class="section-content" id="job-description-requirements">Requirements</div>
-                                    </div>
-                                    
+
                                     <div class="job-description-section">
                                         <div class="section-title">Description</div>
                                         <div class="section-content" id="job-description-description">Description</div>
                                     </div>
-                                    
+
                                     <div class="job-description-section">
                                         <div class="section-title">Your Note</div>
                                         <div class="section-content" id="application-note">Your application message will appear here</div>
@@ -133,124 +136,156 @@
     </div>
 </div>
 
+<!-- ===== JS: Toggle & Kanban ===== -->
 <script>
-// Application Details Logic
-let currentApplicationId = null;
-let applicationData = {};
+document.addEventListener("DOMContentLoaded", () => {
+    const listView = document.getElementById("listView");
+    const kanbanBoard = document.getElementById("kanbanBoard");
+    const listViewBtn = document.getElementById("listViewBtn");
+    const kanbanViewBtn = document.getElementById("kanbanViewBtn");
 
-// Store application data from template
-{% for application in template_data.applications %}
-applicationData['{{ application.id }}'] = {
-    id: '{{ application.id }}',
-    title: '{{ application.listing.title|escapejs }}',
-    company: '{{ application.listing.recruiter.company_name|default:"Company"|escapejs }}',
-    location: '{{ application.listing.location|escapejs }}',
-    remote: {{ application.listing.remote|yesno:"true,false" }},
-    salary_min: {{ application.listing.salary_min }},
-    salary_max: {{ application.listing.salary_max }},
-    visa_sponsorship: {{ application.listing.visa_sponsorship|yesno:"true,false" }},
-    skills_required: '{{ application.listing.skills_required|escapejs }}',
-    description: '{{ application.listing.description|escapejs }}',
-    requirements: '{{ application.listing.requirements|default:""|escapejs }}',
-    message: '{{ application.message|escapejs }}',
-    created_at: '{{ application.created_at|date:"M d, Y" }}'
-};
-{% endfor %}
-
-function showApplicationDetails(applicationId) {
-    currentApplicationId = applicationId;
-    
-    // Show loading state
-    document.getElementById('job-details-loading').style.display = 'block';
-    document.getElementById('job-details-body').style.display = 'none';
-    document.getElementById('job-details-content').style.display = 'block';
-    document.getElementById('dashboard-content').style.display = 'none';
-    
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-        if (applicationData[applicationId]) {
-            const application = applicationData[applicationId];
-            
-            // Update application details
-            document.getElementById('job-description-company').textContent = application.company;
-            document.getElementById('job-description-position').textContent = application.title;
-            document.getElementById('job-description-location').textContent = application.remote ? application.location + ' (Remote)' : application.location;
-            document.getElementById('job-description-salary').textContent = '$' + application.salary_min.toLocaleString() + ' - $' + application.salary_max.toLocaleString();
-            document.getElementById('job-description-visa').textContent = application.visa_sponsorship ? 'Visa sponsorship available' : 'No visa sponsorship';
-            document.getElementById('job-description-skills').textContent = application.skills_required || 'Not specified';
-            document.getElementById('job-description-requirements').textContent = application.requirements || 'Not specified';
-            document.getElementById('job-description-description').textContent = application.description || 'No description provided';
-            document.getElementById('application-note').textContent = application.message || 'No message provided';
-        }
-        
-        // Hide loading, show content
-        document.getElementById('job-details-loading').style.display = 'none';
-        document.getElementById('job-details-body').style.display = 'block';
-    }, 500);
-}
-
-// Back to dashboard functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const backButton = document.getElementById('back-to-dashboard');
-    if (backButton) {
-        backButton.addEventListener('click', function() {
-            document.getElementById('job-details-content').style.display = 'none';
-            document.getElementById('dashboard-content').style.display = 'block';
-            currentApplicationId = null;
-        });
-    }
-    
-    // Add click handlers to application bars
-    document.querySelectorAll('.application-bar').forEach(bar => {
-        bar.addEventListener('click', function() {
-            const applicationId = this.getAttribute('data-application-id');
-            showApplicationDetails(applicationId);
-        });
+    listViewBtn.addEventListener("click", () => {
+        kanbanBoard.style.display = "none";
+        listView.style.display = "block";
     });
+
+    kanbanViewBtn.addEventListener("click", () => {
+        listView.style.display = "none";
+        kanbanBoard.style.display = "grid";
+        renderKanban();
+    });
+
+    function renderKanban() {
+        const stages = ["Applied", "Under Review", "Interview", "Offer", "Closed"];
+        const applications = Array.from(document.querySelectorAll(".application-bar"));
+        const grouped = {};
+
+        applications.forEach(app => {
+            const status = app.dataset.status || "Applied";
+            grouped[status] = grouped[status] || [];
+            grouped[status].push({
+                company: app.querySelector(".application-company")?.innerText || "",
+                title: app.querySelector(".application-position")?.innerText || "",
+                location: app.querySelector(".application-location")?.innerText || ""
+            });
+        });
+
+        kanbanBoard.innerHTML = stages.map(stage => `
+            <div class="kanban-column" data-stage="${stage}">
+                <h4>${stage}</h4>
+                <div class="kanban-cards">
+                    ${(grouped[stage] || []).map(app => `
+                        <div class="kanban-card">
+                            <strong>${app.title}</strong><br>
+                            <small>${app.company}</small><br>
+                            <span class="location">${app.location}</span>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+        `).join("");
+    }
 });
 </script>
 
+<!-- ===== CSS ===== -->
 <style>
-.applications-dashboard {
-    padding: 2rem;
-    text-align: center;
-}
-
-.applications-dashboard h3 {
+.view-toggle {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
     margin-bottom: 1rem;
-    color: #333;
 }
 
-.no-applications-message {
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.kanban-column {
     background: #f8f9fa;
-    padding: 2rem;
     border-radius: 8px;
-    margin: 2rem 0;
+    padding: 1rem;
+    min-height: 400px;
 }
 
-.no-applications-message h4 {
+.kanban-column h4 {
+    text-align: center;
     margin-bottom: 1rem;
     color: #333;
 }
 
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 1rem;
-    cursor: pointer;
-    display: inline-block;
-    text-align: center;
+.kanban-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.btn.primary {
-    background: #007bff;
-    color: white;
+.kanban-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.btn:hover {
-    opacity: 0.9;
+.kanban-card strong {
+    color: #007bff;
 }
+@media (max-width: 768px) {
+    .kanban-board { grid-template-columns: 1fr; }
+}
+
+/* ===== Status Color System ===== */
+
+/* Core theme colors */
+:root {
+  --color-applied: #adb5bd;        /* gray */
+  --color-under-review: #0dcaf0;   /* cyan */
+  --color-interview: #0d6efd;      /* blue */
+  --color-offer: #198754;          /* green */
+  --color-closed: #dc3545;         /* red */
+}
+
+/* Kanban column header color accent */
+.kanban-column[data-stage="Applied"] h4 { color: var(--color-applied); }
+.kanban-column[data-stage="Under Review"] h4 { color: var(--color-under-review); }
+.kanban-column[data-stage="Interview"] h4 { color: var(--color-interview); }
+.kanban-column[data-stage="Offer"] h4 { color: var(--color-offer); }
+.kanban-column[data-stage="Closed"] h4 { color: var(--color-closed); }
+
+/* Kanban card left border for quick visual cue */
+.kanban-card {
+  border-left: 5px solid transparent;
+}
+.kanban-column[data-stage="Applied"] .kanban-card { border-left-color: var(--color-applied); }
+.kanban-column[data-stage="Under Review"] .kanban-card { border-left-color: var(--color-under-review); }
+.kanban-column[data-stage="Interview"] .kanban-card { border-left-color: var(--color-interview); }
+.kanban-column[data-stage="Offer"] .kanban-card { border-left-color: var(--color-offer); }
+.kanban-column[data-stage="Closed"] .kanban-card { border-left-color: var(--color-closed); }
+
+/* Optional status badges for list view */
+.application-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.status-applied { background: var(--color-applied); }
+.status-under_review,
+.status-under-review { background: var(--color-under-review); }
+.status-interview { background: var(--color-interview); }
+.status-offer { background: var(--color-offer); }
+.status-closed { background: var(--color-closed); }
+
 </style>
+
+
 {% endblock content %}
+
+
