@@ -7,8 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Location, Applicant, Recruiter, ApplicantPrivacySettings, Project
 from .decorators import applicant_required, recruiter_required
-import requests
-import json
 
 # Create your views here.
 def index(request):

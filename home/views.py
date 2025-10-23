@@ -4,8 +4,7 @@ from django.core.paginator import Paginator
 from accounts.decorators import applicant_required, recruiter_required
 from accounts.models import Applicant, Project
 from jobs.models import JobPosting, Application
-from django.db.models import Q, Value, CharField
-from django.db.models.functions import Concat
+from django.db.models import Q
 
 # Create your views here.
 def index(request):
@@ -192,16 +191,46 @@ def search_candidates(request):
     if skills_filter:
         skills_list = [skill.strip() for skill in skills_filter.split(',')]
         for skill in skills_list:
-            query &= Q(skills__icontains=skill)
+            # Only include applicants who have skills visible and contain the search term
+            query &= Q(
+                skills__icontains=skill,
+                privacy_settings__show_skills=True  # Only show applicants with visible skills
+            ) & ~(
+                Q(skills__isnull=True) | 
+                Q(skills__exact='') | 
+                Q(skills__exact='None') |
+                Q(skills__icontains='No skills listed') |
+                Q(skills__icontains='No skills specified')
+            )
     
     if location_filter:
-        query &= Q(location__icontains=location_filter)
+        # Only include applicants who have location visible and contain the search term
+        query &= Q(
+            location__icontains=location_filter,
+            privacy_settings__show_location=True  # Only show applicants with visible location
+        ) & ~(
+            Q(location__isnull=True) | 
+            Q(location__exact='') | 
+            Q(location__exact='None') |
+            Q(location__icontains='Location not specified') |
+            Q(location__icontains='No location specified')
+        )
     
     if availability_filter:
         query &= Q(availability=availability_filter)
     
     if education_filter:
-        query &= Q(education__icontains=education_filter)
+        # Only include applicants who have education visible and contain the search term
+        query &= Q(
+            education__icontains=education_filter,
+            privacy_settings__show_education=True  # Only show applicants with visible education
+        ) & ~(
+            Q(education__isnull=True) | 
+            Q(education__exact='') | 
+            Q(education__exact='None') |
+            Q(education__icontains='No education information provided') |
+            Q(education__icontains='No education specified')
+        )
     
     # Apply filters
     applicants = applicants.filter(query)

@@ -147,32 +147,37 @@
                     <div class="dashboard-section">
                         <div class="section-name">Your recent applications</div>
                         <div class="recent-applications-list">
-                            <div class="application-tile">
-                                <div class="application-header">
-                                    <span class="company-name">Google</span>
-                                    <span class="status-label">Applied</span>
+                            {% if template_data.recent_applications %}
+                                {% for application in template_data.recent_applications %}
+                                <div class="application-tile">
+                                    <div class="application-header">
+                                        <span class="company-name">{{ application.listing.recruiter.company_name }}</span>
+                                        <span class="status-label status-{{ application.status|lower|cut:' ' }}" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6c757d{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#6c757d{% else %}#6c757d{% endif %}; color: {% if application.status == 'Interview' %}#212529{% else %}white{% endif %}; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">{{ application.status }}</span>
+                                    </div>
+                                    <div class="position">{{ application.listing.title }}</div>
                                 </div>
-                                <div class="position">Software Engineering</div>
-                            </div>
-                            
-                            <div class="application-tile">
-                                <div class="application-header">
-                                    <span class="company-name">Microsoft</span>
-                                    <span class="status-label">Applied</span>
+                                {% endfor %}
+                            {% else %}
+                                <div class="application-tile">
+                                    <div class="application-header">
+                                        <span class="company-name">No recent applications</span>
+                                        <span class="status-label">-</span>
+                                    </div>
+                                    <div class="position">Start applying to jobs!</div>
                                 </div>
-                                <div class="position">Frontend Developer</div>
-                            </div>
-                            
-                            <div class="application-tile">
-                                <div class="application-header">
-                                    <span class="company-name">Apple</span>
-                                    <span class="status-label">Applied</span>
-                                </div>
-                                <div class="position">iOS Engineer</div>
-                            </div>
+                            {% endif %}
                         </div>
                         <a href="{% url 'home:my_applications' %}" class="view-all-button">View All</a>
                     </div>
+                    
+                    <style>
+                    /* Status colors for recent applications - matching the color scheme */
+                    .status-label.status-applied { background-color: #007bff; color: white; }
+                    .status-label.status-underreview { background-color: #6c757d; color: white; }
+                    .status-label.status-interview { background-color: #ffc107; color: #212529; }
+                    .status-label.status-offer { background-color: #28a745; color: white; }
+                    .status-label.status-closed { background-color: #6c757d; color: white; }
+                    </style>
                     
                     <div class="dashboard-section">
                         <div class="section-name">Recommended Based on your skills</div>

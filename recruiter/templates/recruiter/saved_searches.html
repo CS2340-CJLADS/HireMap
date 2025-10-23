@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ template_data.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>{{ template_data.title }}</h1>
+        <p>Manage your saved candidate searches and get notified about new matches.</p>
+    </div>
+
+    <div class="saved-searches-section">
+        <div class="section-header">
+            <h2>Your Saved Searches</h2>
+            <a href="{% url 'recruiter:search_candidates' %}" class="btn btn-primary">New Search</a>
+        </div>
+
+        {% if template_data.saved_searches %}
+            <div class="saved-searches-grid">
+                {% for search in template_data.saved_searches %}
+                <div class="saved-search-card">
+                    <div class="search-header">
+                        <h3>{{ search.name }}</h3>
+                        <div class="search-actions">
+                            <a href="{% url 'recruiter:load_saved_search' search.id %}" class="btn btn-sm btn-outline">Load</a>
+                            <a href="{% url 'recruiter:delete_saved_search' search.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                        </div>
+                    </div>
+                    
+                    {% if search.description %}
+                    <p class="search-description">{{ search.description }}</p>
+                    {% endif %}
+                    
+                    <div class="search-criteria">
+                        {% if search.skills_search %}
+                        <span class="criteria-tag">Skills: {{ search.skills_search }}</span>
+                        {% endif %}
+                        {% if search.location_search %}
+                        <span class="criteria-tag">Location: {{ search.location_search }}</span>
+                        {% endif %}
+                        {% if search.experience_level %}
+                        <span class="criteria-tag">Experience: {{ search.experience_level }}</span>
+                        {% endif %}
+                        {% if search.remote_preference %}
+                        <span class="criteria-tag">Remote</span>
+                        {% endif %}
+                        {% if search.visa_sponsorship %}
+                        <span class="criteria-tag">Visa Sponsorship</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="search-meta">
+                        <small>Created: {{ search.created_at|date:"M d, Y" }}</small>
+                        <span class="status-badge {% if search.is_active %}active{% else %}inactive{% endif %}">
+                            {% if search.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No saved searches yet</h3>
+                <p>Start by creating a candidate search and save it for future use.</p>
+                <a href="{% url 'recruiter:search_candidates' %}" class="btn btn-primary">Create First Search</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.saved-searches-section {
+    margin-top: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.saved-searches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.saved-search-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.search-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.search-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-description {
+    color: #666;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+.search-criteria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.criteria-tag {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.search-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.empty-state h3 {
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #007bff;
+    border: 1px solid #007bff;
+}
+
+.btn-outline:hover {
+    background: #007bff;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

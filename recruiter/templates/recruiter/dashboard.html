@@ -12,7 +12,7 @@
             <div class="panel-header">
                 <h3>{{ template_data.recruiter.company_name|default:"Your Company" }}'s Openings ({{ template_data.total_jobs }})</h3>
                  <a href="{% url 'recruiter:job_new' %}" class="new-job-btn">+ New Job</a>
-                </div>
+            </div>
             <div class="job-list" id="job-list">
                 <div class="openings-pills-container">
                     {% for job in template_data.jobs %}
@@ -20,12 +20,12 @@
                         <div class="pill-role">{{ job.title }}</div>
                         <div class="pill-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
                         <div class="pill-postdate">Posted: {{ job.created_at|date:"m/d/Y" }}</div>
-                </div>
+            </div>
                     {% empty %}
                     <div class="no-openings-message">
                         <p>No job openings posted yet.</p>
                         <p>Create your first job posting to get started.</p>
-                    </div>
+        </div>
                     {% endfor %}
                     </div>
                     
@@ -57,21 +57,117 @@
                                 <span>Go to:</span>
                                 <input type="number" id="page-jump-input" min="1" max="{{ template_data.paginator.num_pages }}" placeholder="Page" class="page-jump-input">
                                 <button onclick="jumpToPage()" class="pagination-btn jump-btn">Go</button>
-                            </div>
-                        </div>
+                </div>
+                </div>
                     </div>
                     {% endif %}
-                        </div>
                     </div>
+                        </div>
 
-        <!-- Right Panel: Empty -->
+        <!-- Right Panel: Notifications -->
         <div class="right-panel" id="right-panel">
+            <!-- Notifications Section -->
+            <div id="notifications-content" class="panel-content">
+                <div class="notifications-container">
+                    <div class="notifications-header">
+                        <h3>Notifications {% if template_data.unread_count > 0 %}<span class="unread-badge">{{ template_data.unread_count }}</span>{% endif %}</h3>
+                        <div class="header-actions">
+                            <button id="mark-all-read-btn" class="mark-all-read-btn" onclick="markAllNotificationsRead()">Mark All Read</button>
+                            <button id="view-saved-searches-btn" class="view-saved-searches-btn" onclick="showSavedSearches()">Saved Searches</button>
+                    </div>
+                    </div>
+                    
+                    <div class="notifications-list scrollable-content">
+                        {% if template_data.notifications %}
+                            {% for notification in template_data.notifications %}
+                            <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-notification-id="{{ notification.id }}">
+                                <div class="notification-header">
+                                    <h4>{{ notification.title }}</h4>
+                                    <div class="notification-header-right">
+                                        <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
+                                        <button class="dismiss-notification-btn" onclick="dismissNotification({{ notification.id }})" title="Dismiss notification">×</button>
+                                </div>
+                            </div>
+                                <div class="notification-body">
+                                    <p>{{ notification.message }}</p>
+                                    {% if notification.candidate and notification.candidate.user_id %}
+                                    <div class="notification-actions">
+                                        <a href="{% url 'recruiter:search_candidates' %}?candidate_id={{ notification.candidate.user_id }}" class="view-candidate-btn">View Candidate</a>
+                                        {% if not notification.is_read %}
+                                        <button class="mark-read-btn" onclick="markNotificationRead({{ notification.id }})">Mark Read</button>
+                                        {% endif %}
+                        </div>
+                                    {% endif %}
+                    </div>
+                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-notifications">
+                                <p>No notifications yet.</p>
+                                <p>You'll get notified about new candidate matches and saved candidate activities.</p>
+            </div>
+                        {% endif %}
+                    </div>
+    </div>
+
+            <!-- Saved Searches Section -->
+            <div id="saved-searches-content" class="panel-content" style="display: none;">
+                <div class="saved-searches-container">
+                    <div class="saved-searches-header">
+                        <h3>Saved Searches</h3>
+                        <button id="back-to-notifications" class="back-btn" onclick="showNotifications()">← Back to Notifications</button>
+            </div>
+                    
+                    <div class="saved-searches-list">
+                        {% if template_data.saved_searches %}
+                            {% for search in template_data.saved_searches %}
+                            <div class="saved-search-item" data-search-id="{{ search.id }}" 
+                                 data-skills="{{ search.skills_search }}" 
+                                 data-location="{{ search.location_search }}" 
+                                 data-availability="{{ search.availability }}" 
+                                 data-experience="{{ search.experience_level }}" 
+                                 data-education="{{ search.education_level }}">
+                                <div class="search-header">
+                                    <h4>{{ search.name }}</h4>
+                                    <span class="search-date">{{ search.created_at|timesince }} ago</span>
+                        </div>
+                                <div class="search-details">
+                                    {% if search.skills_search %}
+                                    <span class="search-tag">Skills: {{ search.skills_search }}</span>
+                                    {% endif %}
+                                    {% if search.location_search %}
+                                    <span class="search-tag">Location: {{ search.location_search }}</span>
+                                    {% endif %}
+                                    {% if search.availability %}
+                                    <span class="search-tag">Availability: {{ search.availability }}</span>
+                                    {% endif %}
+                                    {% if search.description %}
+                                    <p class="search-description">{{ search.description }}</p>
+                                    {% endif %}
+                    </div>
+                                <div class="search-actions">
+                                    <button class="load-search-btn" onclick="loadSavedSearch({{ search.id }})">Load Search</button>
+                                    <button class="delete-search-btn" onclick="deleteSavedSearch({{ search.id }})">Delete</button>
+                                </div>
+                    </div>
+                    {% endfor %}
+                        {% else %}
+                            <div class="no-saved-searches">
+                                <p>No saved searches yet.</p>
+                                <p>Save your search filters to quickly access them later.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
              <!-- Empty dashboard -->
-            <div id="dashboard-content" class="panel-content">
+            <div id="dashboard-content" class="panel-content" style="display: none;">
                 <div class="dashboard-container">
                      <!-- Dashboard content cleared -->
+                        </div>
                     </div>
-                                </div>
                     
              <!-- Applications (hidden by default) -->
              <div id="applications-content" class="panel-content" style="display: none;">
@@ -79,30 +175,30 @@
                      <div class="applications-header">
                          <h2 id="applications-title">Applications</h2>
                          <button id="kanban-view-btn" class="kanban-view-btn" onclick="showKanbanView()">Kanban View</button>
-                            </div>
+                                </div>
                      <div id="applications-loading" class="loading-state" style="display: none;">
                         <div class="spinner"></div>
                          <p>Loading applications...</p>
-                        </div>
+                                </div>
                      <div id="applications-body">
                          <div class="applications-grid" id="applications-grid">
                              <!-- Application cards will be populated here -->
-                    </div>
+                                </div>
                          <div class="applications-footer">
                              <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
                              <button class="view-posting-btn" id="view-posting-btn" onclick="showJobPosting()">View the Posting</button>
-                </div>
-            </div>
+                            </div>
+                            </div>
                         </div>
-    </div>
-
+            </div>
+            
              <!-- Kanban View (hidden by default) -->
              <div id="kanban-content" class="panel-content" style="display: none;">
                  <div class="kanban-content">
                      <div class="kanban-header">
                          <button id="back-to-applications-from-kanban" class="back-btn">← Back to Applications</button>
                          <h2 id="kanban-title">Applications - Kanban View</h2>
-            </div>
+                        </div>
                      <div id="kanban-body">
                          <div class="kanban-board">
                              <div class="kanban-column">
@@ -113,17 +209,17 @@
                                  <div class="kanban-column-body" id="applied-column">
                                      <div class="empty-column">No applications yet</div>
                     </div>
-                                </div>
-                                
+                    </div>
+                    
                              <div class="kanban-column">
                                  <div class="kanban-column-header">
                                      <h3>Screening</h3>
                                      <span class="count">0</span>
-                        </div>
+                                </div>
                                  <div class="kanban-column-body" id="screening-column">
                                      <div class="empty-column">No applications yet</div>
-                    </div>
-                    </div>
+                </div>
+            </div>
             
                              <div class="kanban-column">
                                  <div class="kanban-column-header">
@@ -133,7 +229,7 @@
                                  <div class="kanban-column-body" id="interview-column">
                                      <div class="empty-column">No applications yet</div>
             </div>
-        </div>
+                </div>
 
                              <div class="kanban-column">
                                  <div class="kanban-column-header">
@@ -142,47 +238,47 @@
                                  </div>
                                  <div class="kanban-column-body" id="offer-column">
                                      <div class="empty-column">No applications yet</div>
-                        </div>
-                    </div>
-                    
+                </div>
+            </div>
+            
                              <div class="kanban-column">
                                  <div class="kanban-column-header">
                                      <h3>Rejected</h3>
                                      <span class="count">0</span>
-                                </div>
+                    </div>
                                  <div class="kanban-column-body" id="rejected-column">
                                      <div class="empty-column">No applications yet</div>
-                                </div>
-                                </div>
+                    </div>
+                    </div>
                             </div>
                             </div>
-                        </div>
-            </div>
-            
+                </div>
+                            </div>
+                            
              <!-- Job Posting View (hidden by default) -->
             <div id="job-posting-content" class="panel-content" style="display: none;">
                 <div class="job-posting-content">
                     <div class="job-posting-header">
                         <button id="back-to-applications" class="back-btn">← Back to Applications</button>
                         <h2 id="job-posting-title">Job Posting</h2>
-                        </div>
+                                    </div>
                     <div id="job-posting-body">
                         <div class="job-posting-info">
                             <div class="job-header">
                                 <div class="job-company" id="job-company">Company</div>
                                 <div class="job-position" id="job-position">Position</div>
-                    </div>
+                                </div>
                                 
                             <div class="job-details">
                                 <div class="job-detail-section">
                                     <div class="detail-title">Location</div>
                                     <div class="detail-content" id="job-location">Location</div>
-                    </div>
+                                </div>
                                 
                                 <div class="job-detail-section">
                                     <div class="detail-title">Salary</div>
                                     <div class="detail-content" id="job-salary">Salary</div>
-                </div>
+                                </div>
                                 
                                 <div class="job-detail-section">
                                     <div class="detail-title">Skills Required</div>
@@ -198,7 +294,7 @@
                                 <div class="job-actions">
                                 <button class="edit-job-btn" onclick="toggleEditMode()">Edit</button>
                                 <button class="delete-job-btn" onclick="deleteJob()">Delete</button>
-                </div>
+                                </div>
                             
                             <!-- Edit Form (hidden by default) -->
                             <div id="edit-form" class="edit-form" style="display: none;">
@@ -206,23 +302,23 @@
                                     <div class="form-group">
                                         <label>Title</label>
                                         <input type="text" id="edit-title" name="title" />
-            </div>
+                            </div>
                                     <div class="form-group">
                                         <label>Location</label>
                                         <input type="text" id="edit-location" name="location" />
-                </div>
+                        </div>
                                     <div class="form-group">
                                         <label>Salary Min</label>
                                         <input type="number" id="edit-salary-min" name="salary_min" />
-            </div>
+                    </div>
                                     <div class="form-group">
                                         <label>Salary Max</label>
                                         <input type="number" id="edit-salary-max" name="salary_max" />
-                    </div>
+                </div>
                                     <div class="form-group">
                                         <label>Skills Required</label>
                                         <textarea id="edit-skills" name="skills_required"></textarea>
-                    </div>
+            </div>
                                     <div class="form-group">
                                         <label>Description</label>
                                         <textarea id="edit-description" name="description"></textarea>
@@ -334,10 +430,34 @@ function showJobDetails(jobId) {
     document.getElementById('applicant-profile-content').style.display = 'none';
     document.getElementById('kanban-content').style.display = 'none';
     
+    // Hide notifications and saved searches with both style and classes
+    const notificationsContent = document.getElementById('notifications-content');
+    const savedSearchesContent = document.getElementById('saved-searches-content');
+    
+    if (notificationsContent) {
+        notificationsContent.style.display = 'none';
+        notificationsContent.classList.remove('visible');
+        notificationsContent.classList.add('hidden');
+    }
+    
+    if (savedSearchesContent) {
+        savedSearchesContent.style.display = 'none';
+        savedSearchesContent.classList.remove('visible');
+        savedSearchesContent.classList.add('hidden');
+    }
+    
     // Show loading state
     document.getElementById('applications-loading').style.display = 'block';
     document.getElementById('applications-body').style.display = 'none';
     document.getElementById('applications-content').style.display = 'block';
+    
+    // Ensure applications content has proper z-index to appear above everything
+    const applicationsContent = document.getElementById('applications-content');
+    if (applicationsContent) {
+        applicationsContent.style.position = 'relative';
+        applicationsContent.style.zIndex = '20';
+        applicationsContent.style.background = 'white';
+    }
     
     // Update header with job title and button link
         if (jobData[jobId]) {
@@ -378,15 +498,12 @@ function loadApplicationsForJob(jobId) {
         credentials: 'same-origin'
     })
         .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
         .then(applications => {
-            console.log('Applications received:', applications);
             const applicationsGrid = document.getElementById('applications-grid');
             applicationsGrid.innerHTML = '';
             
@@ -518,9 +635,9 @@ function saveJob() {
     });
     
     document.body.appendChild(form);
-    form.submit();
-}
-
+        form.submit();
+    }
+    
 function deleteJob() {
     if (!currentJobId) return;
     
@@ -657,6 +774,14 @@ function loadApplicationsIntoKanban() {
         .then(response => response.json())
         .then(applications => {
             // Clear all columns first
+            const statusMapping = {
+                'Applied': 'applied',
+                'Under Review': 'screening', 
+                'Interview': 'interview',
+                'Offer': 'offer',
+                'Closed': 'rejected'
+            };
+            
             const columns = ['applied', 'screening', 'interview', 'offer', 'rejected'];
             columns.forEach(column => {
                 const columnBody = document.getElementById(`${column}-column`);
@@ -665,38 +790,179 @@ function loadApplicationsIntoKanban() {
                 countSpan.textContent = '0';
             });
             
-            // For now, put all applications in "Applied" column as placeholder
-            const appliedColumn = document.getElementById('applied-column');
-            const appliedCount = document.querySelector('#applied-column').parentElement.querySelector('.count');
-            
             if (applications.length === 0) {
-                appliedColumn.innerHTML = '<div class="empty-column">No applications yet</div>';
-                appliedCount.textContent = '0';
+                document.getElementById('applied-column').innerHTML = '';
                 return;
             }
             
-            appliedColumn.innerHTML = '';
+            // Group applications by status
+            const groupedApplications = {};
             applications.forEach(app => {
-                const applicationCard = document.createElement('div');
-                applicationCard.className = 'kanban-application-card';
-                applicationCard.innerHTML = `
-                    <div class="application-title">${app.name}</div>
-                    <div class="application-date">Applied: ${app.application_date}</div>
-                    <div class="application-message">${app.message || 'No message provided'}</div>
-                    <div class="application-actions">
-                        <button class="btn btn-small btn-primary" onclick="showApplicantProfile(${JSON.stringify(app).replace(/"/g, '&quot;')})">View Profile</button>
-                    </div>
-                `;
-                appliedColumn.appendChild(applicationCard);
+                const statusKey = statusMapping[app.status] || 'applied';
+                if (!groupedApplications[statusKey]) {
+                    groupedApplications[statusKey] = [];
+                }
+                groupedApplications[statusKey].push(app);
             });
             
-            appliedCount.textContent = applications.length;
+            // Populate each column
+            Object.keys(statusMapping).forEach(status => {
+                const columnKey = statusMapping[status];
+                const columnBody = document.getElementById(`${columnKey}-column`);
+                const countSpan = document.querySelector(`#${columnKey}-column`).parentElement.querySelector('.count');
+                
+                const apps = groupedApplications[columnKey] || [];
+                countSpan.textContent = apps.length;
+                
+                if (apps.length === 0) {
+                    columnBody.innerHTML = '';
+                } else {
+                    columnBody.innerHTML = '';
+                    apps.forEach(app => {
+                        const applicationCard = createKanbanCard(app);
+                        columnBody.appendChild(applicationCard);
+                    });
+                }
+            });
         })
         .catch(error => {
             console.error('Error loading applications for kanban:', error);
             const appliedColumn = document.getElementById('applied-column');
             appliedColumn.innerHTML = '<div class="empty-column">Error loading applications</div>';
         });
+}
+
+function createKanbanCard(app) {
+    const applicationCard = document.createElement('div');
+    applicationCard.className = 'kanban-application-card';
+    applicationCard.draggable = true;
+    applicationCard.dataset.applicationId = app.id;
+    applicationCard.dataset.currentStatus = app.status;
+    
+    applicationCard.innerHTML = `
+        <div class="application-title">${app.name}</div>
+        <div class="application-date">Applied: ${app.application_date}</div>
+        <div class="application-message">${app.message || 'No message provided'}</div>
+        <div class="application-actions">
+            <button class="btn btn-small btn-primary" onclick="showApplicantProfile(${JSON.stringify(app).replace(/"/g, '&quot;')})">View Profile</button>
+        </div>
+    `;
+    
+    // Add drag event listeners
+    applicationCard.addEventListener('dragstart', handleDragStart);
+    applicationCard.addEventListener('dragend', handleDragEnd);
+    
+    return applicationCard;
+}
+
+function handleDragStart(e) {
+    e.dataTransfer.setData('text/plain', e.target.dataset.applicationId);
+    e.target.classList.add('dragging');
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+}
+
+// Add drop event listeners to columns
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up drag and drop for kanban columns
+    const columns = ['applied', 'screening', 'interview', 'offer', 'rejected'];
+    const statusMapping = {
+        'applied': 'Applied',
+        'screening': 'Under Review',
+        'interview': 'Interview', 
+        'offer': 'Offer',
+        'rejected': 'Closed'
+    };
+    
+    columns.forEach(column => {
+        const columnBody = document.getElementById(`${column}-column`);
+        if (columnBody) {
+            columnBody.addEventListener('dragover', handleDragOver);
+            columnBody.addEventListener('dragleave', handleDragLeave);
+            columnBody.addEventListener('drop', (e) => handleDrop(e, statusMapping[column]));
+        }
+    });
+});
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e, newStatus) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    
+    const applicationId = e.dataTransfer.getData('text/plain');
+    const applicationCard = document.querySelector(`[data-application-id="${applicationId}"]`);
+    
+    if (!applicationCard) return;
+    
+    // Update application status via API
+    updateApplicationStatus(applicationId, newStatus)
+        .then(() => {
+            // Move card to new column - map status to column ID
+            const statusToColumn = {
+                'Applied': 'applied-column',
+                'Under Review': 'screening-column',
+                'Interview': 'interview-column',
+                'Offer': 'offer-column',
+                'Closed': 'rejected-column'
+            };
+            const targetColumn = document.getElementById(statusToColumn[newStatus]);
+            if (targetColumn) {
+                targetColumn.appendChild(applicationCard);
+                applicationCard.dataset.currentStatus = newStatus;
+                
+                // Update column counts
+                updateColumnCounts();
+            }
+        })
+        .catch(error => {
+            console.error('Error updating application status:', error);
+            showNotification(`Failed to update application status: ${error.message}`, 'error');
+        });
+}
+
+function updateApplicationStatus(applicationId, newStatus) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    
+    return fetch(`/api/applications/${applicationId}/status/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(errorData => {
+                console.error('API error:', errorData);
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            });
+        }
+        return response.json();
+    });
+}
+
+function updateColumnCounts() {
+    const columns = ['applied', 'screening', 'interview', 'offer', 'rejected'];
+    columns.forEach(column => {
+        const columnBody = document.getElementById(`${column}-column`);
+        const countSpan = columnBody.parentElement.querySelector('.count');
+        const cardCount = columnBody.querySelectorAll('.kanban-application-card').length;
+        countSpan.textContent = cardCount;
+    });
 }
 
 // Back to dashboard functionality
@@ -706,6 +972,29 @@ document.addEventListener('DOMContentLoaded', function() {
         backButton.addEventListener('click', function() {
             document.getElementById('applications-content').style.display = 'none';
             document.getElementById('dashboard-content').style.display = 'block';
+            
+            // Show notifications content by default when going back to dashboard
+            const notificationsContent = document.getElementById('notifications-content');
+            const savedSearchesContent = document.getElementById('saved-searches-content');
+            const rightPanel = document.getElementById('right-panel');
+            
+            // Ensure right panel is visible
+            if (rightPanel) {
+                rightPanel.style.display = 'block';
+                rightPanel.style.visibility = 'visible';
+            }
+            
+            if (notificationsContent) {
+                notificationsContent.style.display = 'block';
+                notificationsContent.classList.remove('hidden');
+                notificationsContent.classList.add('visible');
+            }
+            
+            if (savedSearchesContent) {
+                savedSearchesContent.style.display = 'none';
+                savedSearchesContent.classList.remove('visible');
+                savedSearchesContent.classList.add('hidden');
+            }
             
             // Clear active state from all pills
             document.querySelectorAll('.opening-pill').forEach(pill => {
@@ -1171,12 +1460,17 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     flex-direction: column;
     gap: 0rem;
+    position: relative;
+    z-index: 10;
+    background: white;
 }
 
 .job-detail-section {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    position: relative;
+    z-index: 10;
 }
 
 .detail-title {
@@ -1448,15 +1742,18 @@ document.addEventListener('DOMContentLoaded', function() {
 .kanban-board {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
+    gap: 0.5rem;
     margin-top: 1rem;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .kanban-column {
     background: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e9ecef;
-    min-height: 400px;
+    min-height: 250px;
+    min-width: 200px;
 }
 
 .kanban-column-header {
@@ -1486,8 +1783,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .kanban-column-body {
-    padding: 1rem;
-    min-height: 300px;
+    padding: 0.5rem;
+    min-height: 200px;
+    transition: background-color 0.2s ease;
 }
 
 .kanban-application-card {
@@ -1497,6 +1795,24 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 1rem;
     margin-bottom: 1rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    cursor: move;
+    transition: all 0.2s ease;
+}
+
+.kanban-application-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.kanban-application-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.kanban-column-body.drag-over {
+    background-color: rgba(19, 227, 178, 0.1);
+    border: 2px dashed #13E3B2;
 }
 
 .kanban-application-card .application-title {
@@ -1531,6 +1847,344 @@ document.addEventListener('DOMContentLoaded', function() {
     font-style: italic;
 }
 
+/* ===== NOTIFICATIONS STYLES ===== */
+.notifications-container {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.notifications-header h3 {
+    margin: 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.unread-badge {
+    background: #dc3545;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.mark-all-read-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.mark-all-read-btn:hover {
+    background: #5a6268;
+}
+
+.notifications-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.notification-item.unread {
+    background: #e3f2fd;
+    border-color: #2196f3;
+    border-left: 4px solid #2196f3;
+}
+
+.notification-item:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.notification-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.notification-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.notification-time {
+    color: #666;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.notification-body p {
+    margin: 0 0 1rem 0;
+    color: #555;
+    line-height: 1.4;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.view-candidate-btn {
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+}
+
+.view-candidate-btn:hover {
+    background: #0056b3;
+    color: white;
+}
+
+.mark-read-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.mark-read-btn:hover {
+    background: #218838;
+}
+
+.no-notifications {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.no-notifications p {
+    margin: 0.5rem 0;
+}
+
+.dismiss-notification-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    line-height: 1;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dismiss-notification-btn:hover {
+    background-color: #f0f0f0;
+    color: #666;
+    transform: scale(1.1);
+}
+
+/* ===== SAVED SEARCHES STYLES ===== */
+.saved-searches-container {
+    padding: 1rem;
+}
+
+.saved-searches-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.saved-searches-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-saved-searches-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.view-saved-searches-btn:hover {
+    background: #0056b3;
+}
+
+.saved-searches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.saved-search-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.saved-search-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.search-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.search-date {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.search-details {
+    margin-bottom: 1rem;
+}
+
+.search-tag {
+    display: inline-block;
+    background: #f8f9fa;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.search-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0 0;
+    font-style: italic;
+}
+
+.search-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.load-search-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s;
+}
+
+.load-search-btn:hover {
+    background: #218838;
+}
+
+.delete-search-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s;
+}
+
+.delete-search-btn:hover {
+    background: #c82333;
+}
+
+.no-saved-searches {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.no-saved-searches p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+/* Ensure proper hiding/showing of sections */
+.panel-content.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.panel-content.visible {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Ensure applications content always appears on top */
+#applications-content {
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
 @media (max-width: 1200px) {
     .kanban-board {
         grid-template-columns: repeat(3, 1fr);
@@ -1558,8 +2212,416 @@ function jumpToPage() {
         // Navigate to the new page
         window.location.href = window.location.pathname + '?' + urlParams.toString();
     } else {
-        alert('Please enter a valid page number between 1 and ' + maxPages);
+        showNotification('Please enter a valid page number between 1 and ' + maxPages, 'warning');
     }
+}
+
+// Notification functions
+function markNotificationRead(notificationId) {
+    fetch(`/recruiter/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (notificationItem) {
+                notificationItem.classList.remove('unread');
+                const markReadBtn = notificationItem.querySelector('.mark-read-btn');
+                if (markReadBtn) {
+                    markReadBtn.remove();
+                }
+            }
+            // Update unread count
+            updateUnreadCount();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+
+function markAllNotificationsRead() {
+    fetch('/recruiter/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update all notifications to read
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                const markReadBtn = item.querySelector('.mark-read-btn');
+                if (markReadBtn) {
+                    markReadBtn.remove();
+                }
+            });
+            // Update unread count
+            updateUnreadCount();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+    });
+}
+
+function updateUnreadCount() {
+    const unreadCount = document.querySelectorAll('.notification-item.unread').length;
+    const unreadBadge = document.querySelector('.unread-badge');
+    const notificationsHeader = document.querySelector('.notifications-header h3');
+    
+    if (unreadCount > 0) {
+        if (!unreadBadge) {
+            const badge = document.createElement('span');
+            badge.className = 'unread-badge';
+            badge.textContent = unreadCount;
+            notificationsHeader.appendChild(badge);
+        } else {
+            unreadBadge.textContent = unreadCount;
+        }
+    } else {
+        if (unreadBadge) {
+            unreadBadge.remove();
+        }
+    }
+}
+
+function dismissNotification(notificationId) {
+    if (confirm('Are you sure you want to dismiss this notification?')) {
+        fetch(`/recruiter/notifications/${notificationId}/dismiss/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Remove the notification from the UI with animation
+                const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                if (notificationItem) {
+                    notificationItem.style.opacity = '0';
+                    notificationItem.style.transform = 'translateX(100%)';
+                    notificationItem.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        notificationItem.remove();
+                        // Update unread count after removal
+                        updateUnreadCount();
+                    }, 300);
+                }
+            } else {
+                throw new Error('Dismiss failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error dismissing notification:', error);
+            showNotification('Error dismissing notification. Please try again.', 'error');
+        });
+    }
+}
+
+// Saved Searches Functions
+function showSavedSearches() {
+    const notificationsContent = document.getElementById('notifications-content');
+    const savedSearchesContent = document.getElementById('saved-searches-content');
+    const applicationsContent = document.getElementById('applications-content');
+    
+    
+    // Hide applications content if showing saved searches
+    if (applicationsContent) {
+        applicationsContent.style.display = 'none';
+    }
+    
+    if (notificationsContent) {
+        notificationsContent.classList.remove('visible');
+        notificationsContent.classList.add('hidden');
+    }
+    
+    // Make sure the right panel is visible
+    const rightPanel = document.getElementById('right-panel');
+    if (rightPanel) {
+        rightPanel.style.display = 'block';
+        rightPanel.style.visibility = 'visible';
+    }
+    
+    if (savedSearchesContent) {
+        // Remove all inline styles and set new ones
+        savedSearchesContent.removeAttribute('style');
+        savedSearchesContent.classList.remove('hidden');
+        savedSearchesContent.classList.add('visible');
+        savedSearchesContent.style.opacity = '1';
+        savedSearchesContent.style.position = 'relative';
+        savedSearchesContent.style.zIndex = '10';
+        savedSearchesContent.style.height = 'auto';
+        savedSearchesContent.style.width = '100%';
+        savedSearchesContent.style.minHeight = '300px';
+        savedSearchesContent.style.backgroundColor = '#f8f9fa';
+        savedSearchesContent.style.border = '1px solid #ddd';
+        savedSearchesContent.style.borderRadius = '8px';
+        savedSearchesContent.style.padding = '20px';
+        savedSearchesContent.style.margin = '10px';
+        
+        // Force a reflow to ensure the element is visible
+        savedSearchesContent.offsetHeight;
+        
+        // Check if the element is actually visible
+        const rect = savedSearchesContent.getBoundingClientRect();
+        
+        // Check if the container has content
+        const container = savedSearchesContent.querySelector('.saved-searches-container');
+        
+        // Check parent element
+        const parent = savedSearchesContent.parentElement;
+        
+        // If parent is hidden, make it visible
+        if (parent && parent.style.display === 'none') {
+            parent.style.display = 'block';
+            parent.style.visibility = 'visible';
+        }
+        
+        // Position the element in the right panel area instead of moving to body
+        if (rightPanel && savedSearchesContent.parentElement !== rightPanel) {
+            rightPanel.appendChild(savedSearchesContent);
+        }
+        
+        // Check if saved searches is a direct child of right panel
+        if (rightPanel && savedSearchesContent) {
+            const isDirectChild = rightPanel.contains(savedSearchesContent) && savedSearchesContent.parentElement === rightPanel;
+        }
+    }
+}
+
+function showNotifications() {
+    const notificationsContent = document.getElementById('notifications-content');
+    const savedSearchesContent = document.getElementById('saved-searches-content');
+    const applicationsContent = document.getElementById('applications-content');
+    
+    // Hide applications content if showing notifications
+    if (applicationsContent) {
+        applicationsContent.style.display = 'none';
+    }
+    
+    if (savedSearchesContent) {
+        savedSearchesContent.classList.remove('visible');
+        savedSearchesContent.classList.add('hidden');
+    }
+    
+    if (notificationsContent) {
+        notificationsContent.classList.remove('hidden');
+        notificationsContent.classList.add('visible');
+        notificationsContent.style.display = 'block';
+    }
+}
+
+function loadSavedSearch(searchId) {
+    // Get the search data from the DOM element
+    const searchItem = document.querySelector(`[data-search-id="${searchId}"]`);
+    if (!searchItem) {
+        showNotification('Search item not found', 'error');
+        return;
+    }
+    
+    // Build URL parameters from the data attributes
+    const params = new URLSearchParams();
+    
+    // Get parameters from data attributes
+    const skills = searchItem.dataset.skills;
+    const location = searchItem.dataset.location;
+    const availability = searchItem.dataset.availability;
+    const experience = searchItem.dataset.experience;
+    const education = searchItem.dataset.education;
+    
+    if (skills) params.append('skills', skills);
+    if (location) params.append('location', location);
+    if (availability) params.append('availability', availability);
+    if (experience) params.append('experience_level', experience);
+    if (education) params.append('education', education);
+    
+    // Redirect to search candidates with parameters
+    const url = `/search-candidates/?${params.toString()}`;
+    window.location.href = url;
+}
+
+function deleteSavedSearch(searchId) {
+    // Create a better confirmation modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        ">
+            <div style="
+                width: 48px;
+                height: 48px;
+                background: #ffebee;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1rem;
+                font-size: 24px;
+                color: #d32f2f;
+            ">⚠️</div>
+            <h3 style="margin: 0 0 1rem; color: #333; font-size: 1.2rem;">Delete Saved Search</h3>
+            <p style="margin: 0 0 1.5rem; color: #666; line-height: 1.4;">
+                Are you sure you want to delete this saved search? This action cannot be undone.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button id="cancel-delete" style="
+                    padding: 0.75rem 1.5rem;
+                    border: 1px solid #ddd;
+                    background: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                ">Cancel</button>
+                <button id="confirm-delete" style="
+                    padding: 0.75rem 1.5rem;
+                    background: #dc3545;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                ">Delete</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle cancel
+    document.getElementById('cancel-delete').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    
+    // Handle confirm delete
+    document.getElementById('confirm-delete').addEventListener('click', () => {
+        const deleteBtn = document.getElementById('confirm-delete');
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+        deleteBtn.style.opacity = '0.6';
+        
+        fetch(`/recruiter/saved-searches/${searchId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Remove the search item from the DOM with animation
+                const searchItem = document.querySelector(`[data-search-id="${searchId}"]`);
+                if (searchItem) {
+                    searchItem.style.transition = 'all 0.3s ease';
+                    searchItem.style.opacity = '0';
+                    searchItem.style.transform = 'translateX(-20px)';
+                    setTimeout(() => {
+                        searchItem.remove();
+                    }, 300);
+                }
+                
+                // Show success message
+                showNotification('Saved search deleted successfully!', 'success');
+                document.body.removeChild(modal);
+            } else {
+                throw new Error('Delete failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting saved search:', error);
+            showNotification('Error deleting saved search. Please try again.', 'error');
+            document.body.removeChild(modal);
+        });
+    });
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        color: white;
+        font-weight: 500;
+        z-index: 1001;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    
+    // Set background color based on type
+    switch (type) {
+        case 'success':
+            notification.style.background = '#28a745';
+            break;
+        case 'error':
+            notification.style.background = '#dc3545';
+            break;
+        case 'warning':
+            notification.style.background = '#ffc107';
+            notification.style.color = '#212529';
+            break;
+        default:
+            notification.style.background = '#17a2b8';
+    }
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
 }
 
 // Allow Enter key to trigger page jump

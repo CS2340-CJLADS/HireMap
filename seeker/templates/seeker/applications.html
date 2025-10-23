@@ -55,7 +55,7 @@
                                 {{ application.listing.location }}
                             {% endif %}
                         </div>
-                        <div class="application-status status-{{ application.status|lower|cut:' ' }}">
+                        <div class="application-status status-{{ application.status|lower|cut:' ' }}" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6c757d{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#6c757d{% else %}#6c757d{% endif %}; color: {% if application.status == 'Interview' %}#212529{% else %}white{% endif %};">
                             {{ application.status }}
                         </div>
                     </div>
@@ -101,7 +101,7 @@
                                     <div class="job-description-company" id="job-description-company">Company</div>
                                     <div class="job-description-position" id="job-description-position">Position</div>
                                 </div>
-
+                                
                                 <div class="job-description-sections">
                                     <div class="job-description-section">
                                         <div class="section-title">About</div>
@@ -111,17 +111,17 @@
                                             <div id="job-description-visa">Visa</div>
                                         </div>
                                     </div>
-
+                                    
                                     <div class="job-description-section">
                                         <div class="section-title">Skills</div>
                                         <div class="section-content" id="job-description-skills">Skills</div>
                                     </div>
-
+                                    
                                     <div class="job-description-section">
                                         <div class="section-title">Description</div>
                                         <div class="section-content" id="job-description-description">Description</div>
                                     </div>
-
+                                    
                                     <div class="job-description-section">
                                         <div class="section-title">Your Note</div>
                                         <div class="section-content" id="application-note">Your application message will appear here</div>
@@ -185,6 +185,49 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `).join("");
     }
+
+    // Add click handlers for application bars
+    function setupApplicationClickHandlers() {
+        const applicationBars = document.querySelectorAll('.application-bar');
+        applicationBars.forEach(bar => {
+            bar.addEventListener('click', function() {
+                // Remove active class from all bars
+                applicationBars.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked bar
+                this.classList.add('active');
+                
+                // Get application data
+                const company = this.querySelector('.application-company')?.textContent || '';
+                const position = this.querySelector('.application-position')?.textContent || '';
+                const location = this.querySelector('.application-location')?.textContent || '';
+                const status = this.querySelector('.application-status')?.textContent || '';
+                
+                // Update right panel content
+                const rightPanel = document.getElementById('right-panel');
+                rightPanel.innerHTML = `
+                    <div class="application-details">
+                        <div class="application-details-header">
+                            <h3>${position}</h3>
+                            <div class="application-company">${company}</div>
+                            <div class="application-location">${location}</div>
+                            <div class="application-status-badge status-${status.toLowerCase().replace(' ', '_')}">${status}</div>
+                        </div>
+                        <div class="application-details-content">
+                            <h4>Application Details</h4>
+                            <p><strong>Status:</strong> ${status}</p>
+                            <p><strong>Applied:</strong> Recently</p>
+                            <p><strong>Company:</strong> ${company}</p>
+                            <p><strong>Position:</strong> ${position}</p>
+                            <p><strong>Location:</strong> ${location}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    // Initialize click handlers when DOM is loaded
+    setupApplicationClickHandlers();
 });
 </script>
 
@@ -238,50 +281,124 @@ document.addEventListener("DOMContentLoaded", () => {
     .kanban-board { grid-template-columns: 1fr; }
 }
 
-/* ===== Status Color System ===== */
-
-/* Core theme colors */
-:root {
-  --color-applied: #adb5bd;        /* gray */
-  --color-under-review: #0dcaf0;   /* cyan */
-  --color-interview: #0d6efd;      /* blue */
-  --color-offer: #198754;          /* green */
-  --color-closed: #dc3545;         /* red */
+/* ===== View Toggle Buttons ===== */
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
-/* Kanban column header color accent */
-.kanban-column[data-stage="Applied"] h4 { color: var(--color-applied); }
-.kanban-column[data-stage="Under Review"] h4 { color: var(--color-under-review); }
-.kanban-column[data-stage="Interview"] h4 { color: var(--color-interview); }
-.kanban-column[data-stage="Offer"] h4 { color: var(--color-offer); }
-.kanban-column[data-stage="Closed"] h4 { color: var(--color-closed); }
-
-/* Kanban card left border for quick visual cue */
-.kanban-card {
-  border-left: 5px solid transparent;
-}
-.kanban-column[data-stage="Applied"] .kanban-card { border-left-color: var(--color-applied); }
-.kanban-column[data-stage="Under Review"] .kanban-card { border-left-color: var(--color-under-review); }
-.kanban-column[data-stage="Interview"] .kanban-card { border-left-color: var(--color-interview); }
-.kanban-column[data-stage="Offer"] .kanban-card { border-left-color: var(--color-offer); }
-.kanban-column[data-stage="Closed"] .kanban-card { border-left-color: var(--color-closed); }
-
-/* Optional status badges for list view */
-.application-status {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  color: #fff;
-  font-weight: 500;
+.view-toggle .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
 }
 
-.status-applied { background: var(--color-applied); }
-.status-under_review,
-.status-under-review { background: var(--color-under-review); }
-.status-interview { background: var(--color-interview); }
-.status-offer { background: var(--color-offer); }
-.status-closed { background: var(--color-closed); }
+.view-toggle .btn.secondary {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.view-toggle .btn.secondary:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.view-toggle .btn.primary {
+    background: linear-gradient(135deg, #13E3B2 0%, #65F3F3 100%);
+    color: white;
+    border-color: #13E3B2;
+    box-shadow: 0 2px 4px rgba(19, 227, 178, 0.2);
+}
+
+.view-toggle .btn.primary:hover {
+    background: linear-gradient(135deg, #0fb896 0%, #4dd4d4 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(19, 227, 178, 0.3);
+}
+
+/* ===== Application Details ===== */
+.application-details {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.application-details-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.application-details-header h3 {
+    color: #333;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.application-company {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.application-location {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.application-status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+}
+
+.application-details-content h4 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.application-details-content p {
+    margin-bottom: 0.75rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* ===== Application Bar ===== */
+.application-bar {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.application-bar:hover {
+    background: rgba(19, 227, 178, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.application-bar.active {
+    background: linear-gradient(135deg, rgba(19, 227, 178, 0.1) 0%, rgba(101, 243, 243, 0.1) 100%);
+    border: 2px solid #13E3B2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(19, 227, 178, 0.2);
+}
+
+/* Status colors matching the color scheme */
+.status-applied { background-color: #007bff; color: white; }
+.status-underreview { background-color: #6c757d; color: white; }
+.status-interview { background-color: #ffc107; color: #212529; }
+.status-offer { background-color: #28a745; color: white; }
+.status-closed { background-color: #6c757d; color: white; }
 
 </style>
 

@@ -53,25 +53,35 @@ def job_detail(request, pk: int):
 def update_application_status(request, pk: int):
     """
     Recruiter moves an application to a new stage.
-    PATCH body: {"status": "interview"}
+    PATCH body: {"status": "Interview"}
     """
     try:
         app = Application.objects.select_related("listing__recruiter").get(pk=pk)
     except Application.DoesNotExist:
-        return JsonResponse({"error": "not found"}, status=404)
+        return JsonResponse({"error": "Application not found"}, status=404)
 
-    recruiter = app.listing.recruiter.user  # adjust if Recruiter has `user` field
+    # Check if user is the recruiter who posted this job
+    recruiter = app.listing.recruiter.user
     if request.user != recruiter and not request.user.is_staff:
-        return JsonResponse({"error": "forbidden"}, status=403)
+        return JsonResponse({"error": "You don't have permission to update this application"}, status=403)
 
-    data = json.loads(request.body.decode())
+    try:
+        data = json.loads(request.body.decode())
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON in request body"}, status=400)
+
     new_status = data.get("status")
-    valid = [s[0] for s in Application.STATUS_CHOICES]
-    if new_status not in valid:
-        return JsonResponse({"error": f"invalid status, must be one of {valid}"}, status=400)
+    if not new_status:
+        return JsonResponse({"error": "Status field is required"}, status=400)
+
+    valid_statuses = [s[0] for s in Application.STAGE_CHOICES]
+    if new_status not in valid_statuses:
+        return JsonResponse({
+            "error": f"Invalid status '{new_status}'. Must be one of: {', '.join(valid_statuses)}"
+        }, status=400)
 
     app.status = new_status
-    app.save(update_fields=["status", "updated_at"])
+    app.save(update_fields=["status"])
     return JsonResponse({"id": app.id, "status": app.status})
 
 

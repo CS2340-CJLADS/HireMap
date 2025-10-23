@@ -13,4 +13,17 @@ urlpatterns = [
     path("applicants/<int:applicant_id>/", views.view_applicant, name="view_applicant"),
     path("search-candidates/", views.search_candidates, name="search_candidates"),
     path("get_applicant_info/<int:applicant_id>/", views.get_applicant_info, name="get_applicant_info"),
+    
+    # Saved searches and candidates
+    path("saved-searches/", views.saved_searches, name="saved_searches"),
+    path("save-search/", views.save_search, name="save_search"),
+    path("saved-searches/<int:search_id>/delete/", views.delete_saved_search, name="delete_saved_search"),
+    path("saved-searches/<int:search_id>/load/", views.load_saved_search, name="load_saved_search"),
+    path("saved-candidates/", views.saved_candidates, name="saved_candidates"),
+    path("save-candidate/<int:candidate_id>/", views.save_candidate, name="save_candidate"),
+    path("unsave-candidate/<int:candidate_id>/", views.unsave_candidate, name="unsave_candidate"),
+    path("notifications/", views.notifications, name="notifications"),
+    path("notifications/<int:notification_id>/read/", views.mark_notification_read, name="mark_notification_read"),
+    path("notifications/mark-all-read/", views.mark_all_notifications_read, name="mark_all_notifications_read"),
+    path("notifications/<int:notification_id>/dismiss/", views.dismiss_notification, name="dismiss_notification"),
 ]
