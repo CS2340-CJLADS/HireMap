@@ -1304,6 +1304,25 @@
     box-shadow: 0 4px 12px rgba(33, 128, 116, 0.4);
 }
 
+/* Applied job styling */
+.job-tile.applied {
+    border: 2px solid #28a745;
+    background: linear-gradient(135deg, #f8fff9, #e8f5e8);
+}
+
+.applied-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
 /* Loading State */
 .loading-state {
     display: flex;

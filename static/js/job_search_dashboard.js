@@ -175,8 +175,49 @@ function showDashboard() {
     document.getElementById('dashboard-content').style.display = 'block';
 }
 
+// Notification function
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#007bff'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        font-weight: 500;
+        max-width: 300px;
+        word-wrap: break-word;
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
+
 // Global function for applying to jobs
 function applyToJob(jobId) {
+    // Check if already applied
+    const jobTile = document.querySelector(`[data-job-id="${jobId}"]`);
+    if (jobTile && jobTile.querySelector('.applied-badge')) {
+        showNotification('You have already applied to this job.', 'warning');
+        return;
+    }
+    
     window.location.href = `/jobs/${jobId}/apply/`;
 }
 

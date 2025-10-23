@@ -171,15 +171,28 @@ def apply_to_job(request, job_id):
         return HttpResponseBadRequest("You cannot apply to your own job posting.")
     
     note = request.POST.get('note', '')
+    
+    # Check if the applicant has already applied to this job
+    existing_application = Application.objects.filter(
+        applicant=applicant,
+        listing=listing
+    ).first()
+    
+    if existing_application:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'error': 'You have already applied to this job.'
+            }, status=400)
+        return HttpResponseBadRequest("You have already applied to this job.")
+    
+    # Create new application
     try:
-        application, created = Application.objects.get_or_create(
+        application = Application.objects.create(
             applicant=applicant,
             listing=listing,
-            defaults={'message': note}
+            message=note
         )
-        if not created and note and application.message != note:
-            application.message = note
-            application.save(update_fields=['message'])
     except IntegrityError:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
             return JsonResponse({
