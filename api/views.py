@@ -1,6 +1,10 @@
 from django.http import JsonResponse, Http404
 from jobs.models import JobPosting
-
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from jobs.models import Application
+import json
 
 def _serialize_jobposting(j: JobPosting) -> dict:
     """
@@ -40,3 +44,31 @@ def job_detail(request, pk: int):
     except JobPosting.DoesNotExist:
         raise Http404
     return JsonResponse(_serialize_jobposting(j))
+
+
+@csrf_exempt
+@require_http_methods(["PATCH"])
+@login_required
+def update_application_status(request, pk: int):
+    """
+    Recruiter moves an application to a new stage.
+    PATCH body: {"status": "interview"}
+    """
+    try:
+        app = Application.objects.select_related("listing__recruiter").get(pk=pk)
+    except Application.DoesNotExist:
+        return JsonResponse({"error": "not found"}, status=404)
+
+    recruiter = app.listing.recruiter.user  # adjust if Recruiter has `user` field
+    if request.user != recruiter and not request.user.is_staff:
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    data = json.loads(request.body.decode())
+    new_status = data.get("status")
+    valid = [s[0] for s in Application.STATUS_CHOICES]
+    if new_status not in valid:
+        return JsonResponse({"error": f"invalid status, must be one of {valid}"}, status=400)
+
+    app.status = new_status
+    app.save(update_fields=["status", "updated_at"])
+    return JsonResponse({"id": app.id, "status": app.status})
