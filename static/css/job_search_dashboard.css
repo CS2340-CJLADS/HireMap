@@ -1485,3 +1485,139 @@
     background: rgba(255,255,255,0.2);
     font-weight: 600;
 }
+
+/* Pagination Styles - Minimal Design */
+.pagination-container {
+    margin-top: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid #e0e0e0;
+    background: transparent;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    padding: 0.5rem 0.8rem;
+    background: transparent;
+    color: #666;
+    text-decoration: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid transparent;
+}
+
+.pagination-btn:hover {
+    color: var(--main-green);
+    border-bottom-color: var(--main-green);
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+}
+
+.pagination-btn.current-page {
+    color: var(--main-green);
+    font-weight: 600;
+    border-bottom-color: var(--main-green);
+    background: transparent;
+    box-shadow: none;
+}
+
+.pagination-btn.prev-btn,
+.pagination-btn.next-btn {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 0.8rem;
+}
+
+.pagination-btn.page-number {
+    min-width: auto;
+    padding: 0.5rem 0.8rem;
+}
+
+/* Page jump input - Minimal with better spacing */
+.page-jump {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: 1.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.page-jump span {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 400;
+}
+
+.page-jump-input {
+    width: 4rem;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    text-align: center;
+    background: white;
+}
+
+.page-jump-input:focus {
+    outline: none;
+    border-color: var(--main-green);
+    box-shadow: none;
+}
+
+.pagination-btn.jump-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    min-width: auto;
+    background: transparent;
+    color: var(--main-green);
+    border: 1px solid var(--main-green);
+    border-radius: 3px;
+    border-bottom: 2px solid var(--main-green);
+}
+
+.pagination-btn.jump-btn:hover {
+    background: var(--main-green);
+    color: white;
+    border-bottom: 2px solid var(--main-green);
+}
+
+/* Make job list scrollable */
+.job-list {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.job-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.job-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.job-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.job-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

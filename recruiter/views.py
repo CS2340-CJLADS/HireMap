@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q
 from accounts.decorators import recruiter_required
 from accounts.models import Applicant
@@ -81,15 +82,22 @@ def dashboard(request):
     ).select_related('applicant', 'listing').order_by('-created_at')[:10]
     
     
+    # Add pagination for recruiter's own jobs
+    page = request.GET.get('page', 1)
+    paginator = Paginator(jobs, 12)  # Show 12 jobs per page
+    jobs_page = paginator.get_page(page)
+    
     template_data = {
         'title': 'Recruiter Dashboard',
         'recruiter': recruiter,
         'job_postings': job_postings,
-        'jobs': jobs,
+        'jobs': jobs_page,
         'recent_applications': recent_applications,
         'total_jobs': jobs.count(),
         'total_applications': Application.objects.filter(listing__recruiter=recruiter).count(),
         'search_term': search_term,
+        'paginator': paginator,
+        'current_page': page,
     }
     
     return render(request, 'recruiter/dashboard.html', {'template_data': template_data})

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from accounts.decorators import applicant_required, recruiter_required
 from accounts.models import Applicant, Project
 from jobs.models import JobPosting, Application
@@ -205,9 +206,14 @@ def search_candidates(request):
     # Apply filters
     applicants = applicants.filter(query)
     
-    # Get projects for each applicant
+    # Add pagination before processing projects
+    page = request.GET.get('page', 1)
+    paginator = Paginator(applicants, 12)  # Show 12 candidates per page
+    applicants_page = paginator.get_page(page)
+    
+    # Get projects for each applicant on current page
     applicants_with_projects = []
-    for applicant in applicants:
+    for applicant in applicants_page:
         projects = Project.objects.filter(applicant=applicant)
         temp = {
             'applicant': applicant,
@@ -232,7 +238,9 @@ def search_candidates(request):
     template_data = {
         'title': 'Search Candidates',
         'applicants_with_projects': applicants_with_projects,
-        'total_candidates': len(applicants_with_projects),
+        'total_candidates': paginator.count,
+        'paginator': paginator,
+        'current_page': page,
         'filters': {
             'search': search_term,
             'skills': skills_filter,

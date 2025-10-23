@@ -59,7 +59,7 @@
         <!-- Left Panel: Job List -->
         <div class="left-panel">
             <div class="panel-header">
-                <h3>Job Listings ({{ template_data.job_postings.count }})</h3>
+                <h3>Job Listings ({{ template_data.paginator.count }})</h3>
             </div>
             <div class="job-list" id="job-list">
                 <div class="job-listings-grid">
@@ -82,6 +82,39 @@
                     </div>
                     {% endfor %}
                 </div>
+                
+                <!-- Pagination Controls -->
+                {% if template_data.paginator.num_pages > 1 %}
+                <div class="pagination-container">
+                    <div class="pagination">
+                        <!-- Previous button -->
+                        {% if template_data.job_postings.has_previous %}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ template_data.job_postings.previous_page_number }}" class="pagination-btn prev-btn">←</a>
+                        {% endif %}
+                        
+                        <!-- Page numbers -->
+                        {% for page_num in template_data.paginator.page_range %}
+                            {% if page_num == template_data.job_postings.number %}
+                                <span class="pagination-btn current-page">{{ page_num }}</span>
+                            {% else %}
+                                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_num }}" class="pagination-btn page-number">{{ page_num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <!-- Next button -->
+                        {% if template_data.job_postings.has_next %}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ template_data.job_postings.next_page_number }}" class="pagination-btn next-btn">→</a>
+                        {% endif %}
+                        
+                        <!-- Page jump input -->
+                        <div class="page-jump">
+                            <span>Go to:</span>
+                            <input type="number" id="page-jump-input" min="1" max="{{ template_data.paginator.num_pages }}" placeholder="Page" class="page-jump-input">
+                            <button onclick="jumpToPage()" class="pagination-btn jump-btn">Go</button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -255,7 +288,7 @@
         </div>
     </div>
     </div>
-</div>image.png
+</div>
 
 <script src="{% static 'js/job_search_dashboard.js' %}"></script>
 
@@ -620,4 +653,35 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: center;
 }
 </style>
+
+<script>
+function jumpToPage() {
+    const pageInput = document.getElementById('page-jump-input');
+    const pageNumber = parseInt(pageInput.value);
+    const maxPages = parseInt(pageInput.getAttribute('max'));
+    
+    if (pageNumber >= 1 && pageNumber <= maxPages) {
+        // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page', pageNumber);
+        
+        // Navigate to the new page
+        window.location.href = window.location.pathname + '?' + urlParams.toString();
+    } else {
+        alert('Please enter a valid page number between 1 and ' + maxPages);
+    }
+}
+
+// Allow Enter key to trigger page jump
+document.addEventListener('DOMContentLoaded', function() {
+    const pageInput = document.getElementById('page-jump-input');
+    if (pageInput) {
+        pageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                jumpToPage();
+            }
+        });
+    }
+});
+</script>
 {% endblock content %}

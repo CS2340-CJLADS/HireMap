@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from accounts.decorators import applicant_required
 from accounts.models import Applicant, Project
 from jobs.models import JobPosting, Application
@@ -94,9 +95,14 @@ def dashboard(request):
     else:
         recommended_jobs = []
     
+    # Add pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(job_postings, 12)  # Show 12 jobs per page
+    job_postings_page = paginator.get_page(page)
+    
     template_data = {
         'title': 'Job Search Dashboard',
-        'job_postings': job_postings,
+        'job_postings': job_postings_page,
         'search_term': search_term,
         'applied_job_ids': applied_job_ids,
         'recent_applications': recent_applications,
@@ -104,6 +110,8 @@ def dashboard(request):
         'total_projects': total_projects,
         'recommended_jobs': recommended_jobs,
         'user_is_applicant': request.user.is_authenticated and hasattr(request.user, 'applicant'),
+        'paginator': paginator,
+        'current_page': page,
     }
     
     return render(request, 'seeker/dashboard.html', {'template_data': template_data})
