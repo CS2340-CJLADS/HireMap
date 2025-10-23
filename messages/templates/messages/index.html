@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+{% load tz %}
+{% load timezone_filters %}
 {% csrf_token %}
 
 <!-- Split Screen Layout -->
@@ -19,7 +21,7 @@
                     <div class="conversation-company">{{ conversation.company }}</div>
                     {% endif %}
                     <div class="conversation-preview">{{ conversation.last_message|truncatechars:50 }}</div>
-                    <div class="conversation-time">{{ conversation.timestamp|date:"M d, g:i A" }}</div>
+                    <div class="conversation-time">{{ conversation.timestamp|format_local_time:"M d, g:i A" }}</div>
                 </div>
                 {% endfor %}
             {% else %}
@@ -56,7 +58,7 @@
                         <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
                             <div class="message-bubble">
                                 {{ message.content }}
-                                <div class="message-time">{{ message.timestamp|date:"g:i A" }}</div>
+                                <div class="message-time">{{ message.timestamp|format_local_time:"g:i A" }}</div>
                             </div>
                         </div>
                         {% endfor %}
@@ -514,6 +516,39 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageInput = messageForm.querySelector('input[name="content"]');
         if (messageInput) {
             messageInput.focus();
+        }
+        
+        // Function to format timestamps in local timezone
+        function formatLocalTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+        
+        // Function to format conversation timestamps
+        function formatConversationTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffInHours = (now - date) / (1000 * 60 * 60);
+            
+            if (diffInHours < 24) {
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } else {
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
         }
     }
 });
