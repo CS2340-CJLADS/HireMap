@@ -442,15 +442,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Clear all filters
     function clearFilters() {
-        searchInput.value = '';
-        titleSelect.value = '';
-        locationSelect.value = '';
-        skillsSelect.value = '';
-        visaCheckbox.checked = false;
-        minSlider.value = '50000';
-        maxSlider.value = '150000';
-        updateSliderValues();
-        form.submit();
+        // Redirect to the same page without any query parameters to show all jobs
+        window.location.href = window.location.pathname;
     }
     
     // Update slider display values

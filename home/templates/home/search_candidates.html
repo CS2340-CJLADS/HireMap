@@ -345,12 +345,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Clear all filters
     function clearFilters() {
-        searchInput.value = '';
-        skillsInput.value = '';
-        locationInput.value = '';
-        availabilitySelect.value = '';
-        educationInput.value = '';
-        form.submit();
+        // Redirect to the same page without any query parameters to show all candidates
+        window.location.href = window.location.pathname;
     }
     
     // Event listeners
