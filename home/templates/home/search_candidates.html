@@ -70,7 +70,7 @@
                             
                             <div class="job-tile-separator"></div>
                             
-                            <div class="job-tile-range">{{ candidate_data.location|default:"Location not specified" }}</div>
+                            <div class="job-tile-range">{{ candidate_data.location|default:"Location unavailable" }}</div>
                             <div class="job-tile-location">
                                 <span class="availability-badge availability-{{ candidate.availability }}">{{ candidate.get_availability_display }}</span>
                             </div>
@@ -202,7 +202,7 @@
                                     <div class="section-content">
                                         <div id="candidate-description-location">
                                             {% if template_data.specific_candidate %}
-                                                {{ template_data.specific_candidate.location|default:"Location not specified" }}
+                                                {{ template_data.specific_candidate.location|default:"Location unavailable" }}
                                             {% else %}
                                                 Location
                                             {% endif %}
@@ -243,7 +243,7 @@
                                     <div class="section-title">Education</div>
                                     <div class="section-content" id="candidate-description-education">
                                         {% if template_data.specific_candidate %}
-                                            {{ template_data.specific_candidate.education|default:"No education information provided" }}
+                                            {{ template_data.specific_candidate.education|default:"Education unavailable" }}
                                         {% else %}
                                             Education
                                         {% endif %}
@@ -254,7 +254,7 @@
                                     <div class="section-title">Experience</div>
                                     <div class="section-content" id="candidate-description-experience">
                                         {% if template_data.specific_candidate %}
-                                            {{ template_data.specific_candidate.experience|default:"No experience information provided" }}
+                                            {{ template_data.specific_candidate.experience|default:"Experience unavailable" }}
                                         {% else %}
                                             Experience
                                         {% endif %}
@@ -277,7 +277,7 @@
                                                 </div>
                                             {% endfor %}
                                         {% else %}
-                                            No projects listed
+                                            Projects unavailable
                                         {% endif %}
                                     </div>
                                 </div>
@@ -374,12 +374,12 @@ function showCandidateDetails(candidateId) {
             // Update candidate details
             document.getElementById('candidate-description-name').textContent = candidate.first_name + ' ' + candidate.last_name;
             document.getElementById('candidate-description-title').textContent = candidate.skills ? candidate.skills.split(',')[0] + ' Developer' : 'Software Developer';
-            document.getElementById('candidate-description-location').textContent = candidate.location || 'Location not specified';
+            document.getElementById('candidate-description-location').textContent = candidate.location || 'Location unavailable';
             document.getElementById('candidate-description-availability').textContent = candidate.availability_display;
             document.getElementById('candidate-description-email').textContent = candidate.email;
-            document.getElementById('candidate-description-skills').textContent = candidate.skills || 'No skills listed';
-            document.getElementById('candidate-description-education').textContent = candidate.education || 'No education information provided';
-            document.getElementById('candidate-description-experience').textContent = candidate.experience || 'No experience information provided';
+            document.getElementById('candidate-description-skills').textContent = candidate.skills || 'Skills unavailable';
+            document.getElementById('candidate-description-education').textContent = candidate.education || 'Education unavailable';
+            document.getElementById('candidate-description-experience').textContent = candidate.experience || 'Experience unavailable';
             
             // Update projects
             let projectsHtml = '';
@@ -389,13 +389,13 @@ function showCandidateDetails(candidateId) {
                         <div class="project-item">
                             <div class="project-title">${project.title}</div>
                             <div class="project-description">${project.description}</div>
-                            <div class="project-technologies">Technologies: ${project.technologies || 'Not specified'}</div>
+                            <div class="project-technologies">Technologies: ${project.technologies || 'Technologies unavailable'}</div>
                             ${project.url ? `<div class="project-url"><a href="${project.url}" target="_blank">View Project</a></div>` : ''}
                         </div>
                     `;
                 });
             } else {
-                projectsHtml = '<div class="no-projects">No projects listed</div>';
+                projectsHtml = '<div class="no-projects">Projects unavailable</div>';
             }
             document.getElementById('candidate-description-projects').innerHTML = projectsHtml;
             
