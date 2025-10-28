@@ -10,7 +10,7 @@
 		<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
-	<body>
+	<body style="display: flex; flex-direction: column; height: 100vh; margin: 0; padding: 0; overflow: hidden;">
 		<!-- Navigation Bar -->
 		<nav class="main-nav">
 			<div class="nav-content">
@@ -61,7 +61,7 @@
 			</div>
 		</nav>
 
-		<div>
+		<div style="flex: 1; min-height: 0; overflow: hidden;">
 		{% block content %}
 		{% endblock content %}
 		</div>

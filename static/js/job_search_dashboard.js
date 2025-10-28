@@ -15,12 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showApplicationDetails(applicationId);
         });
     });
-    
-    // Handle back to dashboard button
-    const backBtn = document.getElementById('back-to-dashboard');
-    if (backBtn) {
-        backBtn.addEventListener('click', showDashboard);
-    }
 });
 
 function showJobDetails(jobId) {
@@ -56,10 +50,9 @@ function showApplicationDetails(applicationId) {
 function loadJobDetails(jobId) {
     // Show loading state
     const loadingState = document.getElementById('job-details-loading');
-    const jobDetailsBody = document.getElementById('job-details-body');
+    const jobDetailsContent = document.getElementById('job-details-content');
     
     if (loadingState) loadingState.style.display = 'flex';
-    if (jobDetailsBody) jobDetailsBody.style.display = 'none';
     
     // Fetch job details from backend
     fetch(`/api/jobs/${jobId}/`)
@@ -70,23 +63,22 @@ function loadJobDetails(jobId) {
             
             // Hide loading state
             if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
+            if (jobDetailsContent) jobDetailsContent.style.display = 'flex';
         })
         .catch(error => {
             console.error('Error loading job details:', error);
             // Hide loading state
             if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
+            if (jobDetailsContent) jobDetailsContent.style.display = 'flex';
         });
 }
 
 function loadApplicationDetails(applicationId) {
     // Show loading state
     const loadingState = document.getElementById('job-details-loading');
-    const jobDetailsBody = document.getElementById('job-details-body');
+    const jobDetailsContent = document.getElementById('job-details-content');
     
     if (loadingState) loadingState.style.display = 'flex';
-    if (jobDetailsBody) jobDetailsBody.style.display = 'none';
     
     // Fetch application details from backend
     fetch(`/api/applications/${applicationId}/`)
@@ -97,13 +89,13 @@ function loadApplicationDetails(applicationId) {
             
             // Hide loading state
             if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
+            if (jobDetailsContent) jobDetailsContent.style.display = 'flex';
         })
         .catch(error => {
             console.error('Error loading application details:', error);
             // Hide loading state
             if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
+            if (jobDetailsContent) jobDetailsContent.style.display = 'flex';
         });
 }
 
@@ -162,17 +154,6 @@ function populateApplicationDetails(applicationData) {
     
     // Populate application note
     document.getElementById('application-note').textContent = applicationData.message || 'No message provided';
-}
-
-function showDashboard() {
-    // Clear active job tile
-    document.querySelectorAll('.job-tile').forEach(tile => {
-        tile.classList.remove('active');
-    });
-    
-    // Switch to dashboard panel
-    document.getElementById('job-details-content').style.display = 'none';
-    document.getElementById('dashboard-content').style.display = 'block';
 }
 
 // Notification function
