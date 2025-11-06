@@ -22,12 +22,12 @@ class CustomUserCreationForm(UserCreationForm):
 class RecruiterForm(ModelForm):
     class Meta:
         model = Recruiter
-        fields = ['first_name', 'last_name', 'company_name', 'location']
+        fields = ['first_name', 'last_name', 'company_name', 'street_address', 'post_code', 'city', 'state', 'country']
         error_class = CustomErrorList
        
 
 class ApplicantForm(ModelForm):
     class Meta:
         model = Applicant
-        fields = ['first_name', 'last_name', 'skills', 'education', 'experience', 'links']
+        fields = ['first_name', 'last_name', 'skills', 'education', 'experience', 'links', 'street_address', 'post_code', 'city', 'state', 'country']
         error_class = CustomErrorList

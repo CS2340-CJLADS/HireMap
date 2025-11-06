@@ -318,7 +318,12 @@ def profile_edit(request):
             applicant.experience = request.POST.get('experience', '').strip()
             applicant.links = request.POST.get('links', '').strip()
             applicant.phone = request.POST.get('phone', '').strip()
-            applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()
+            applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()  # Keep for backward compatibility
+            applicant.street_address = request.POST.get('street_address', '').strip()
+            applicant.post_code = request.POST.get('post_code', '').strip()
+            applicant.city = request.POST.get('city', '').strip()
+            applicant.state = request.POST.get('state', '').strip()
+            applicant.country = request.POST.get('country', 'USA').strip()
             applicant.availability = request.POST.get('availability', 'open-to-work')
             applicant.save()
             
@@ -358,7 +363,12 @@ def recruiter_profile_edit(request):
         recruiter.first_name = request.POST.get('first_name', '').strip()
         recruiter.last_name = request.POST.get('last_name', '').strip()
         recruiter.company_name = request.POST.get('company_name', '').strip()
-        recruiter.location = request.POST.get('location', '').strip()
+        recruiter.location = request.POST.get('location', '').strip()  # Keep for backward compatibility
+        recruiter.street_address = request.POST.get('street_address', '').strip()
+        recruiter.post_code = request.POST.get('post_code', '').strip()
+        recruiter.city = request.POST.get('city', '').strip()
+        recruiter.state = request.POST.get('state', '').strip()
+        recruiter.country = request.POST.get('country', 'USA').strip()
         recruiter.save()
         return redirect('recruiter:profile')
     

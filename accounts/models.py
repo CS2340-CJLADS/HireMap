@@ -14,7 +14,14 @@ class Applicant(models.Model):
     projects = models.TextField(blank=True, null=True)  # Keep for backward compatibility
     links = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
-    location = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
+    
+    # Address fields
+    street_address = models.CharField(max_length=200, blank=True, null=True, help_text="Street address")
+    post_code = models.CharField(max_length=20, blank=True, null=True, help_text="ZIP/Postal code")
+    city = models.CharField(max_length=100, blank=True, null=True, help_text="City")
+    state = models.CharField(max_length=100, blank=True, null=True, help_text="State")
+    country = models.CharField(max_length=100, default='USA', help_text="Country")
     
     # Availability status
     AVAILABILITY_CHOICES = [
@@ -109,7 +116,14 @@ class Recruiter(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     company_name = models.CharField(max_length=50, blank=True, null=True)
-    location = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
+    
+    # Address fields
+    street_address = models.CharField(max_length=200, blank=True, null=True, help_text="Street address")
+    post_code = models.CharField(max_length=20, blank=True, null=True, help_text="ZIP/Postal code")
+    city = models.CharField(max_length=100, blank=True, null=True, help_text="City")
+    state = models.CharField(max_length=100, blank=True, null=True, help_text="State")
+    country = models.CharField(max_length=100, default='USA', help_text="Country")
 
     def __str__(self):
         return self.user.__str__() + f", {self.first_name} {self.last_name}" + ", " + str(self.company_name)
