@@ -305,3 +305,4 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'\nSuccessfully created {created_count} test job postings!'))
         self.stdout.write(self.style.SUCCESS(f'Total jobs in database: {JobPosting.objects.count()}'))
 
+

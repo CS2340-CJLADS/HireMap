@@ -39,6 +39,17 @@ class Applicant(models.Model):
     def __str__(self):
         return self.user.__str__() + f", {self.first_name} {self.last_name}"
     
+    def get_links_list(self):
+        """Parse links from JSON string and return list of dicts with name and url"""
+        import json
+        if not self.links:
+            return []
+        try:
+            return json.loads(self.links)
+        except (json.JSONDecodeError, TypeError):
+            # Fallback for old format or invalid JSON
+            return []
+    
     def get_privacy_settings(self):
         """Get or create privacy settings for this applicant"""
         privacy_settings, created = ApplicantPrivacySettings.objects.get_or_create(

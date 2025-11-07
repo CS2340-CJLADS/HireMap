@@ -316,7 +316,18 @@ def profile_edit(request):
             applicant.skills = request.POST.get('skills', '').strip()
             applicant.education = request.POST.get('education', '').strip()
             applicant.experience = request.POST.get('experience', '').strip()
-            applicant.links = request.POST.get('links', '').strip()
+            
+            # Handle links as JSON array of {name, url} objects
+            import json
+            links_data = []
+            link_names = request.POST.getlist('link_name[]')
+            link_urls = request.POST.getlist('link_url[]')
+            for name, url in zip(link_names, link_urls):
+                name = name.strip()
+                url = url.strip()
+                if name and url:
+                    links_data.append({'name': name, 'url': url})
+            applicant.links = json.dumps(links_data) if links_data else ''
             applicant.phone = request.POST.get('phone', '').strip()
             applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()  # Keep for backward compatibility
             applicant.street_address = request.POST.get('street_address', '').strip()

@@ -1,564 +1,593 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
 
-<div class="job-search-container" style="display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 2rem 1rem;">
-    <div style="width: 100%; max-width: 800px;">
-            <h2 style="text-align: center; margin-bottom: 0.5rem; color: var(--main-green);">Edit Profile</h2>
-            <p style="text-align: center; margin-bottom: 2rem; color: #666;">Update your profile information and privacy settings.</p>
-            
-            <form method="post" class="profile-form">
+<div class="profile-container">
+    <a href="{% url 'seeker:profile' %}" class="edit-icon-button" aria-label="Back to Profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+    
+    <div class="profile-header">
+        <div class="profile-name-banner">Edit Profile</div>
+    </div>
+    
+    <form method="post" class="profile-content">
         {% csrf_token %}
         
-                <!-- Basic Information -->
-                <div class="form-section">
-                    <h3>Basic Information</h3>
-                    <div class="form-row">
-        <div class="form-group">
-                            <label for="first_name">First Name</label>
-                            <input type="text" id="first_name" name="first_name" value="{{ template_data.applicant.first_name }}" required>
-        </div>
-
-        <div class="form-group">
-                            <label for="last_name">Last Name</label>
-                            <input type="text" id="last_name" name="last_name" value="{{ template_data.applicant.last_name }}" required>
-                        </div>
-        </div>
-        
-        <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" value="{{ template_data.applicant.phone|default:'' }}">
-        </div>
-        
-        <div class="form-group">
-                        <label for="location">Location (Legacy)</label>
-                        <input type="text" id="location" name="location" value="{{ template_data.applicant.location|default:'' }}" placeholder="Kept for backward compatibility">
-        </div>
-        
-        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary);">Address Information</h3>
-        
-        <div class="form-group">
-                        <label for="street_address">Street Address</label>
-                        <input type="text" id="street_address" name="street_address" value="{{ template_data.applicant.street_address|default:'' }}" placeholder="123 Main Street">
-        </div>
-        
-        <div class="form-group">
-                        <label for="post_code">Post Code (ZIP)</label>
-                        <input type="text" id="post_code" name="post_code" value="{{ template_data.applicant.post_code|default:'' }}" placeholder="12345">
-        </div>
-        
-        <div class="form-group">
-                        <label for="city">City</label>
-                        <input type="text" id="city" name="city" value="{{ template_data.applicant.city|default:'' }}" placeholder="New York">
-        </div>
-        
-        <div class="form-group">
-                        <label for="state">State</label>
-                        <input type="text" id="state" name="state" value="{{ template_data.applicant.state|default:'' }}" placeholder="NY">
-        </div>
-        
-        <div class="form-group">
-                        <label for="country">Country</label>
-                        <input type="text" id="country" name="country" value="{{ template_data.applicant.country|default:'USA' }}" readonly style="background-color: #f5f5f5;">
-        </div>
-        
-        <div class="form-group">
-                        <label for="availability">Job Search Status</label>
-                        <select id="availability" name="availability">
-                            <option value="available" {% if template_data.applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
-                            <option value="open-to-work" {% if template_data.applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
-                            <option value="not-looking" {% if template_data.applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <!-- Professional Information -->
-                <div class="form-section">
-                    <h3>Professional Information</h3>
-                    <div class="form-group">
-                        <label for="skills">Skills</label>
-                        <textarea id="skills" name="skills" rows="3" placeholder="List your skills separated by commas">{{ template_data.applicant.skills|default:'' }}</textarea>
-        </div>
-        
-        <div class="form-group">
-                        <label for="education">Education</label>
-                        <textarea id="education" name="education" rows="3" placeholder="Your educational background">{{ template_data.applicant.education|default:'' }}</textarea>
-        </div>
-        
-        <div class="form-group">
-                        <label for="experience">Experience</label>
-                        <textarea id="experience" name="experience" rows="4" placeholder="Describe your work experience">{{ template_data.applicant.experience|default:'' }}</textarea>
-        </div>
-        
-        <div class="form-group">
-                        <label for="links">Links</label>
-                        <textarea id="links" name="links" rows="2" placeholder="Portfolio, LinkedIn, GitHub, etc.">{{ template_data.applicant.links|default:'' }}</textarea>
-          </div>
-        </div>
-        
-                <!-- Projects Section -->
-                <div class="form-section">
-                    <h3>Projects Portfolio</h3>
-                    <p>Manage your project portfolio to showcase your work to recruiters.</p>
-                    
-                    <!-- Add New Project Form -->
-                    <div class="add-project-section">
-                        <h4>Add New Project</h4>
-                        <div class="project-form-inline">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="project_title">Project Title</label>
-                                    <input type="text" id="project_title" name="project_title" placeholder="e.g., E-commerce Website">
+        <div class="info-blocks-container">
+            <!-- Contact Information -->
+            <div class="info-block">
+            <div class="info-block-header">Contact Information</div>
+            <div class="info-block-item">
+                <label class="info-label">First Name:</label>
+                <input type="text" name="first_name" class="info-input" value="{{ template_data.applicant.first_name }}" required>
             </div>
-                                
-                                <div class="form-group">
-                                    <label for="project_technologies">Technologies Used</label>
-                                    <input type="text" id="project_technologies" name="project_technologies" placeholder="e.g., React, Node.js, MongoDB">
-          </div>
+            <div class="info-block-item">
+                <label class="info-label">Last Name:</label>
+                <input type="text" name="last_name" class="info-input" value="{{ template_data.applicant.last_name }}" required>
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Email:</label>
+                <input type="text" class="info-input" value="{{ template_data.applicant.user.username }}" disabled>
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Phone:</label>
+                <input type="tel" name="phone" class="info-input" value="{{ template_data.applicant.phone|default:'' }}" placeholder="Not provided">
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Street Address:</label>
+                <input type="text" name="street_address" class="info-input" value="{{ template_data.applicant.street_address|default:'' }}" placeholder="Not provided">
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">City:</label>
+                <input type="text" name="city" class="info-input" value="{{ template_data.applicant.city|default:'' }}" placeholder="Not provided">
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">State:</label>
+                <input type="text" name="state" class="info-input" value="{{ template_data.applicant.state|default:'' }}" placeholder="Not provided">
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Post Code:</label>
+                <input type="text" name="post_code" class="info-input" value="{{ template_data.applicant.post_code|default:'' }}" placeholder="Not provided">
+            </div>
         </div>
-        
-        <div class="form-group">
-                                <label for="project_description">Description</label>
-                                <textarea id="project_description" name="project_description" rows="3" placeholder="Describe your project, what it does, and your role in it."></textarea>
-        </div>
-        
-        <div class="form-group">
-                                <label for="project_url">Project URL (Optional)</label>
-                                <input type="url" id="project_url" name="project_url" placeholder="https://your-project.com">
-                            </div>
-                            
-                            <button type="button" class="btn btn-small" onclick="addProject()">Add Project</button>
-                        </div>
+            
+            <!-- Professional Information -->
+            <div class="info-block">
+            <div class="info-block-header">Professional Information</div>
+            <div class="info-block-item">
+                <label class="info-label">Skills:</label>
+                <textarea name="skills" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.skills|default:'' }}</textarea>
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Education:</label>
+                <textarea name="education" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.education|default:'' }}</textarea>
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Experience:</label>
+                <textarea name="experience" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.experience|default:'' }}</textarea>
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Job Availability:</label>
+                <select name="availability" class="info-input">
+                    <option value="available" {% if template_data.applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
+                    <option value="open-to-work" {% if template_data.applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
+                    <option value="not-looking" {% if template_data.applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
+                </select>
+            </div>
+            <div class="info-block-item">
+                <label class="info-label">Links:</label>
+                <div class="links-container" id="links-container">
+                    {% for link in template_data.applicant.get_links_list %}
+                    <div class="link-row">
+                        <input type="text" name="link_name[]" class="link-name-input" placeholder="Name (e.g., LinkedIn)" value="{{ link.name }}" style="flex: 1;">
+                        <input type="url" name="link_url[]" class="link-url-input" placeholder="URL" value="{{ link.url }}" style="flex: 2;">
+                        <button type="button" onclick="removeLinkRow(this)" class="remove-link-btn">×</button>
                     </div>
-                    
-                    <!-- Existing Projects -->
-                    <div class="projects-display">
-                        <h4>Your Projects ({{ template_data.projects|length }})</h4>
-                        
-                        {% if template_data.projects %}
-                            <div class="projects-list">
-                                {% for project in template_data.projects %}
-                                    <div class="project-item" id="project-{{ project.id }}">
-                                        <div class="project-header">
-                                            <h5>{{ project.title }}</h5>
-                                            <div class="project-actions">
-                                                <button class="btn-small edit-btn" onclick="editProject({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.description|escapejs }}', '{{ project.technologies|escapejs }}', '{{ project.url|escapejs }}')">Edit</button>
-                                                <button class="btn-small delete-btn" onclick="deleteProject({{ project.id }})">Delete</button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="project-content">
-                                            <p class="project-description">{{ project.description }}</p>
-                                            
-                                            {% if project.technologies %}
-                                                <div class="project-technologies">
-                                                    <strong>Technologies:</strong> {{ project.technologies }}
-                                                </div>
-                                            {% endif %}
-                                            
-                                            {% if project.url %}
-                                                <div class="project-url">
-                                                    <a href="{{ project.url }}" target="_blank" class="project-link">View Project →</a>
-                                                </div>
-                                            {% endif %}
-                                            
-                                            <div class="project-date">
-                                                Added: {{ project.created_at|date:"M d, Y" }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
+                    {% endfor %}
+                </div>
+                <button type="button" onclick="addLinkRow()" class="add-link-btn" style="margin-top: 0.5rem;">+ Add Link</button>
+            </div>
+        </div>
+        </div>
+        
+        <!-- Projects Section -->
+        <div class="projects-section">
+            <div class="projects-header">Projects</div>
+            
+            <!-- Add New Project Button -->
+            <div class="add-project-button-container">
+                <button type="button" onclick="toggleAddProjectForm()" class="add-project-button" id="add-project-btn">+ Add New Project</button>
+            </div>
+            
+            <!-- Add New Project Form (hidden by default) -->
+            <div class="add-project-block" id="add-project-form" style="display: none;">
+                <div class="info-block-header">Add New Project</div>
+                <div class="info-block-item">
+                    <label class="info-label">Title:</label>
+                    <input type="text" id="project_title" class="info-input" placeholder="Project title">
+                </div>
+                <div class="info-block-item">
+                    <label class="info-label">Description:</label>
+                    <textarea id="project_description" class="info-textarea" placeholder="Project description"></textarea>
+                </div>
+                <div class="info-block-item">
+                    <label class="info-label">Technologies:</label>
+                    <input type="text" id="project_technologies" class="info-input" placeholder="e.g., React, Node.js, MongoDB">
+                </div>
+                <div class="info-block-item">
+                    <label class="info-label">URL:</label>
+                    <input type="url" id="project_url" class="info-input" placeholder="https://your-project.com">
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button type="button" onclick="addProject()" class="submit-button">Add Project</button>
+                    <button type="button" onclick="toggleAddProjectForm()" class="cancel-button">Cancel</button>
+                </div>
+            </div>
+            
+            <div class="projects-list">
+                {% if template_data.projects %}
+                    {% for project in template_data.projects %}
+                    <div class="project-item" id="project-{{ project.id }}">
+                        <div class="project-actions">
+                            <button type="button" onclick="editProject({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.description|escapejs }}', '{{ project.technologies|escapejs }}', '{{ project.url|escapejs }}')" class="project-edit-btn">Edit</button>
+                            <button type="button" onclick="deleteProject({{ project.id }})" class="project-delete-btn">Delete</button>
+                        </div>
+                        <div class="project-header-row">
+                            <div class="project-title">{{ project.title }}</div>
+                            {% if project.url %}
+                            <div class="project-url">
+                                <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">View Project →</a>
                             </div>
-                        {% else %}
-                            <div class="no-projects">
-                                <p>You haven't added any projects yet. Add your first project above!</p>
-                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="project-description">{{ project.description }}</div>
+                        {% if project.technologies %}
+                        <div class="project-technologies">Technologies: {{ project.technologies }}</div>
                         {% endif %}
                     </div>
-                </div>
-                
-                <!-- Privacy Settings -->
-                <div class="form-section">
-                    <h3>Privacy Settings</h3>
-                    <p>Control what recruiters can see on your profile:</p>
-                    
-                    <div class="privacy-options">
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_skills" {% if template_data.privacy_settings.show_skills %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Skills
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_education" {% if template_data.privacy_settings.show_education %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Education
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_experience" {% if template_data.privacy_settings.show_experience %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Experience
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_projects" {% if template_data.privacy_settings.show_projects %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Projects
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_links" {% if template_data.privacy_settings.show_links %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Links
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_phone" {% if template_data.privacy_settings.show_phone %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Phone Number
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_location" {% if template_data.privacy_settings.show_location %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Location
-                            </label>
-                        </div>
-                        
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="show_availability" {% if template_data.privacy_settings.show_availability %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Show Availability Status
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-preferences">
-                        <h4>Contact Preferences</h4>
-                        <div class="privacy-option">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="allow_email_contact" {% if template_data.privacy_settings.allow_email_contact %}checked{% endif %}>
-                                <span class="checkmark"></span>
-                                Allow Email Contact
-                            </label>
-                        </div>
-                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="project-empty-message">No projects added yet.</div>
+                {% endif %}
+            </div>
         </div>
-
+        
+        <!-- Form Actions -->
         <div class="form-actions">
-                    <button type="submit" class="btn">Save Changes</button>
-                    <a href="{% url 'seeker:profile' %}" class="btn secondary">Cancel</a>
-                </div>
-            </form>
+            <button type="submit" class="submit-button">Save Changes</button>
+            <a href="{% url 'seeker:profile' %}" class="cancel-button">Cancel</a>
         </div>
-    </div>
+    </form>
 </div>
 
 <style>
-.job-search-container {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: flex-start !important;
-    padding: 2rem 1rem !important;
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
 }
 
-.profile-form {
-    width: 100%;
-    margin: 0 auto;
-}
-
-.form-section {
-    background: #ffffff;
-    padding: 2rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.form-section h3 {
-    margin: 0 0 1.5rem 0;
-    color: var(--main-green);
-    border-bottom: 2px solid var(--main-green);
-    padding-bottom: 0.5rem;
-    font-size: 1.25rem;
-    font-weight: var(--font-weight-semibold);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #333;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-family: var(--font-family-base);
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--main-green);
-    box-shadow: 0 0 0 3px rgba(33, 128, 116, 0.1);
-}
-
-.privacy-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.contact-preferences {
-    border-top: 1px solid #ddd;
-    padding-top: 1rem;
-}
-
-.contact-preferences h4 {
-    margin: 0 0 1rem 0;
-    color: #333;
-}
-
-.privacy-option {
+.edit-icon-button {
+    position: absolute;
+    top: 1rem;
+    right: 2rem;
+    background-color: rgb(33, 128, 116);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    text-decoration: none;
     cursor: pointer;
-    font-size: 0.95rem;
+    z-index: 10;
+    transition: opacity 0.2s;
 }
 
-.checkbox-label input[type="checkbox"] {
-    margin-right: 0.5rem;
-    width: auto;
+.edit-icon-button:hover {
+    opacity: 0.9;
 }
 
-.form-actions {
+.edit-icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.profile-header {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-name-banner {
+    background-color: rgb(33, 128, 116);
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+    padding: 5px 20px;
+    border-radius: 9999px;
+    text-align: center;
+    margin-top: 0.8rem;
+    display: inline-block;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
     margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid #e9ecef;
-    justify-content: center;
+    padding: 0 1rem;
+    min-width: 900px;
 }
 
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 1rem;
-    cursor: pointer;
-    display: inline-block;
-    text-align: center;
+.info-blocks-container {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    width: 100%;
+    align-items: flex-start;
 }
 
-.btn {
-    background: var(--main-green);
-    color: white;
-    font-weight: var(--font-weight-medium);
-    transition: opacity 0.2s, transform 0.2s;
+.info-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    flex: 1;
+    padding: 1rem 1.5rem .5rem 1.5rem;
 }
 
-.btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+.info-block-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: .6rem;
 }
 
-.btn.secondary {
-    background: #6c757d;
-    color: white;
+.info-block-item {
+    font-size: 18px;
+    margin-bottom: 1rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
 }
 
-/* Projects Section Styles */
-.add-project-section {
-    background: #f8f9fa;
-    padding: 1.5rem;
+.info-label {
+    font-weight: 500;
+}
+
+.info-input,
+.info-textarea,
+.info-select {
+    font-size: 18px;
+    font-weight: 400;
+    padding: 0.5rem;
+    border: 1px solid rgba(33, 128, 116, 0.3);
     border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border: 1px solid #e9ecef;
+    background-color: white;
+    font-family: inherit;
+    width: 100%;
 }
 
-.add-project-section h4 {
-    margin: 0 0 1rem 0;
-    color: var(--main-green);
-    border-bottom: 1px solid var(--main-green);
-    padding-bottom: 0.5rem;
-    font-weight: var(--font-weight-semibold);
+.info-input:focus,
+.info-textarea:focus,
+.info-select:focus {
+    outline: none;
+    border-color: rgb(33, 128, 116);
+    box-shadow: 0 0 0 2px rgba(33, 128, 116, 0.1);
 }
 
-.project-form-inline {
-    max-width: 100%;
+.info-textarea {
+    min-height: 80px;
+    resize: vertical;
 }
 
-.projects-display h4 {
-    margin: 0 0 1rem 0;
-    color: var(--main-green);
-    border-bottom: 1px solid var(--main-green);
-    padding-bottom: 0.5rem;
-    font-weight: var(--font-weight-semibold);
+.info-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.projects-section {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.projects-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
 }
 
 .projects-list {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    padding: 0 1rem;
 }
 
 .project-item {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.project-header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    background-color: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
     align-items: flex-start;
-    margin-bottom: 1rem;
 }
 
-.project-header h5 {
-    margin: 0;
-    color: #333;
-    flex: 1;
+.project-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.project-description {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.project-technologies {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.project-url {
+    font-size: 18px;
+    margin-bottom: 0.5rem;
+}
+
+.project-url a {
+    color: rgb(33, 128, 116);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.project-url a:hover {
+    text-decoration: underline;
+}
+
+.project-date {
+    font-size: 16px;
+    font-weight: 400;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.project-empty-message {
+    font-size: 18px;
+    font-weight: 400;
+    color: #666;
+    font-style: italic;
+    padding: 1rem 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.submit-button,
+.cancel-button {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 9999px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.submit-button {
+    background-color: rgb(33, 128, 116);
+    color: white;
+}
+
+.cancel-button {
+    background-color: rgba(33, 128, 116, 0.2);
+    color: rgb(33, 128, 116);
+}
+
+.submit-button:hover,
+.cancel-button:hover {
+    opacity: 0.9;
+}
+
+.add-project-button-container {
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+}
+
+.add-project-button {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 9999px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: rgb(33, 128, 116);
+    color: white;
+    transition: opacity 0.2s;
+}
+
+.add-project-button:hover {
+    opacity: 0.9;
+}
+
+.add-project-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    padding: 1rem 1.5rem 1rem 1.5rem;
+    margin-bottom: 1rem;
+    margin-left: 1rem;
+    width: 96.5%;
 }
 
 .project-actions {
     display: flex;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-self: flex-end;
 }
 
-.btn-small {
-    padding: 0.25rem 0.75rem;
+.project-edit-btn,
+.project-delete-btn {
+    padding: 5px 15px;
     border: none;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
+    transition: opacity 0.2s;
 }
 
-.edit-btn {
-    background: var(--main-green);
+.project-edit-btn {
+    background-color: rgb(33, 128, 116);
     color: white;
 }
 
-.delete-btn {
-    background: #dc3545;
+.project-delete-btn {
+    background-color: #dc3545;
     color: white;
 }
 
-.btn-small:hover {
+.project-edit-btn:hover,
+.project-delete-btn:hover {
     opacity: 0.9;
 }
 
-.project-content {
-    color: #555;
+.links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
 }
 
-.project-description {
-    margin-bottom: 1rem;
-    line-height: 1.5;
+.link-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
 }
 
-.project-technologies {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.project-url {
-    margin-bottom: 0.5rem;
-}
-
-.project-link {
-    color: var(--main-green);
-    text-decoration: none;
-}
-
-.project-link:hover {
-    text-decoration: underline;
-}
-
-.project-date {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
-}
-
-.no-projects {
-    text-align: center;
-    padding: 2rem;
-    color: #666;
-    background: #f8f9fa;
+.link-name-input,
+.link-url-input {
+    font-size: 18px;
+    font-weight: 400;
+    padding: 0.5rem;
+    border: 1px solid rgba(33, 128, 116, 0.3);
     border-radius: 8px;
-    border: 1px dashed #ddd;
+    background-color: white;
+    font-family: inherit;
 }
 
-@media (max-width: 768px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .privacy-options {
-        grid-template-columns: 1fr;
-    }
-    
-    .project-header {
+.link-name-input:focus,
+.link-url-input:focus {
+    outline: none;
+    border-color: rgb(33, 128, 116);
+    box-shadow: 0 0 0 2px rgba(33, 128, 116, 0.1);
+}
+
+.remove-link-btn {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 9999px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: #dc3545;
+    color: white;
+    transition: opacity 0.2s;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-link-btn:hover {
+    opacity: 0.9;
+}
+
+.add-link-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 9999px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: rgba(33, 128, 116, 0.2);
+    color: rgb(33, 128, 116);
+    transition: opacity 0.2s;
+}
+
+.add-link-btn:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 1024px) {
+    .info-blocks-container {
         flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .project-actions {
-        margin-top: 0.5rem;
     }
 }
 </style>
 
 <script>
+function addLinkRow() {
+    const container = document.getElementById('links-container');
+    const row = document.createElement('div');
+    row.className = 'link-row';
+    row.innerHTML = `
+        <input type="text" name="link_name[]" class="link-name-input" placeholder="Name (e.g., LinkedIn)" style="flex: 1;">
+        <input type="url" name="link_url[]" class="link-url-input" placeholder="URL" style="flex: 2;">
+        <button type="button" onclick="removeLinkRow(this)" class="remove-link-btn">×</button>
+    `;
+    container.appendChild(row);
+}
+
+function removeLinkRow(button) {
+    button.parentElement.remove();
+}
+
+function toggleAddProjectForm() {
+    const form = document.getElementById('add-project-form');
+    const button = document.getElementById('add-project-btn');
+    
+    if (form.style.display === 'none') {
+        form.style.display = 'flex';
+        button.textContent = '- Cancel';
+    } else {
+        form.style.display = 'none';
+        button.textContent = '+ Add New Project';
+        // Clear form fields
+        document.getElementById('project_title').value = '';
+        document.getElementById('project_description').value = '';
+        document.getElementById('project_technologies').value = '';
+        document.getElementById('project_url').value = '';
+    }
+}
+
 function addProject() {
     const title = document.getElementById('project_title').value.trim();
     const description = document.getElementById('project_description').value.trim();
@@ -570,7 +599,6 @@ function addProject() {
         return;
     }
     
-    // Create form data
     const formData = new FormData();
     formData.append('action', 'add');
     formData.append('title', title);
@@ -579,7 +607,6 @@ function addProject() {
     formData.append('url', url);
     formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
     
-    // Submit via AJAX
     fetch(window.location.href, {
         method: 'POST',
         body: formData
@@ -595,6 +622,11 @@ function addProject() {
         console.error('Error:', error);
         alert('Error adding project. Please try again.');
     });
+}
+
+// Close form after successful add
+function closeAddProjectForm() {
+    toggleAddProjectForm();
 }
 
 function editProject(id, title, description, technologies, url) {
@@ -615,7 +647,6 @@ function editProject(id, title, description, technologies, url) {
         return;
     }
     
-    // Create form data
     const formData = new FormData();
     formData.append('action', 'edit');
     formData.append('project_id', id);
@@ -625,7 +656,6 @@ function editProject(id, title, description, technologies, url) {
     formData.append('url', newUrl.trim());
     formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
     
-    // Submit via AJAX
     fetch(window.location.href, {
         method: 'POST',
         body: formData
@@ -648,13 +678,11 @@ function deleteProject(id) {
         return;
     }
     
-    // Create form data
     const formData = new FormData();
     formData.append('action', 'delete');
     formData.append('project_id', id);
     formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
     
-    // Submit via AJAX
     fetch(window.location.href, {
         method: 'POST',
         body: formData
