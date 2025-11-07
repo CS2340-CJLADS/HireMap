@@ -286,19 +286,17 @@
   transform: none !important;
 }
 
+.application-bar.active {
+  background: rgba(33, 128, 116, 0.20) !important;
+}
+
 .application-bar:hover {
-  background: linear-gradient(135deg, 
-    rgba(19, 227, 178, calc(var(--job-card-fill-opacity) * 2)), 
-    rgba(101, 243, 243, calc(var(--job-card-fill-opacity) * 2))
-  );
+  background: rgba(33, 128, 116, 0.20) !important;
   transform: none !important;
 }
 
-.application-bar.active {
-  background: linear-gradient(135deg, 
-    rgba(19, 227, 178, var(--job-card-selected-opacity)), 
-    rgba(101, 243, 243, var(--job-card-selected-opacity))
-  );
+.application-bar.active:hover {
+  background: rgba(33, 128, 116, 0.20) !important;
 }
 
 .application-bar .application-company,

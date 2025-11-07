@@ -139,7 +139,7 @@
     color: #ffffff;
     height: 32px;
     padding: 0rem 1.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
     margin-left: 0;
     box-shadow: none;
 }
@@ -563,7 +563,7 @@
 .job-tile {
     padding: 1.5rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease;
     position: relative;
     border-radius: 25px;
     background: white;
@@ -574,19 +574,21 @@
     gap: 0.4rem;
 }
 
-.job-tile:hover {
-    background: linear-gradient(135deg, 
-        rgba(19, 227, 178, calc(var(--job-card-fill-opacity) * 2)), 
-        rgba(101, 243, 243, calc(var(--job-card-fill-opacity) * 2))
-    );
+.job-tile.active,
+.job-listing.active .job-tile {
+    background: rgba(33, 128, 116, 0.20) !important;
+    border-left: 4px solid var(--main-green);
 }
 
-.job-tile.active {
-    background: linear-gradient(135deg, 
-        rgba(19, 227, 178, var(--job-card-selected-opacity)), 
-        rgba(101, 243, 243, var(--job-card-selected-opacity))
-    );
-    border-left: 4px solid var(--main-green);
+.job-tile:hover,
+.job-listing:hover .job-tile {
+    background: rgba(33, 128, 116, 0.20) !important;
+}
+
+.job-tile.active:hover,
+.job-listing.active .job-tile:hover,
+.job-listing.active:hover .job-tile {
+    background: rgba(33, 128, 116, 0.20) !important;
 }
 
 /* Job Tile Sections */
@@ -1119,6 +1121,7 @@
     background: linear-gradient(135deg, #f8fff9, #e8f5e8);
 }
 
+
 .applied-badge {
     position: absolute;
     top: 0.5rem;
@@ -1424,3 +1427,4 @@
     color: white;
     border-bottom: 2px solid var(--main-green);
 }
+
