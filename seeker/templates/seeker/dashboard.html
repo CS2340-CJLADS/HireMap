@@ -11,19 +11,32 @@
                 <div class="search-text">
                     <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." 
                            value="{{ template_data.search_term|default:'' }}" class="search-input" id="search-input" />
-                    <button type="submit" class="search-icon" aria-label="Search">🔍</button>
-                </div>
-                <div class="filter-actions">
-                    <button type="button" id="clear-filters" class="clear-filters-btn">Clear All</button>
+                    <button type="submit" class="search-icon" aria-label="Search">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04 1.5 1.5 1.5 1.5l3.5 3.5a1 1 0 0 0 1.415-1.414l-3.5-3.5a6.5 6.5 0 0 0-1.517-1.388zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" fill="white"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="search-filters-inline">
                     <div class="filter-item">
-                        <input type="text" name="title" id="title" placeholder="e.g., Software Engineer, Product Manager..." 
-                               value="{{ request.GET.title|default:'' }}" class="filter-input" />
+                        <select name="work_type" id="work_type" class="filter-input">
+                            <option value="">Type</option>
+                            <option value="remote" {% if request.GET.work_type == 'remote' %}selected{% endif %}>Remote</option>
+                            <option value="in-person" {% if request.GET.work_type == 'in-person' %}selected{% endif %}>In-Person</option>
+                        </select>
                     </div>
                     <div class="filter-item">
-                        <input type="text" name="location" id="location" placeholder="e.g., San Francisco, Remote, New York..." 
-                               value="{{ request.GET.location|default:'' }}" class="filter-input" />
+                        <select name="location" id="location" class="filter-input">
+                            <option value="">All Locations</option>
+                            
+                            {% if template_data.non_remote_locations %}
+                            {% for loc in template_data.non_remote_locations %}
+                            <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>
+                                {{ loc }}
+                            </option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
                     </div>
                     <div class="filter-item">
                         <div class="visa-filter">
@@ -52,6 +65,8 @@
                 </div>
             </div>
         </form>
+        <!-- Separate rounded green capsule button next to the search bar -->
+        <button type="button" class="action-capsule-btn">Map View</button>
     </div>
 
     <!-- Split Screen Layout -->
@@ -124,7 +139,10 @@
             <div id="dashboard-content" class="panel-content">
                 <div class="dashboard-container">
                     <div class="dashboard-section">
-                        <div class="section-name">Current Search</div>
+                        <div class="section-header">
+                            <div class="section-name">Current Search</div>
+                            <button type="button" id="clear-filters" class="clear-filters-btn">Clear Filters</button>
+                        </div>
                         <div class="saved-searches-list" id="current-search-tags">
                             {% if template_data.search_term %}
                             <span class="saved-search-item">"{{ template_data.search_term }}"</span>
@@ -230,6 +248,7 @@
                         <p>Loading job details...</p>
                     </div>
                     <div id="job-details-body">
+                        <button type="button" class="action-capsule-btn" id="back-to-dashboard">Back to dashboard</button>
                         <div class="job-description-container">
                             <!-- Header Section -->
                             <div class="job-description-header">
@@ -455,6 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('search-form');
     const clearBtn = document.getElementById('clear-filters');
     const searchInput = document.getElementById('search-input');
+    const workTypeSelect = document.getElementById('work_type');
     const titleSelect = document.getElementById('title');
     const locationSelect = document.getElementById('location');
     const skillsSelect = document.getElementById('skills');
@@ -500,6 +520,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners
     if (clearBtn) {
         clearBtn.addEventListener('click', clearFilters);
+    }
+    
+    if (workTypeSelect) {
+        workTypeSelect.addEventListener('change', autoSubmit);
     }
     
     if (titleSelect) {
@@ -561,27 +585,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-.filter-actions {
-    display: flex;
-    align-items: center;
-    margin-left: 1rem;
-}
-
-.clear-filters-btn {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.clear-filters-btn:hover {
-    background: #5a6268;
-}
-
 .saved-search-item {
     background: #e9ecef;
     color: #495057;
@@ -600,10 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 @media (max-width: 768px) {
-    .filter-actions {
-        margin-left: 0;
-        margin-top: 0.5rem;
-    }
 }
 
 .filter-input {

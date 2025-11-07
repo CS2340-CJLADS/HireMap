@@ -141,12 +141,30 @@ def job_new(request):
         action = request.POST.get('action', 'publish')
         is_draft = action == 'draft'
         
+        # Validate required address fields
+        street_address = request.POST.get('street_address', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        
+        if not street_address or not city or not state:
+            # Return error - required fields missing
+            template_data = {
+                'title': 'Post New Job',
+                'error': 'Street address, city, and state are required fields.',
+            }
+            return render(request, 'recruiter/job_new.html', {'template_data': template_data})
+        
         # Create new job posting
         job = JobPosting.objects.create(
             title=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
             skills_required=request.POST.get('skills_required', ''),
-            location=request.POST.get('location', ''),
+            location=request.POST.get('location', ''),  # Keep for backward compatibility
+            street_address=street_address,
+            post_code=request.POST.get('post_code', '').strip(),
+            city=city,
+            state=state,
+            country=request.POST.get('country', 'USA').strip(),
             salary_min=float(request.POST.get('salary_min', 0)),
             salary_max=float(request.POST.get('salary_max', 0)),
             remote=request.POST.get('remote') == 'on',
@@ -172,11 +190,30 @@ def job_edit(request, job_id):
         # Get the action (publish, draft, save, or unpublish)
         action = request.POST.get('action', 'save')
         
+        # Validate required address fields
+        street_address = request.POST.get('street_address', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        
+        if not street_address or not city or not state:
+            # Return error - required fields missing
+            template_data = {
+                'title': 'Edit Job',
+                'job': job,
+                'error': 'Street address, city, and state are required fields.',
+            }
+            return render(request, 'recruiter/job_edit.html', {'template_data': template_data})
+        
         # Update job fields
         job.title = request.POST.get('title', '')
         job.description = request.POST.get('description', '')
         job.skills_required = request.POST.get('skills_required', '')
-        job.location = request.POST.get('location', '')
+        job.location = request.POST.get('location', '')  # Keep for backward compatibility
+        job.street_address = street_address
+        job.post_code = request.POST.get('post_code', '').strip()
+        job.city = city
+        job.state = state
+        job.country = request.POST.get('country', 'USA').strip()
         job.salary_min = float(request.POST.get('salary_min', 0))
         job.salary_max = float(request.POST.get('salary_max', 0))
         job.remote = request.POST.get('remote') == 'on'

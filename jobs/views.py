@@ -235,14 +235,26 @@ def recruiter_job_new(request):
         save_as_draft = bool(request.POST.get('save_draft'))
         
 
-        if not title or not description or not location:
-            return HttpResponseBadRequest("Missing required fields.")
+        # Get address fields
+        street_address = request.POST.get('street_address', '').strip()
+        post_code = request.POST.get('post_code', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        country = request.POST.get('country', 'USA').strip()
+        
+        if not title or not description or not street_address or not city or not state:
+            return HttpResponseBadRequest("Missing required fields: title, description, street_address, city, and state are required.")
 
         job = JobPosting.objects.create(
             title=title,
             description=description,
             skills_required=skills_required,
-            location=location,
+            location=location,  # Keep for backward compatibility
+            street_address=street_address,
+            post_code=post_code,
+            city=city,
+            state=state,
+            country=country,
             salary_min=salary_min,
             salary_max=salary_max,
             remote=(work_type == 'remote'),
@@ -272,13 +284,25 @@ def recruiter_job_edit(request, job_id):
         visa_sponsorship = bool(request.POST.get('visa_sponsorship'))
         save_as_draft = bool(request.POST.get('save_draft'))
 
-        if not title or not description or not location:
-            return HttpResponseBadRequest("Missing required fields.")
+        # Get address fields
+        street_address = request.POST.get('street_address', '').strip()
+        post_code = request.POST.get('post_code', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        country = request.POST.get('country', 'USA').strip()
+        
+        if not title or not description or not street_address or not city or not state:
+            return HttpResponseBadRequest("Missing required fields: title, description, street_address, city, and state are required.")
 
         job.title = title
         job.description = description
         job.skills_required = skills_required
-        job.location = location
+        job.location = location  # Keep for backward compatibility
+        job.street_address = street_address
+        job.post_code = post_code
+        job.city = city
+        job.state = state
+        job.country = country
         job.salary_min = salary_min
         job.salary_max = salary_max
         job.remote = (work_type == 'remote') if work_type is not None else job.remote

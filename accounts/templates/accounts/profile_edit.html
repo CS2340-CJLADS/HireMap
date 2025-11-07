@@ -3,11 +3,10 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
 
-<div class="job-search-container">
-    <div class="page-container">
-        <div class="dashboard-section">
-            <h2>Edit Profile</h2>
-            <p>Update your profile information and privacy settings.</p>
+<div class="job-search-container" style="display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 2rem 1rem;">
+    <div style="width: 100%; max-width: 800px;">
+            <h2 style="text-align: center; margin-bottom: 0.5rem; color: var(--main-green);">Edit Profile</h2>
+            <p style="text-align: center; margin-bottom: 2rem; color: #666;">Update your profile information and privacy settings.</p>
             
             <form method="post" class="profile-form">
         {% csrf_token %}
@@ -272,23 +271,34 @@
 </div>
 
 <style>
+.job-search-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    padding: 2rem 1rem !important;
+}
+
 .profile-form {
-    max-width: 800px;
-    margin-top: 2rem;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .form-section {
-    background: #f8f9fa;
+    background: #ffffff;
     padding: 2rem;
     border-radius: 8px;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .form-section h3 {
     margin: 0 0 1.5rem 0;
-    color: #333;
-    border-bottom: 2px solid #007bff;
+    color: var(--main-green);
+    border-bottom: 2px solid var(--main-green);
     padding-bottom: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-semibold);
 }
 
 .form-row {
@@ -314,17 +324,18 @@
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 1rem;
-    font-family: inherit;
+    font-family: var(--font-family-base);
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: var(--main-green);
+    box-shadow: 0 0 0 3px rgba(33, 128, 116, 0.1);
 }
 
 .privacy-options {
@@ -366,7 +377,8 @@
     gap: 1rem;
     margin-top: 2rem;
     padding-top: 2rem;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #e9ecef;
+    justify-content: center;
 }
 
 .btn {
@@ -380,18 +392,21 @@
     text-align: center;
 }
 
-.btn.primary {
-    background: #007bff;
+.btn {
+    background: var(--main-green);
     color: white;
+    font-weight: var(--font-weight-medium);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
 .btn.secondary {
     background: #6c757d;
     color: white;
-}
-
-.btn:hover {
-    opacity: 0.9;
 }
 
 /* Projects Section Styles */
@@ -405,9 +420,10 @@
 
 .add-project-section h4 {
     margin: 0 0 1rem 0;
-    color: #333;
-    border-bottom: 1px solid #28a745;
+    color: var(--main-green);
+    border-bottom: 1px solid var(--main-green);
     padding-bottom: 0.5rem;
+    font-weight: var(--font-weight-semibold);
 }
 
 .project-form-inline {
@@ -416,9 +432,10 @@
 
 .projects-display h4 {
     margin: 0 0 1rem 0;
-    color: #333;
-    border-bottom: 1px solid #007bff;
+    color: var(--main-green);
+    border-bottom: 1px solid var(--main-green);
     padding-bottom: 0.5rem;
+    font-weight: var(--font-weight-semibold);
 }
 
 .projects-list {
@@ -464,7 +481,7 @@
 }
 
 .edit-btn {
-    background: #007bff;
+    background: var(--main-green);
     color: white;
 }
 
@@ -496,7 +513,7 @@
 }
 
 .project-link {
-    color: #007bff;
+    color: var(--main-green);
     text-decoration: none;
 }
 
