@@ -994,20 +994,39 @@
     display: flex;
     flex-direction: column;
     gap: 0rem;
+    position: relative;
+}
+
+.job-description-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 .job-description-company {
     font-size: 24px;
-    font-weight: var(--font-weight-semibold);
+    font-weight: 700;
     color: #000000;
     font-family: var(--font-family-base);
 }
 
 .job-description-position {
     font-size: 20px;
-    font-weight: var(--font-weight-medium);
+    font-weight: 600;
     color: #000000;
     font-family: var(--font-family-base);
+    margin-bottom: 0.5rem;
+}
+
+.job-description-applied-date {
+    font-size: 14px;
+    font-weight: 400;
+    color: #666666;
+    font-family: var(--font-family-base);
+    margin-bottom: 1.5rem;
 }
 
 /* Description Sections Wrapper */
@@ -1029,10 +1048,11 @@
 }
 
 .section-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700; /* bold */
     color: #000000;
     font-family: var(--font-family-base);
+    line-height: 1.5;
 }
 
 .section-content {
