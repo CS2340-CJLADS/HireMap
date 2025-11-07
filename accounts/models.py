@@ -47,7 +47,7 @@ class Applicant(models.Model):
         try:
             return json.loads(self.links)
         except (json.JSONDecodeError, TypeError):
-            # Fallback for old format or invalid JSON
+            # Invalid JSON - return empty list
             return []
     
     def get_privacy_settings(self):
@@ -88,8 +88,16 @@ class Applicant(models.Model):
             profile_data['links'] = self.links
         if privacy.show_phone and self.phone:
             profile_data['phone'] = self.phone
-        if privacy.show_location and self.location:
-            profile_data['location'] = self.location
+        if privacy.show_location:
+            # Format location from city and state
+            if self.city and self.state:
+                profile_data['location'] = f"{self.city}, {self.state}"
+            elif self.street_address:
+                profile_data['location'] = self.street_address
+                if self.city:
+                    profile_data['location'] += f", {self.city}"
+                if self.state:
+                    profile_data['location'] += f" {self.state}"
         if privacy.show_availability:
             profile_data['availability'] = self.availability
         if privacy.allow_email_contact:

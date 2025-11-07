@@ -159,7 +159,7 @@ def job_new(request):
             title=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
             skills_required=request.POST.get('skills_required', ''),
-            location=request.POST.get('location', ''),  # Keep for backward compatibility
+            # Location is now handled by city, state, street_address, post_code fields
             street_address=street_address,
             post_code=request.POST.get('post_code', '').strip(),
             city=city,
@@ -208,7 +208,7 @@ def job_edit(request, job_id):
         job.title = request.POST.get('title', '')
         job.description = request.POST.get('description', '')
         job.skills_required = request.POST.get('skills_required', '')
-        job.location = request.POST.get('location', '')  # Keep for backward compatibility
+        # Location is now handled by city, state, street_address, post_code fields
         job.street_address = street_address
         job.post_code = request.POST.get('post_code', '').strip()
         job.city = city
@@ -366,17 +366,21 @@ def search_candidates(request):
             )
     
     if location_search:
-        # Exclude applicants with no location or placeholder text
-        applicants = applicants.filter(
-            location__icontains=location_search,
-            privacy_settings__show_location=True  # Only show applicants with visible location
-        ).exclude(
-            Q(location__isnull=True) | 
-            Q(location__exact='') | 
-            Q(location__exact='None') |
-            Q(location__icontains='Location not specified') |
-            Q(location__icontains='No location specified')
-        )
+        # Location filter - format is "City, State" from the dropdown
+        if ', ' in location_search:
+            city, state = location_search.split(', ', 1)
+            applicants = applicants.filter(
+                city__iexact=city.strip(),
+                state__iexact=state.strip(),
+                privacy_settings__show_location=True  # Only show applicants with visible location
+            )
+        else:
+            # Fallback: try to match city or state
+            applicants = applicants.filter(
+                privacy_settings__show_location=True
+            ).filter(
+                Q(city__icontains=location_search) | Q(state__icontains=location_search)
+            )
     
     if availability_search:
         applicants = applicants.filter(availability=availability_search)
@@ -393,6 +397,27 @@ def search_candidates(request):
             Q(education__icontains='No education information provided') |
             Q(education__icontains='No education specified')
         )
+    
+    # Get unique locations from actual applicants
+    # Use city and state from address fields
+    all_applicants = Applicant.objects.exclude(city__isnull=True).exclude(city='').exclude(state__isnull=True).exclude(state='')
+    
+    # Build location strings in "City, State" format
+    all_locations_list = []
+    seen_locations = set()
+    
+    # Filter out invalid/spam locations
+    invalid_locations = {'spam', 'SPAM', 'test', 'TEST', 'test location', 'example'}
+    
+    for applicant in all_applicants:
+        if applicant.city and applicant.state:
+            location_str = f"{applicant.city}, {applicant.state}"
+            # Check if location is valid and not already seen
+            if location_str not in seen_locations and location_str.lower() not in invalid_locations:
+                all_locations_list.append(location_str)
+                seen_locations.add(location_str)
+    
+    all_locations_list = sorted(all_locations_list)
     
     # Add pagination
     from django.core.paginator import Paginator
@@ -416,11 +441,32 @@ def search_candidates(request):
         if applicant.get_privacy_settings().show_experience:
             temp['experience'] = applicant.experience
         if applicant.get_privacy_settings().show_links:
+            # Links are already stored as JSON string, pass as-is
             temp['links'] = applicant.links
         if applicant.get_privacy_settings().show_phone:
             temp['phone'] = applicant.phone
-        if applicant.get_privacy_settings().show_location:
-            temp['location'] = applicant.location
+        # Always add location, but mark if it's hidden
+        privacy_settings = applicant.get_privacy_settings()
+        temp['location'] = None  # Default to None
+        if privacy_settings.show_location:
+            # Format location from city and state (preferred)
+            # Handle None values and strip whitespace
+            city = str(applicant.city).strip() if applicant.city else ''
+            state = str(applicant.state).strip() if applicant.state else ''
+            street = str(applicant.street_address).strip() if applicant.street_address else ''
+            old_location = str(applicant.location).strip() if applicant.location else ''
+            
+            # Build location string - prioritize city+state, then fallback to individual fields
+            if city and state:
+                temp['location'] = f"{city}, {state}"
+            elif city:
+                temp['location'] = city
+            elif state:
+                temp['location'] = state
+            elif street:
+                temp['location'] = street
+            elif old_location:
+                temp['location'] = old_location
         if applicant.get_privacy_settings().show_availability:
             temp['availability'] = applicant.availability
         applicants_with_projects.append(temp)
@@ -447,6 +493,7 @@ def search_candidates(request):
         'candidate_id': candidate_id,
         'specific_candidate': specific_candidate,
         'specific_candidate_projects': specific_candidate_projects,
+        'locations': all_locations_list,
         'filters': {
             'search': search_term,
             'skills': skills_search,
@@ -474,7 +521,11 @@ def get_applicant_info(request, applicant_id):
     if applicant.get_privacy_settings().show_experience:
         data['experience'] = applicant.experience
     if applicant.get_privacy_settings().show_location:
-        data['location'] = applicant.location
+        # Format location from city and state
+        if applicant.city and applicant.state:
+            data['location'] = f"{applicant.city}, {applicant.state}"
+        else:
+            data['location'] = None
     
     return JsonResponse(data)
 
@@ -841,7 +892,11 @@ def get_recommended_applicants_json(request, job_id):
         if privacy.show_experience:
             applicant_data['experience'] = applicant.experience
         if privacy.show_location:
-            applicant_data['location'] = applicant.location
+            # Format location from city and state
+            if applicant.city and applicant.state:
+                applicant_data['location'] = f"{applicant.city}, {applicant.state}"
+            else:
+                applicant_data['location'] = None
         if privacy.show_availability:
             applicant_data['availability'] = applicant.availability
         if privacy.show_phone:

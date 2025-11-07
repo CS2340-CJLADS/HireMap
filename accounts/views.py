@@ -45,6 +45,19 @@ def signup(request):
                 applicant = applicant_form.save(commit=False)
                 applicant.user = user
                 applicant.availability = request.POST.get('applicant-availability', 'open-to-work')
+                
+                # Handle links as JSON array of {name, url} objects
+                import json
+                links_data = []
+                link_names = request.POST.getlist('link_name[]')
+                link_urls = request.POST.getlist('link_url[]')
+                for name, url in zip(link_names, link_urls):
+                    name = name.strip()
+                    url = url.strip()
+                    if name and url:
+                        links_data.append({'name': name, 'url': url})
+                applicant.links = json.dumps(links_data) if links_data else ''
+                
                 applicant.save()
                 return redirect('accounts:login')
                 
@@ -329,7 +342,6 @@ def profile_edit(request):
                     links_data.append({'name': name, 'url': url})
             applicant.links = json.dumps(links_data) if links_data else ''
             applicant.phone = request.POST.get('phone', '').strip()
-            applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()  # Keep for backward compatibility
             applicant.street_address = request.POST.get('street_address', '').strip()
             applicant.post_code = request.POST.get('post_code', '').strip()
             applicant.city = request.POST.get('city', '').strip()
@@ -339,15 +351,15 @@ def profile_edit(request):
             applicant.save()
             
             # Update privacy settings
-            privacy_settings.show_skills = bool(request.POST.get('show_skills'))
-            privacy_settings.show_education = bool(request.POST.get('show_education'))
-            privacy_settings.show_experience = bool(request.POST.get('show_experience'))
-            privacy_settings.show_projects = bool(request.POST.get('show_projects'))
-            privacy_settings.show_links = bool(request.POST.get('show_links'))
-            privacy_settings.show_phone = bool(request.POST.get('show_phone'))
-            privacy_settings.show_location = bool(request.POST.get('show_location'))
-            privacy_settings.show_availability = bool(request.POST.get('show_availability'))
-            privacy_settings.allow_email_contact = bool(request.POST.get('allow_email_contact'))
+            privacy_settings.show_skills = request.POST.get('show_skills') == '1'
+            privacy_settings.show_education = request.POST.get('show_education') == '1'
+            privacy_settings.show_experience = request.POST.get('show_experience') == '1'
+            privacy_settings.show_projects = request.POST.get('show_projects') == '1'
+            privacy_settings.show_links = request.POST.get('show_links') == '1'
+            privacy_settings.show_phone = request.POST.get('show_phone') == '1'
+            privacy_settings.show_location = request.POST.get('show_location') == '1'
+            privacy_settings.show_availability = request.POST.get('show_availability') == '1'
+            privacy_settings.allow_email_contact = request.POST.get('allow_email_contact') == '1'
             privacy_settings.save()
             
             return redirect('seeker:profile')
@@ -374,7 +386,7 @@ def recruiter_profile_edit(request):
         recruiter.first_name = request.POST.get('first_name', '').strip()
         recruiter.last_name = request.POST.get('last_name', '').strip()
         recruiter.company_name = request.POST.get('company_name', '').strip()
-        recruiter.location = request.POST.get('location', '').strip()  # Keep for backward compatibility
+        # Location is now handled by city, state, street_address, post_code fields
         recruiter.street_address = request.POST.get('street_address', '').strip()
         recruiter.post_code = request.POST.get('post_code', '').strip()
         recruiter.city = request.POST.get('city', '').strip()

@@ -249,7 +249,7 @@ def recruiter_job_new(request):
             title=title,
             description=description,
             skills_required=skills_required,
-            location=location,  # Keep for backward compatibility
+            # Location is now handled by city, state, street_address, post_code fields
             street_address=street_address,
             post_code=post_code,
             city=city,
@@ -297,7 +297,7 @@ def recruiter_job_edit(request, job_id):
         job.title = title
         job.description = description
         job.skills_required = skills_required
-        job.location = location  # Keep for backward compatibility
+        # Location is now handled by city, state, street_address, post_code fields
         job.street_address = street_address
         job.post_code = post_code
         job.city = city
@@ -357,7 +357,7 @@ def edit_profile(request):
         applicant.projects = request.POST.get('projects', '').strip()
         applicant.links = request.POST.get('links', '').strip()
         applicant.phone = request.POST.get('phone', '').strip()
-        applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()
+        # Location is now handled by city, state, street_address, post_code fields
         applicant.availability = request.POST.get('availability', 'open-to-work')
         applicant.save()
         return redirect('home:profile_edit')

@@ -252,6 +252,71 @@
 .auth-link:hover {
   color: #111827;
 }
+
+.links-container-signup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.link-row-signup {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.link-name-input-signup,
+.link-url-input-signup {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.link-name-input-signup:focus,
+.link-url-input-signup:focus {
+  outline: none;
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+}
+
+.remove-link-btn-signup {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.remove-link-btn-signup:hover {
+  opacity: 0.9;
+}
+
+.add-link-btn-signup {
+  padding: 6px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #111827;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-link-btn-signup:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
 </style>
 
 <div class="auth-container">
@@ -386,7 +451,14 @@
           
           <div class="auth-form-group">
             <label class="auth-label">Links (Portfolio, LinkedIn, etc.)</label>
-            <input type="url" name="applicant-links" class="auth-input" placeholder="https://your-portfolio.com">
+            <div class="links-container-signup" id="links-container-signup">
+              <div class="link-row-signup">
+                <input type="text" name="link_name[]" class="link-name-input-signup" placeholder="Name (e.g., LinkedIn)" style="flex: 1;">
+                <input type="url" name="link_url[]" class="link-url-input-signup" placeholder="URL" style="flex: 2;">
+                <button type="button" onclick="removeLinkRowSignup(this)" class="remove-link-btn-signup">×</button>
+              </div>
+            </div>
+            <button type="button" onclick="addLinkRowSignup()" class="add-link-btn-signup" style="margin-top: 0.5rem;">+ Add Link</button>
           </div>
           
           <h3 class="section-title">Address Information</h3>
@@ -634,6 +706,26 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     return false;
   }
 });
+
+function addLinkRowSignup() {
+  const container = document.getElementById('links-container-signup');
+  const row = document.createElement('div');
+  row.className = 'link-row-signup';
+  row.innerHTML = `
+    <input type="text" name="link_name[]" class="link-name-input-signup" placeholder="Name (e.g., LinkedIn)" style="flex: 1;">
+    <input type="url" name="link_url[]" class="link-url-input-signup" placeholder="URL" style="flex: 2;">
+    <button type="button" onclick="removeLinkRowSignup(this)" class="remove-link-btn-signup">×</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeLinkRowSignup(button) {
+  const container = document.getElementById('links-container-signup');
+  // Don't remove if it's the last row
+  if (container.children.length > 1) {
+    button.parentElement.remove();
+  }
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {

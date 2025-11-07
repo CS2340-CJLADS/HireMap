@@ -29,5 +29,6 @@ class RecruiterForm(ModelForm):
 class ApplicantForm(ModelForm):
     class Meta:
         model = Applicant
-        fields = ['first_name', 'last_name', 'skills', 'education', 'experience', 'links', 'street_address', 'post_code', 'city', 'state', 'country']
+        # Exclude 'links' since we handle it manually as JSON in the view
+        fields = ['first_name', 'last_name', 'skills', 'education', 'experience', 'street_address', 'post_code', 'city', 'state', 'country']
         error_class = CustomErrorList

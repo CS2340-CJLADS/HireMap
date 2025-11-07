@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/applications.css' %}">
 {% csrf_token %}
 
 <div class="job-search-container">
@@ -14,20 +16,28 @@
                  <a href="{% url 'recruiter:job_new' %}" class="new-job-btn">+ New Job</a>
             </div>
             <div class="job-list" id="job-list">
-                <div class="openings-pills-container">
+                <div class="applications-container">
                     {% for job in template_data.jobs %}
-                    <div class="opening-pill" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
-                        <div class="pill-role">{{ job.title }}</div>
-                        <div class="pill-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
-                        <div class="pill-postdate">Posted: {{ job.created_at|date:"m/d/Y" }}</div>
-            </div>
+                    <div class="application-bar" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
+                        <div class="application-company">{{ job.title }}</div>
+                        <div class="application-location">
+                            {% if job.city and job.state %}
+                                {% if job.remote %}{{ job.city }}, {{ job.state }} (Remote){% else %}{{ job.city }}, {{ job.state }}{% endif %}
+                            {% elif job.remote %}
+                                Location (Remote)
+                            {% else %}
+                                Location
+                            {% endif %}
+                        </div>
+                        <div class="application-date-text">{{ job.created_at|date:"m/d/Y" }}</div>
+                    </div>
                     {% empty %}
-                    <div class="no-openings-message">
+                    <div class="no-applications">
                         <p>No job openings posted yet.</p>
                         <p>Create your first job posting to get started.</p>
-        </div>
-                    {% endfor %}
                     </div>
+                    {% endfor %}
+                </div>
                     
                     <!-- Pagination Controls -->
                     {% if template_data.paginator.num_pages > 1 %}
@@ -181,8 +191,8 @@
                          <p>Loading applications...</p>
                                 </div>
                      <div id="applications-body">
-                         <div class="applications-grid" id="applications-grid">
-                             <!-- Application cards will be populated here -->
+                         <div class="applications-container" id="applications-grid">
+                             <!-- Application bars will be populated here -->
                                 </div>
                          
                          <!-- Recommended Applicants Section -->
@@ -415,7 +425,7 @@ jobData['{{ job.id }}'] = {
     id: '{{ job.id }}',
     title: '{{ job.title|escapejs }}',
     company: '{{ job.recruiter.company_name|default:"Company"|escapejs }}',
-    location: '{{ job.location|escapejs }}',
+    location: {% if job.city and job.state %}'{{ job.city }}, {{ job.state }}'{% elif job.city %}'{{ job.city }}'{% elif job.state %}'{{ job.state }}'{% else %}''{% endif %},
     remote: {{ job.remote|yesno:"true,false" }},
     salary_min: {{ job.salary_min }},
     salary_max: {{ job.salary_max }},
@@ -429,15 +439,15 @@ jobData['{{ job.id }}'] = {
 function showJobDetails(jobId) {
     currentJobId = jobId;
     
-    // Remove active class from all pills
-    document.querySelectorAll('.opening-pill').forEach(pill => {
-        pill.classList.remove('active');
+    // Remove active class from all application bars
+    document.querySelectorAll('.application-bar').forEach(bar => {
+        bar.classList.remove('active');
     });
     
-    // Add active class to selected pill
-    const selectedPill = document.querySelector(`[data-job-id="${jobId}"]`);
-    if (selectedPill) {
-        selectedPill.classList.add('active');
+    // Add active class to selected application bar
+    const selectedBar = document.querySelector(`[data-job-id="${jobId}"]`);
+    if (selectedBar) {
+        selectedBar.classList.add('active');
     }
     
     // Hide all other content views
@@ -533,18 +543,52 @@ function loadApplicationsForJob(jobId) {
                 return;
             }
             
+            // Get job data for position and location
+            const job = jobData[jobId];
+            const jobTitle = job ? job.title : 'Position';
+            let jobLocation = 'Location';
+            if (job && job.location) {
+                jobLocation = job.remote ? job.location + ' (Remote)' : job.location;
+            } else if (job) {
+                jobLocation = 'Location not specified';
+            }
+            
             applications.forEach(app => {
-                const applicationCard = document.createElement('div');
-                applicationCard.className = 'application-card';
-                applicationCard.innerHTML = `
-                    <div class="app-name">${app.name}</div>
-                    <div class="app-meta">
-                        <span class="app-status">${app.status}</span>
-                        <span class="app-date">${app.application_date}</span>
-                    </div>
+                const applicationBar = document.createElement('div');
+                applicationBar.className = 'application-bar';
+                applicationBar.dataset.applicationId = app.id;
+                
+                // Map status to CSS class (normalize status names)
+                let statusClass = (app.status || 'Applied').toLowerCase().replace(/\s+/g, '-');
+                // Map common status variations
+                if (statusClass.includes('review') || statusClass.includes('screening')) {
+                    statusClass = 'review';
+                } else if (statusClass.includes('interview')) {
+                    statusClass = 'interviewing';
+                } else if (statusClass.includes('offer')) {
+                    statusClass = 'offer';
+                } else if (statusClass.includes('reject') || statusClass.includes('closed')) {
+                    statusClass = 'closed';
+                } else {
+                    statusClass = 'applied';
+                }
+                const statusDisplay = app.status || 'Applied';
+                
+                applicationBar.innerHTML = `
+                    <div class="application-company">${app.name || 'Unknown'}</div>
+                    <div class="application-position">${jobTitle}</div>
+                    <div class="application-location">${jobLocation}</div>
+                    <div class="application-status status-${statusClass}">${statusDisplay}</div>
                 `;
-                applicationCard.onclick = () => showApplicantProfile(app);
-                applicationsGrid.appendChild(applicationCard);
+                applicationBar.onclick = () => {
+                    // Add active class
+                    document.querySelectorAll('.application-bar').forEach(bar => {
+                        bar.classList.remove('active');
+                    });
+                    applicationBar.classList.add('active');
+                    showApplicantProfile(app);
+                };
+                applicationsGrid.appendChild(applicationBar);
             });
         })
         .catch(error => {
@@ -672,7 +716,8 @@ function showJobPosting() {
         // Update job posting details
         document.getElementById('job-company').textContent = job.company;
         document.getElementById('job-position').textContent = job.title;
-        document.getElementById('job-location').textContent = job.remote ? job.location + ' (Remote)' : job.location;
+        const jobLocationText = job.location ? (job.remote ? job.location + ' (Remote)' : job.location) : 'Location not specified';
+        document.getElementById('job-location').textContent = jobLocationText;
         document.getElementById('job-salary').textContent = '$' + job.salary_min.toLocaleString() + ' - $' + job.salary_max.toLocaleString();
         document.getElementById('job-skills').textContent = job.skills_required || 'Not specified';
         document.getElementById('job-description').textContent = job.description || 'No description provided';
@@ -1118,9 +1163,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 savedSearchesContent.classList.add('hidden');
             }
             
-            // Clear active state from all pills
-            document.querySelectorAll('.opening-pill').forEach(pill => {
-                pill.classList.remove('active');
+            // Clear active state from all application bars
+            document.querySelectorAll('.application-bar').forEach(bar => {
+                bar.classList.remove('active');
             });
             
             currentJobId = null;
@@ -1368,69 +1413,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: inline-block;
 }
 
-/* Opening Pills Styling */
-.openings-pills-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem 0;
-}
-
-.opening-pill {
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.08) 0%, rgba(101, 243, 243, 0.08) 100%);
-    border: 1px solid rgba(19, 227, 178, 0.1);
-    border-radius: 50px;
-    padding: 1rem;
-    cursor: pointer;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.opening-pill.active {
-    border-color: #13E3B2;
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.18) 0%, rgba(101, 243, 243, 0.18) 100%);
-}
-
-.pill-role {
-    font-weight: 600;
-    font-size: 20px;
-    color: #333;
-    flex: 1;
-}
-
-.pill-location {
-    font-size: 16px;
-    color: #666;
-    flex: 1;
-    text-align: center;
-}
-
-.pill-postdate {
-    font-size: 16px;
-    color: #666;
-    flex: 1;
-    text-align: right;
-}
-
-.no-openings-message {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: #666;
-    background: #f8f9fa;
-    border-radius: 12px;
-    border: 2px dashed #dee2e6;
-}
-
-.no-openings-message p {
-    margin-bottom: 0.5rem;
-}
-
-.no-openings-message p:first-child {
-    font-weight: 500;
-    color: #495057;
-}
+/* Job openings now use application-bar style - styles are in applications.css */
 
 /* Applications View Styling */
 .applications-content {
@@ -1475,42 +1458,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: inline-block;
 }
 
-.applications-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.application-card {
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.08) 0%, rgba(101, 243, 243, 0.08) 100%);
-    border: 1px solid rgba(19, 227, 178, 0.1);
-    border-radius: 12px;
-    padding: 1.5rem;
-    cursor: pointer;
-}
-
-.app-name {
-    font-weight: 600;
-    font-size: 20px;
-    color: #333;
-    margin-bottom: 0.5rem;
-}
-
-.app-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 16px;
-    color: #666;
-}
-
-.app-status {
-    font-weight: 500;
-}
-
-.app-date {
-    font-weight: 400;
-}
+/* Application bar styles are now in applications.css - keeping minimal overrides if needed */
 
 .applications-footer {
     display: flex;
@@ -1859,23 +1807,6 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 @media (max-width: 768px) {
-    .opening-pill {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    
-    .pill-role,
-    .pill-location,
-    .pill-postdate {
-        flex: none;
-        text-align: left;
-    }
-    
-    .applications-grid {
-        grid-template-columns: 1fr;
-    }
-    
     .applications-header {
         flex-direction: column;
         align-items: flex-start;

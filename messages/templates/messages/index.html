@@ -33,8 +33,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="no-conversations-message">
-                            <p>No conversations yet</p>
-                            <p>Click "Message Applicant" from the recruiter dashboard to start messaging.</p>
+                            <p>No conversations</p>
                         </div>
                     {% endif %}
                 </div>
@@ -73,7 +72,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="no-messages-yet">
-                            <p>No messages yet. Start the conversation!</p>
+                            <p>No messages</p>
                         </div>
                     {% endif %}
                 </div>
@@ -91,13 +90,7 @@
                 {% else %}
                 <!-- Empty state -->
                 <div class="empty-chat-state">
-                    {% if user.recruiter %}
-                        <h3>Start a Conversation</h3>
-                        <p>Choose a conversation from the left to start messaging, or click "Message Applicant" from the recruiter dashboard.</p>
-                    {% else %}
-                        <h3>No Active Conversations</h3>
-                        <p>You currently have no active conversations. Please wait for recruiters to reach out to you.</p>
-                    {% endif %}
+                    <p>No conversation selected</p>
                 </div>
                 {% endif %}
             </div>

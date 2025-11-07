@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/applications.css' %}">
 
 <div class="job-search-container">
     <div class="page-container">
@@ -21,33 +23,35 @@
                 </div>
                 <div class="search-filters-inline">
                     <div class="filter-item">
-                        <input type="text" name="skills" id="skills" placeholder="e.g., Python, React, AWS..." 
-                               value="{% if not template_data.candidate_id %}{{ template_data.skills_search|default:'' }}{% endif %}" class="filter-input" />
+                        <select name="location" id="location">
+                            <option value="">All Locations</option>
+                            {% if template_data.locations %}
+                            {% for loc in template_data.locations %}
+                            <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>
+                                {{ loc }}
+                            </option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
                     </div>
                     <div class="filter-item">
-                        <input type="text" name="location" id="location" placeholder="e.g., San Francisco, Remote, New York..." 
-                               value="{% if not template_data.candidate_id %}{{ template_data.location_search|default:'' }}{% endif %}" class="filter-input" />
-                    </div>
-                    <div class="filter-item">
-                        <select name="availability" id="availability" class="filter-input">
-                            <option value="">All Availability</option>
+                        <select name="availability" id="availability">
+                            <option value="">Availability</option>
                             <option value="available" {% if template_data.filters.availability == 'available' %}selected{% endif %}>Available Now</option>
                             <option value="open-to-work" {% if template_data.filters.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
                             <option value="not-looking" {% if template_data.filters.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
                         </select>
                     </div>
-                    <div class="filter-item">
-                        <input type="text" name="education" id="education" placeholder="e.g., Computer Science, MBA..." 
-                               value="{{ template_data.filters.education|default:'' }}" class="filter-input" />
-                    </div>
-                </div>
-                <div class="filter-actions">
-                    <button type="button" id="clear-filters" class="filter-btn clear-btn">Clear All</button>
-                    <button type="button" id="search-btn" class="filter-btn search-btn">Search</button>
-                    <button type="button" id="save-search-btn" class="filter-btn save-btn">Save Search</button>
                 </div>
             </div>
         </form>
+        <!-- Separate rounded green capsule buttons next to the search bar -->
+        <button type="button" class="action-capsule-btn" id="save-search-btn" aria-label="Save Search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button type="button" class="action-capsule-btn" id="map-view-btn">Map View</button>
     </div>
 
     <!-- Split Screen Layout -->
@@ -58,31 +62,25 @@
                 <h3>Available Candidates ({{ template_data.total_candidates }})</h3>
             </div>
             <div class="job-list" id="candidate-list">
-                <div class="job-listings-grid">
+                <div class="applications-container">
                     {% for candidate_data in template_data.applicants_with_projects %}
                     {% with candidate=candidate_data.applicant %}
-                    <div class="job-listing candidate-listing" data-candidate-id="{{ candidate.pk }}" onclick="showCandidateDetails('{{ candidate.pk }}')">
-                        <div class="job-tile candidate-tile">
-                            <div class="job-tile-company">{{ candidate.first_name }} {{ candidate.last_name }}</div>
-                            <div class="job-tile-position">
-                                {% if 'skills' in candidate_data %}
-                                    {{ candidate_data.skills|truncatechars:50 }}
-                                {% else %}
-                                    Skills hidden
-                                {% endif %}
-                            </div>
-                            
-                            <div class="job-tile-separator"></div>
-                            
-                            <div class="job-tile-range">{{ candidate_data.location|default:"Location unavailable" }}</div>
-                            <div class="job-tile-location">
-                                <span class="availability-badge availability-{{ candidate.availability }}">{{ candidate.get_availability_display }}</span>
-                            </div>
+                    <div class="application-bar candidate-listing" data-candidate-id="{{ candidate.user.id }}" onclick="showCandidateDetails('{{ candidate.user.id }}')">
+                        <div class="application-company">{{ candidate.first_name }} {{ candidate.last_name }}</div>
+                        <div class="application-location">
+                            {% if candidate_data.location %}
+                                {{ candidate_data.location }}
+                            {% else %}
+                                Location not shown
+                            {% endif %}
+                        </div>
+                        <div class="application-status">
+                            <span class="availability-badge availability-{{ candidate.availability }}">{{ candidate.get_availability_display }}</span>
                         </div>
                     </div>
                     {% endwith %}
                     {% empty %}
-                    <div class="no-jobs-message">
+                    <div class="no-applications">
                         <p>No candidates found matching your criteria.</p>
                         <p>Try adjusting your search filters or check back later for new candidates.</p>
                     </div>
@@ -124,57 +122,27 @@
             </div>
         </div>
 
-        <!-- Right Panel: Dynamic Content -->
+        <!-- Right Panel: Candidate Details -->
         <div class="right-panel" id="right-panel">
             <!-- Default: Dashboard -->
             <div id="dashboard-content" class="panel-content" {% if template_data.specific_candidate %}style="display: none;"{% endif %}>
-                <div class="dashboard-container">
-                    <div class="dashboard-section">
-                        <div class="section-name">Current Search</div>
-                        <div class="saved-searches-list" id="current-search-tags">
-                            {% if template_data.filters.search %}
-                            <span class="saved-search-item">"{{ template_data.filters.search }}"</span>
-                            {% endif %}
-                            {% if template_data.filters.skills %}
-                            <span class="saved-search-item">{{ template_data.filters.skills }}</span>
-                            {% endif %}
-                            {% if template_data.filters.location %}
-                            <span class="saved-search-item">{{ template_data.filters.location }}</span>
-                            {% endif %}
-                            {% if template_data.filters.availability %}
-                            <span class="saved-search-item">{{ template_data.filters.availability|title }}</span>
-                            {% endif %}
-                            {% if template_data.filters.education %}
-                            <span class="saved-search-item">{{ template_data.filters.education }}</span>
-                            {% endif %}
-                            {% if not template_data.filters.search and not template_data.filters.skills and not template_data.filters.location and not template_data.filters.availability and not template_data.filters.education %}
-                            <span class="saved-search-item">All Candidates</span>
-                            {% endif %}
-                        </div>
+                <div class="applications-dashboard">
+                    <h3>Search Candidates</h3>
+                    {% if template_data.applicants_with_projects %}
+                    <p>You have {{ template_data.total_candidates }} candidate{{ template_data.total_candidates|pluralize }} matching your search.</p>
+                    <p>Click on a candidate to view details.</p>
+                    {% else %}
+                    <div class="no-applications-message">
+                        <h4>No candidates found</h4>
+                        <p>Try adjusting your search filters to find more candidates.</p>
                     </div>
-                    
-                    <div class="dashboard-section">
-                        <div class="section-name">Search Tips</div>
-                        <div class="search-tips-message">
-                            <p>Use the search filters to find the perfect candidates:</p>
-                            <ul>
-                                <li><strong>Search:</strong> Find candidates by name, skills, or experience</li>
-                                <li><strong>Skills:</strong> Filter by specific technical skills</li>
-                                <li><strong>Location:</strong> Find candidates in specific locations</li>
-                                <li><strong>Availability:</strong> Filter by job search status</li>
-                                <li><strong>Education:</strong> Search by educational background</li>
-                                <li><strong>Save Search:</strong> Click "Save Search" to bookmark your current filters for easy access later</li>
-                            </ul>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Candidate Details (hidden by default, shown if specific_candidate is provided) -->
+            <!-- Candidate Details -->
             <div id="candidate-details-content" class="panel-content" {% if not template_data.specific_candidate %}style="display: none;"{% endif %}>
                 <div class="candidate-details-content">
-                    <div class="candidate-details-header">
-                    </div>
                     <div id="candidate-details-loading" class="loading-state" style="display: none;">
                         <div class="spinner"></div>
                         <p>Loading candidate details...</p>
@@ -206,9 +174,38 @@
                                     <div class="section-content">
                                         <div id="candidate-description-location">
                                             {% if template_data.specific_candidate %}
-                                                {{ template_data.specific_candidate.location|default:"Location unavailable" }}
+                                                {% with privacy=template_data.specific_candidate.get_privacy_settings %}
+                                                    {% if privacy.show_location %}
+                                                        {% if template_data.specific_candidate.city and template_data.specific_candidate.state %}
+                                                            {{ template_data.specific_candidate.city }}, {{ template_data.specific_candidate.state }}
+                                                        {% elif template_data.specific_candidate.street_address %}
+                                                            {{ template_data.specific_candidate.street_address }}
+                                                            {% if template_data.specific_candidate.city %}, {{ template_data.specific_candidate.city }}{% endif %}
+                                                            {% if template_data.specific_candidate.state %} {{ template_data.specific_candidate.state }}{% endif %}
+                                                        {% else %}
+                                                            Location not provided
+                                                        {% endif %}
+                                                    {% else %}
+                                                        Location not shown
+                                                    {% endif %}
+                                                {% endwith %}
                                             {% else %}
                                                 Location
+                                            {% endif %}
+                                        </div>
+                                        <div id="candidate-description-phone">
+                                            {% if template_data.specific_candidate %}
+                                                {% with privacy=template_data.specific_candidate.get_privacy_settings %}
+                                                    {% if privacy.show_phone and template_data.specific_candidate.phone %}
+                                                        {{ template_data.specific_candidate.phone }}
+                                                    {% elif privacy.show_phone %}
+                                                        Phone not provided
+                                                    {% else %}
+                                                        Phone not shown
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                Phone
                                             {% endif %}
                                         </div>
                                         <div id="candidate-description-availability">
@@ -220,7 +217,7 @@
                                         </div>
                                         <div id="candidate-description-email">
                                             {% if template_data.specific_candidate %}
-                                                {{ template_data.specific_candidate.user.username }}
+                                                <a href="mailto:{{ template_data.specific_candidate.user.username }}" style="color: rgb(33, 128, 116); text-decoration: none;">{{ template_data.specific_candidate.user.username }}</a>
                                             {% else %}
                                                 Email
                                             {% endif %}
@@ -266,6 +263,35 @@
                                 </div>
                                 
                                 <div class="candidate-description-section">
+                                    <div class="section-title">Links</div>
+                                    <div class="section-content" id="candidate-description-links">
+                                        {% if template_data.specific_candidate %}
+                                            {% with privacy=template_data.specific_candidate.get_privacy_settings %}
+                                                {% if privacy.show_links and template_data.specific_candidate.links %}
+                                                    {% with links=template_data.specific_candidate.get_links_list %}
+                                                        {% if links %}
+                                                            {% for link in links %}
+                                                                <div style="margin-bottom: 0.5rem;">
+                                                                    <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" style="color: rgb(33, 128, 116); text-decoration: none;">{{ link.name }}</a>
+                                                                </div>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            Links not provided
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% elif privacy.show_links %}
+                                                    Links not provided
+                                                {% else %}
+                                                    Links not shown
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            Links
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="candidate-description-section">
                                     <div class="section-title">Projects</div>
                                     <div class="section-content" id="candidate-description-projects">
                                         {% if template_data.specific_candidate_projects %}
@@ -278,6 +304,9 @@
                                                     {% if project.technologies %}
                                                         <p><em>Technologies: {{ project.technologies }}</em></p>
                                                     {% endif %}
+                                                    {% if project.url %}
+                                                        <p><a href="{{ project.url }}" target="_blank" rel="noopener noreferrer" style="color: rgb(33, 128, 116); text-decoration: none;">View Project →</a></p>
+                                                    {% endif %}
                                                 </div>
                                             {% endfor %}
                                         {% else %}
@@ -289,7 +318,7 @@
                             
                             <!-- Contact Section -->
                             <div class="candidate-description-actions">
-                                <a href="#" id="email-candidate-btn" class="email-btn">Email Candidate</a>
+                                <a href="#" id="message-candidate-btn" class="message-btn">Message</a>
                             </div>
                         </div>
                     </div>
@@ -311,12 +340,21 @@
     "first_name": "{{ candidate.first_name|escapejs }}",
     "last_name": "{{ candidate.last_name|escapejs }}",
     "email": "{{ candidate.user.username|escapejs }}",
-    "location": "{{ candidate_data.location|escapejs }}",
-    "availability": "{{ candidate_data.availability }}",
+    "location": {% if candidate_data.location %}"{{ candidate_data.location|escapejs }}"{% else %}null{% endif %},
+    "phone": {% if 'phone' in candidate_data %}"{{ candidate_data.phone|escapejs }}"{% else %}null{% endif %},
+    "availability": "{{ candidate_data.availability|default:candidate.availability }}",
     "availability_display": "{{ candidate.get_availability_display|escapejs }}",
-    "skills": "{{ candidate_data.skills|escapejs }}",
-    "education": "{{ candidate_data.education|escapejs }}",
-    "experience": "{{ candidate_data.experience|escapejs }}",
+    "skills": {% if 'skills' in candidate_data %}"{{ candidate_data.skills|escapejs }}"{% else %}null{% endif %},
+    "education": {% if 'education' in candidate_data %}"{{ candidate_data.education|escapejs }}"{% else %}null{% endif %},
+    "experience": {% if 'experience' in candidate_data %}"{{ candidate_data.experience|escapejs }}"{% else %}null{% endif %},
+    "links": {% if 'links' in candidate_data and candidate_data.links %}"{{ candidate_data.links|escapejs }}"{% else %}null{% endif %},
+    "show_skills": {{ candidate.get_privacy_settings.show_skills|yesno:"true,false" }},
+    "show_education": {{ candidate.get_privacy_settings.show_education|yesno:"true,false" }},
+    "show_experience": {{ candidate.get_privacy_settings.show_experience|yesno:"true,false" }},
+    "show_projects": {{ candidate.get_privacy_settings.show_projects|yesno:"true,false" }},
+    "show_links": {{ candidate.get_privacy_settings.show_links|yesno:"true,false" }},
+    "show_phone": {{ candidate.get_privacy_settings.show_phone|yesno:"true,false" }},
+    "show_location": {{ candidate.get_privacy_settings.show_location|yesno:"true,false" }},
     "projects": [
         {% for project in candidate_data.projects %}
         {
@@ -372,56 +410,191 @@ function showCandidateDetails(candidateId) {
     
     // Simulate loading delay for better UX
     setTimeout(() => {
-        if (candidateData[candidateId]) {
-            const candidate = candidateData[candidateId];
-            
-            // Update candidate details
-            document.getElementById('candidate-description-name').textContent = candidate.first_name + ' ' + candidate.last_name;
-            document.getElementById('candidate-description-title').textContent = candidate.skills ? candidate.skills.split(',')[0] + ' Developer' : 'Software Developer';
-            document.getElementById('candidate-description-location').textContent = candidate.location || 'Location unavailable';
-            document.getElementById('candidate-description-availability').textContent = candidate.availability_display;
-            document.getElementById('candidate-description-email').textContent = candidate.email;
-            document.getElementById('candidate-description-skills').textContent = candidate.skills || 'Skills unavailable';
-            document.getElementById('candidate-description-education').textContent = candidate.education || 'Education unavailable';
-            document.getElementById('candidate-description-experience').textContent = candidate.experience || 'Experience unavailable';
-            
-            // Update projects
-            let projectsHtml = '';
-            if (candidate.projects && candidate.projects.length > 0) {
-                candidate.projects.forEach(project => {
-                    projectsHtml += `
-                        <div class="project-item">
-                            <div class="project-title">${project.title}</div>
-                            <div class="project-description">${project.description}</div>
-                            <div class="project-technologies">Technologies: ${project.technologies || 'Technologies unavailable'}</div>
-                            ${project.url ? `<div class="project-url"><a href="${project.url}" target="_blank">View Project</a></div>` : ''}
-                        </div>
-                    `;
-                });
+        try {
+            if (candidateData[candidateId]) {
+                const candidate = candidateData[candidateId];
+                
+                // Update candidate details
+                document.getElementById('candidate-description-name').textContent = candidate.first_name + ' ' + candidate.last_name;
+                document.getElementById('candidate-description-title').textContent = candidate.skills ? candidate.skills.split(',')[0] + ' Developer' : 'Software Developer';
+                
+                // Update location with privacy check
+                const locationEl = document.getElementById('candidate-description-location');
+                if (locationEl) {
+                    if (candidate.show_location && candidate.location) {
+                        locationEl.textContent = candidate.location;
+                    } else if (candidate.show_location !== false) {
+                        locationEl.textContent = candidate.location || 'Location not provided';
+                    } else {
+                        locationEl.textContent = 'Location not shown';
+                    }
+                }
+                
+                // Update phone with privacy check
+                const phoneEl = document.getElementById('candidate-description-phone');
+                if (phoneEl) {
+                    if (candidate.show_phone && candidate.phone) {
+                        phoneEl.textContent = candidate.phone;
+                    } else if (candidate.show_phone !== false) {
+                        phoneEl.textContent = candidate.phone || 'Phone not provided';
+                    } else {
+                        phoneEl.textContent = 'Phone not shown';
+                    }
+                }
+                
+                const availabilityEl = document.getElementById('candidate-description-availability');
+                if (availabilityEl) {
+                    availabilityEl.textContent = candidate.availability_display || 'Not available';
+                }
+                
+                const emailEl = document.getElementById('candidate-description-email');
+                if (emailEl) {
+                    if (candidate.email) {
+                        emailEl.innerHTML = `<a href="mailto:${candidate.email}" style="color: rgb(33, 128, 116); text-decoration: none;">${candidate.email}</a>`;
+                    } else {
+                        emailEl.textContent = 'Not available';
+                    }
+                }
+                
+                // Update skills with privacy check
+                const skillsEl = document.getElementById('candidate-description-skills');
+                if (skillsEl) {
+                    if (candidate.show_skills && candidate.skills) {
+                        skillsEl.textContent = candidate.skills;
+                    } else if (candidate.show_skills !== false) {
+                        skillsEl.textContent = candidate.skills || 'Skills not provided';
+                    } else {
+                        skillsEl.textContent = 'Skills not shown';
+                    }
+                }
+                
+                // Update education with privacy check
+                const educationEl = document.getElementById('candidate-description-education');
+                if (educationEl) {
+                    if (candidate.show_education && candidate.education) {
+                        educationEl.textContent = candidate.education;
+                    } else if (candidate.show_education !== false) {
+                        educationEl.textContent = candidate.education || 'Education not provided';
+                    } else {
+                        educationEl.textContent = 'Education not shown';
+                    }
+                }
+                
+                // Update experience with privacy check
+                const experienceEl = document.getElementById('candidate-description-experience');
+                if (experienceEl) {
+                    if (candidate.show_experience && candidate.experience) {
+                        experienceEl.textContent = candidate.experience;
+                    } else if (candidate.show_experience !== false) {
+                        experienceEl.textContent = candidate.experience || 'Experience not provided';
+                    } else {
+                        experienceEl.textContent = 'Experience not shown';
+                    }
+                }
+                
+                // Update links with privacy check
+                const linksEl = document.getElementById('candidate-description-links');
+                if (linksEl) {
+                    if (candidate.show_links && candidate.links) {
+                        let linksHtml = '';
+                        try {
+                            const linksArray = typeof candidate.links === 'string' ? JSON.parse(candidate.links) : candidate.links;
+                            if (Array.isArray(linksArray) && linksArray.length > 0) {
+                                linksArray.forEach(link => {
+                                    linksHtml += `<div style="margin-bottom: 0.5rem;"><a href="${link.url}" target="_blank" rel="noopener noreferrer" style="color: rgb(33, 128, 116); text-decoration: none;">${link.name}</a></div>`;
+                                });
+                                linksEl.innerHTML = linksHtml;
+                            } else {
+                                linksEl.textContent = 'Links not provided';
+                            }
+                        } catch (e) {
+                            linksEl.textContent = 'Links not provided';
+                        }
+                    } else if (candidate.show_links !== false) {
+                        linksEl.textContent = 'Links not provided';
+                    } else {
+                        linksEl.textContent = 'Links not shown';
+                    }
+                }
+                
+                // Update projects with privacy check
+                const projectsEl = document.getElementById('candidate-description-projects');
+                if (projectsEl) {
+                    if (candidate.show_projects && candidate.projects && candidate.projects.length > 0) {
+                        let projectsHtml = '';
+                        candidate.projects.forEach(project => {
+                            projectsHtml += `
+                                <div class="project-item" style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(33, 128, 116, 0.05); border-radius: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                        <strong>${project.title || 'Untitled Project'}</strong>
+                                        ${project.url ? `<a href="${project.url}" target="_blank" rel="noopener noreferrer" style="color: rgb(33, 128, 116); text-decoration: none; font-size: 0.9rem;">View Project →</a>` : ''}
+                                    </div>
+                                    ${project.description ? `<p style="margin: 0.5rem 0; color: #666;">${project.description}</p>` : ''}
+                                    ${project.technologies ? `<p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #888;"><em>Technologies: ${project.technologies}</em></p>` : ''}
+                                </div>
+                            `;
+                        });
+                        projectsEl.innerHTML = projectsHtml;
+                    } else if (candidate.show_projects !== false) {
+                        projectsEl.textContent = 'Projects not provided';
+                    } else {
+                        projectsEl.textContent = 'Projects not shown';
+                    }
+                }
+                
+                // Update message button
+                const messageBtn = document.getElementById('message-candidate-btn');
+                if (messageBtn && candidate.id) {
+                    messageBtn.href = `/messages/?other_user_id=${candidate.id}`;
+                }
             } else {
-                projectsHtml = '<div class="no-projects">Projects unavailable</div>';
+                // Handle missing candidate data
+                const nameEl = document.getElementById('candidate-description-name');
+                if (nameEl) nameEl.textContent = 'Candidate Not Found';
+                
+                const titleEl = document.getElementById('candidate-description-title');
+                if (titleEl) titleEl.textContent = 'Information not available';
+                
+                const locationEl = document.getElementById('candidate-description-location');
+                if (locationEl) locationEl.textContent = 'Location not shown';
+                
+                const availabilityEl = document.getElementById('candidate-description-availability');
+                if (availabilityEl) availabilityEl.textContent = 'Not available';
+                
+                const emailEl = document.getElementById('candidate-description-email');
+                if (emailEl) emailEl.textContent = 'Not available';
+                
+                const messageBtn = document.getElementById('message-candidate-btn');
+                if (messageBtn) messageBtn.href = '#';
+                
+                const skillsEl = document.getElementById('candidate-description-skills');
+                if (skillsEl) skillsEl.textContent = 'Not available';
+                
+                const educationEl = document.getElementById('candidate-description-education');
+                if (educationEl) educationEl.textContent = 'Not available';
+                
+                const experienceEl = document.getElementById('candidate-description-experience');
+                if (experienceEl) experienceEl.textContent = 'Not available';
+                
+                const projectsEl = document.getElementById('candidate-description-projects');
+                if (projectsEl) projectsEl.innerHTML = '<div class="no-projects">Not available</div>';
+                
+                const phoneEl = document.getElementById('candidate-description-phone');
+                if (phoneEl) phoneEl.textContent = 'Not available';
+                
+                const linksEl = document.getElementById('candidate-description-links');
+                if (linksEl) linksEl.textContent = 'Not available';
             }
-            document.getElementById('candidate-description-projects').innerHTML = projectsHtml;
-            
-            // Update email button
-            const emailBtn = document.getElementById('email-candidate-btn');
-            emailBtn.href = `mailto:${candidate.email}`;
-        } else {
-            // Handle missing candidate data
-            document.getElementById('candidate-description-name').textContent = 'Candidate Not Found';
-            document.getElementById('candidate-description-title').textContent = 'Information not available';
-            document.getElementById('candidate-description-location').textContent = 'Not available';
-            document.getElementById('candidate-description-availability').textContent = 'Not available';
-            document.getElementById('candidate-description-email').textContent = 'Not available';
-            document.getElementById('candidate-description-skills').textContent = 'Not available';
-            document.getElementById('candidate-description-education').textContent = 'Not available';
-            document.getElementById('candidate-description-experience').textContent = 'Not available';
-            document.getElementById('candidate-description-projects').innerHTML = '<div class="no-projects">Not available</div>';
+        } catch (error) {
+            console.error('Error loading candidate details:', error);
+            // Still hide loading even if there's an error
         }
         
         // Hide loading, show content
-        document.getElementById('candidate-details-loading').style.display = 'none';
-        document.getElementById('candidate-details-body').style.display = 'block';
+        const loadingEl = document.getElementById('candidate-details-loading');
+        const bodyEl = document.getElementById('candidate-details-body');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (bodyEl) bodyEl.style.display = 'block';
     }, 500);
 }
 
@@ -443,195 +616,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Filter Management
+    // Filter Management
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('search-form');
-    const clearBtn = document.getElementById('clear-filters');
     const searchInput = document.getElementById('search-input');
-    const skillsInput = document.getElementById('skills');
     const locationInput = document.getElementById('location');
     const availabilitySelect = document.getElementById('availability');
-    const educationInput = document.getElementById('education');
     
-    // Simple form submission without auto-submit
-    function submitForm() {
-        // Get all form values
-        const params = new URLSearchParams();
-        
-        if (skillsInput && skillsInput.value.trim() !== '') {
-            params.append('skills', skillsInput.value.trim());
-        }
-        if (locationInput && locationInput.value.trim() !== '') {
-            params.append('location', locationInput.value.trim());
-        }
-        if (educationInput && educationInput.value.trim() !== '') {
-            params.append('education', educationInput.value.trim());
-        }
-        if (availabilitySelect && availabilitySelect.value !== '') {
-            params.append('availability', availabilitySelect.value);
-        }
-        
-        // Submit the form with all parameters
-        const url = window.location.pathname + '?' + params.toString();
-        window.location.href = url;
+    // Auto-submit on filter change (like job dashboard)
+    function autoSubmit() {
+        form.submit();
     }
     
-    
-    // Note: Auto-submit on page load removed to prevent infinite loops
-    // The search results should already be displayed by the server when the page loads with parameters
-    
-    // Clear all filters
-    function clearFilters() {
-        // Redirect to the same page without any query parameters to show all candidates
-        window.location.href = window.location.pathname;
-    }
-    
-    // Event listeners
-    if (clearBtn) {
-        clearBtn.addEventListener('click', clearFilters);
-    }
-    
-    // Search button
-    const searchBtn = document.getElementById('search-btn');
-    if (searchBtn) {
-        searchBtn.addEventListener('click', submitForm);
-    }
-    
-    if (skillsInput) {
-        // Handle Enter key press to submit form
-        skillsInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                submitForm();
-            }
+    // Search input with debounce
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(autoSubmit, 800);
         });
     }
     
     if (locationInput) {
-        // Handle Enter key press to submit form
-        locationInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                submitForm();
-            }
-        });
+        locationInput.addEventListener('change', autoSubmit);
     }
     
     if (availabilitySelect) {
-        // No auto-submit, user needs to manually submit
-        availabilitySelect.addEventListener('change', function() {
-            // Just update the form, don't submit automatically
-        });
-    }
-    
-    if (educationInput) {
-        // Handle Enter key press to submit form
-        educationInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                submitForm();
-            }
-        });
-    }
-    
-    // Search input with Enter key
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                submitForm();
-            }
-        });
+        availabilitySelect.addEventListener('change', autoSubmit);
     }
 });
 </script>
 
 <style>
-/* Improved Filter Bar Styles - Keeping Original Layout */
-.filter-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0;
-    justify-content: flex-end;
+/* Limit search bar width to 70% */
+.search-filters-bar {
+    max-width: 70% !important;
+    gap: 0.3rem !important;
+}
+
+/* Bookmark icon button styling */
+#save-search-btn {
+    padding: 0rem 1rem;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
 }
 
-.filter-btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.clear-btn {
-    background: #f8f9fa;
-    color: #6c757d;
-    border: 1px solid #dee2e6;
-}
-
-.clear-btn:hover {
-    background: #e9ecef;
-    color: #495057;
-}
-
-.search-btn {
-    background: #13E3B2;
-    color: white;
-}
-
-.search-btn:hover {
-    background: #0fb894;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(19, 227, 178, 0.3);
-}
-
-.save-btn {
-    background: #6c757d;
-    color: white;
-}
-
-.save-btn:hover {
-    background: #5a6268;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .filter-actions {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .filter-btn {
-        width: 100%;
-        justify-content: center;
-    }
+#save-search-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    fill: none;
 }
 
 /* Candidate-specific styles */
 .candidate-listing {
-    cursor: pointer;
-    transition: all 0.3s ease;
+    background: white;
 }
 
 .candidate-listing:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: rgba(33, 128, 116, 0.20) !important;
+    transform: none !important;
 }
 
 .candidate-listing.active {
-    border-color: #13E3B2;
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.18) 0%, rgba(101, 243, 243, 0.18) 100%);
-}
-
-.candidate-tile {
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.08) 0%, rgba(101, 243, 243, 0.08) 100%);
-    border: 1px solid rgba(19, 227, 178, 0.1);
+    background: rgba(33, 128, 116, 0.20) !important;
 }
 
 .availability-badge {
@@ -655,6 +704,31 @@ document.addEventListener('DOMContentLoaded', function() {
 .availability-not-looking {
     background: #f8d7da;
     color: #721c24;
+}
+
+/* Split screen separation from search bar */
+.split-screen {
+    margin-top: 1rem;
+}
+
+/* Candidate details content - make scrollable like job details */
+#candidate-details-content {
+    overflow-y: auto !important;
+    justify-content: space-between;
+}
+
+.candidate-details-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+#candidate-details-body {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .candidate-description-container {
@@ -752,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: center;
 }
 
-.email-btn {
+.message-btn {
     background: #13E3B2;
     color: white;
     text-decoration: none;
@@ -766,7 +840,7 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: all 0.3s ease;
 }
 
-.email-btn:hover {
+.message-btn:hover {
     background: #0fb894;
     transform: translateY(-1px);
     color: white;
@@ -796,56 +870,6 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-bottom: 0.5rem;
 }
 
-.filter-input {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.filter-input:focus {
-    outline: none;
-    border-color: #13E3B2;
-    box-shadow: 0 0 0 2px rgba(19, 227, 178, 0.25);
-}
-
-.filter-actions {
-    display: flex;
-    align-items: center;
-    margin-left: 1rem;
-}
-
-.clear-filters-btn {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.clear-filters-btn:hover {
-    background: #5a6268;
-}
-
-.save-search-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-left: 0.5rem;
-}
-
-.save-search-btn:hover {
-    background: #218838;
-}
 
 .saved-search-item {
     background: #e9ecef;
@@ -862,6 +886,138 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.5rem;
+}
+
+/* Save Search Modal Styles - Matching Profile Page */
+.save-search-modal-content {
+    background: white;
+    padding: 1.5rem 2rem 2rem 2rem;
+    border-radius: 19px;
+    width: 500px;
+    max-width: 90vw;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.save-search-modal-header {
+    background-color: rgb(33, 128, 116);
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+    padding: 5px 20px;
+    border-radius: 9999px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    width: fit-content;
+}
+
+.save-search-current-filters {
+    background-color: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.save-search-filters-label {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.save-search-filters-summary {
+    font-size: 18px;
+    font-weight: 400;
+    color: #666;
+    line-height: 1.5;
+}
+
+.save-search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.save-search-form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.save-search-label {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+}
+
+.save-search-input,
+.save-search-textarea {
+    font-size: 18px;
+    font-weight: 400;
+    padding: 0.5rem;
+    border: 1px solid rgba(33, 128, 116, 0.3);
+    border-radius: 8px;
+    background-color: white;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.save-search-input:focus,
+.save-search-textarea:focus {
+    outline: none;
+    border-color: rgb(33, 128, 116);
+    box-shadow: 0 0 0 2px rgba(33, 128, 116, 0.1);
+}
+
+.save-search-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.save-search-help-text {
+    font-size: 16px;
+    color: #666;
+    font-weight: 400;
+}
+
+.save-search-form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
+.save-search-cancel-btn,
+.save-search-submit-btn {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 9999px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.save-search-cancel-btn {
+    background-color: rgba(33, 128, 116, 0.2);
+    color: rgb(33, 128, 116);
+}
+
+.save-search-submit-btn {
+    background-color: rgb(33, 128, 116);
+    color: white;
+}
+
+.save-search-cancel-btn:hover,
+.save-search-submit-btn:hover {
+    opacity: 0.9;
 }
 
 @media (max-width: 768px) {
@@ -914,16 +1070,15 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const saveSearchBtn = document.getElementById('save-search-btn');
     if (saveSearchBtn) {
-        saveSearchBtn.addEventListener('click', function() {
+        saveSearchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
     
     // Get current search parameters
     const urlParams = new URLSearchParams(window.location.search);
     const searchParams = {
         search: urlParams.get('search') || '',
-        skills: urlParams.get('skills') || '',
         location: urlParams.get('location') || '',
         availability: urlParams.get('availability') || '',
-        education_level: urlParams.get('education') || '', // Map education to education_level
         experience_level: urlParams.get('experience_level') || '',
         salary_min: urlParams.get('salary_min') || '',
         salary_max: urlParams.get('salary_max') || '',
@@ -950,10 +1105,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Build current search summary
     const currentFilters = [];
     if (searchParams.search) currentFilters.push(`Search: "${searchParams.search}"`);
-    if (searchParams.skills) currentFilters.push(`Skills: ${searchParams.skills}`);
     if (searchParams.location) currentFilters.push(`Location: ${searchParams.location}`);
     if (searchParams.availability) currentFilters.push(`Availability: ${searchParams.availability}`);
-    if (searchParams.education_level) currentFilters.push(`Education: ${searchParams.education_level}`);
     if (searchParams.experience_level) currentFilters.push(`Experience: ${searchParams.experience_level}`);
     if (searchParams.salary_min) currentFilters.push(`Min Salary: $${searchParams.salary_min}k`);
     if (searchParams.salary_max) currentFilters.push(`Max Salary: $${searchParams.salary_max}k`);
@@ -963,29 +1116,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterSummary = currentFilters.length > 0 ? currentFilters.join(', ') : 'No filters applied';
     
     modal.innerHTML = `
-        <div style="background: white; padding: 2rem; border-radius: 8px; width: 500px; max-width: 90vw;">
-            <h3 style="margin-top: 0;">Save This Search</h3>
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; color: #666;">
-                <strong>Current search:</strong><br>
-                ${filterSummary}
+        <div class="save-search-modal-content">
+            <div class="save-search-modal-header">Save This Search</div>
+            <div class="save-search-current-filters">
+                <div class="save-search-filters-label">Current search:</div>
+                <div class="save-search-filters-summary">${filterSummary}</div>
             </div>
-            <form id="save-search-form">
-                <div style="margin-bottom: 1rem;">
-                    <label for="search-name" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Give this search a name *</label>
+            <form id="save-search-form" class="save-search-form">
+                <div class="save-search-form-item">
+                    <label for="search-name" class="save-search-label">Give this search a name *</label>
                     <input type="text" id="search-name" name="name" required 
                            placeholder="e.g., 'Python Developers in SF'" 
-                           style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                    <small style="color: #666; font-size: 0.8rem;">This helps you identify the search later</small>
+                           class="save-search-input">
+                    <small class="save-search-help-text">This helps you identify the search later</small>
                 </div>
-                <div style="margin-bottom: 1rem;">
-                    <label for="search-description" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Notes (optional)</label>
-                    <textarea id="search-description" name="description" rows="2"
+                <div class="save-search-form-item">
+                    <label for="search-description" class="save-search-label">Notes (optional)</label>
+                    <textarea id="search-description" name="description" rows="3"
                               placeholder="e.g., 'Looking for senior developers for our backend team'"
-                              style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
+                              class="save-search-textarea"></textarea>
                 </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                    <button type="button" id="cancel-save" style="padding: 0.5rem 1rem; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
-                    <button type="button" id="submit-save-search" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Search</button>
+                <div class="save-search-form-actions">
+                    <button type="button" id="cancel-save" class="save-search-cancel-btn">Cancel</button>
+                    <button type="button" id="submit-save-search" class="save-search-submit-btn">Save Search</button>
                 </div>
             </form>
         </div>

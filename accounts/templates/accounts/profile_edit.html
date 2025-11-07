@@ -33,11 +33,43 @@
                 <input type="text" class="info-input" value="{{ template_data.applicant.user.username }}" disabled>
             </div>
             <div class="info-block-item">
-                <label class="info-label">Phone:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Phone:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_phone" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_phone %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_phone" value="{% if template_data.privacy_settings.show_phone %}1{% else %}0{% endif %}" id="show_phone">
+                </div>
                 <input type="tel" name="phone" class="info-input" value="{{ template_data.applicant.phone|default:'' }}" placeholder="Not provided">
             </div>
             <div class="info-block-item">
-                <label class="info-label">Street Address:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Street Address:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_location" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_location %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_location" value="{% if template_data.privacy_settings.show_location %}1{% else %}0{% endif %}" id="show_location">
+                </div>
                 <input type="text" name="street_address" class="info-input" value="{{ template_data.applicant.street_address|default:'' }}" placeholder="Not provided">
             </div>
             <div class="info-block-item">
@@ -58,19 +90,83 @@
             <div class="info-block">
             <div class="info-block-header">Professional Information</div>
             <div class="info-block-item">
-                <label class="info-label">Skills:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Skills:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_skills" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_skills %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_skills" value="{% if template_data.privacy_settings.show_skills %}1{% else %}0{% endif %}" id="show_skills">
+                </div>
                 <textarea name="skills" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.skills|default:'' }}</textarea>
             </div>
             <div class="info-block-item">
-                <label class="info-label">Education:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Education:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_education" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_education %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_education" value="{% if template_data.privacy_settings.show_education %}1{% else %}0{% endif %}" id="show_education">
+                </div>
                 <textarea name="education" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.education|default:'' }}</textarea>
             </div>
             <div class="info-block-item">
-                <label class="info-label">Experience:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Experience:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_experience" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_experience %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_experience" value="{% if template_data.privacy_settings.show_experience %}1{% else %}0{% endif %}" id="show_experience">
+                </div>
                 <textarea name="experience" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.experience|default:'' }}</textarea>
             </div>
             <div class="info-block-item">
-                <label class="info-label">Job Availability:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Job Availability:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_availability" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_availability %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_availability" value="{% if template_data.privacy_settings.show_availability %}1{% else %}0{% endif %}" id="show_availability">
+                </div>
                 <select name="availability" class="info-input">
                     <option value="available" {% if template_data.applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
                     <option value="open-to-work" {% if template_data.applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
@@ -78,7 +174,23 @@
                 </select>
             </div>
             <div class="info-block-item">
-                <label class="info-label">Links:</label>
+                <div class="info-label-row">
+                    <label class="info-label">Links:</label>
+                    <button type="button" class="privacy-toggle-btn" data-field="show_links" onclick="togglePrivacy(this)">
+                        {% if template_data.privacy_settings.show_links %}
+                        <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                    <input type="hidden" name="show_links" value="{% if template_data.privacy_settings.show_links %}1{% else %}0{% endif %}" id="show_links">
+                </div>
                 <div class="links-container" id="links-container">
                     {% for link in template_data.applicant.get_links_list %}
                     <div class="link-row">
@@ -95,7 +207,23 @@
         
         <!-- Projects Section -->
         <div class="projects-section">
-            <div class="projects-header">Projects</div>
+            <div class="projects-header-row">
+                <div class="projects-header">Projects</div>
+                <button type="button" class="privacy-toggle-btn" data-field="show_projects" onclick="togglePrivacy(this)">
+                    {% if template_data.privacy_settings.show_projects %}
+                    <svg class="privacy-icon visible" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {% else %}
+                    <svg class="privacy-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {% endif %}
+                </button>
+                <input type="hidden" name="show_projects" value="{% if template_data.privacy_settings.show_projects %}1{% else %}0{% endif %}" id="show_projects">
+            </div>
             
             <!-- Add New Project Button -->
             <div class="add-project-button-container">
@@ -259,8 +387,45 @@
     gap: 0.2rem;
 }
 
+.info-label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: space-between;
+}
+
 .info-label {
     font-weight: 500;
+    flex: 1;
+}
+
+.privacy-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    color: rgb(33, 128, 116);
+}
+
+.privacy-toggle-btn:hover {
+    opacity: 0.7;
+}
+
+.privacy-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.privacy-icon.visible {
+    color: rgb(33, 128, 116);
+}
+
+.privacy-icon.hidden {
+    color: #999;
 }
 
 .info-input,
@@ -302,11 +467,18 @@
     max-width: 1000px;
 }
 
+.projects-header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+}
+
 .projects-header {
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 1rem;
-    padding: 0 1rem;
 }
 
 .projects-list {
@@ -568,6 +740,32 @@ function addLinkRow() {
 
 function removeLinkRow(button) {
     button.parentElement.remove();
+}
+
+function togglePrivacy(button) {
+    const fieldName = button.getAttribute('data-field');
+    const hiddenInput = document.getElementById(fieldName);
+    const icon = button.querySelector('.privacy-icon');
+    
+    // Toggle the value (1 = visible, 0 = hidden)
+    const currentValue = hiddenInput.value;
+    const newValue = currentValue === '1' ? '0' : '1';
+    hiddenInput.value = newValue;
+    
+    // Toggle the icon
+    if (newValue === '1') {
+        // Switch to visible icon
+        icon.classList.remove('hidden');
+        icon.classList.add('visible');
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+        icon.setAttribute('viewBox', '0 0 24 24');
+    } else {
+        // Switch to hidden icon
+        icon.classList.remove('visible');
+        icon.classList.add('hidden');
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+        icon.setAttribute('viewBox', '0 0 24 24');
+    }
 }
 
 function toggleAddProjectForm() {
