@@ -12,7 +12,7 @@
     <div class="profile-header">
         <div class="profile-name-banner">Edit Profile</div>
     </div>
-    
+            
     <form method="post" class="profile-content">
         {% csrf_token %}
         
@@ -79,13 +79,13 @@
             <div class="info-block-item">
                 <label class="info-label">State:</label>
                 <input type="text" name="state" class="info-input" value="{{ template_data.applicant.state|default:'' }}" placeholder="Not provided">
-            </div>
+        </div>
             <div class="info-block-item">
                 <label class="info-label">Post Code:</label>
                 <input type="text" name="post_code" class="info-input" value="{{ template_data.applicant.post_code|default:'' }}" placeholder="Not provided">
-            </div>
+                        </div>
         </div>
-            
+        
             <!-- Professional Information -->
             <div class="info-block">
             <div class="info-block-header">Professional Information</div>
@@ -106,9 +106,9 @@
                         {% endif %}
                     </button>
                     <input type="hidden" name="show_skills" value="{% if template_data.privacy_settings.show_skills %}1{% else %}0{% endif %}" id="show_skills">
-                </div>
+        </div>
                 <textarea name="skills" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.skills|default:'' }}</textarea>
-            </div>
+        </div>
             <div class="info-block-item">
                 <div class="info-label-row">
                     <label class="info-label">Education:</label>
@@ -126,9 +126,9 @@
                         {% endif %}
                     </button>
                     <input type="hidden" name="show_education" value="{% if template_data.privacy_settings.show_education %}1{% else %}0{% endif %}" id="show_education">
-                </div>
+        </div>
                 <textarea name="education" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.education|default:'' }}</textarea>
-            </div>
+        </div>
             <div class="info-block-item">
                 <div class="info-label-row">
                     <label class="info-label">Experience:</label>
@@ -146,9 +146,9 @@
                         {% endif %}
                     </button>
                     <input type="hidden" name="show_experience" value="{% if template_data.privacy_settings.show_experience %}1{% else %}0{% endif %}" id="show_experience">
-                </div>
+        </div>
                 <textarea name="experience" class="info-textarea" placeholder="Not provided">{{ template_data.applicant.experience|default:'' }}</textarea>
-            </div>
+        </div>
             <div class="info-block-item">
                 <div class="info-label-row">
                     <label class="info-label">Job Availability:</label>
@@ -166,13 +166,13 @@
                         {% endif %}
                     </button>
                     <input type="hidden" name="show_availability" value="{% if template_data.privacy_settings.show_availability %}1{% else %}0{% endif %}" id="show_availability">
-                </div>
+        </div>
                 <select name="availability" class="info-input">
-                    <option value="available" {% if template_data.applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
-                    <option value="open-to-work" {% if template_data.applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
-                    <option value="not-looking" {% if template_data.applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
-                </select>
-            </div>
+                            <option value="available" {% if template_data.applicant.availability == 'available' %}selected{% endif %}>Available Now</option>
+                            <option value="open-to-work" {% if template_data.applicant.availability == 'open-to-work' %}selected{% endif %}>Open to Work</option>
+                            <option value="not-looking" {% if template_data.applicant.availability == 'not-looking' %}selected{% endif %}>Not Looking</option>
+                        </select>
+                    </div>
             <div class="info-block-item">
                 <div class="info-label-row">
                     <label class="info-label">Links:</label>
@@ -199,13 +199,13 @@
                         <button type="button" onclick="removeLinkRow(this)" class="remove-link-btn">×</button>
                     </div>
                     {% endfor %}
-                </div>
-                <button type="button" onclick="addLinkRow()" class="add-link-btn" style="margin-top: 0.5rem;">+ Add Link</button>
-            </div>
         </div>
+                <button type="button" onclick="addLinkRow()" class="add-link-btn" style="margin-top: 0.5rem;">+ Add Link</button>
+        </div>
+          </div>
         </div>
         
-        <!-- Projects Section -->
+                <!-- Projects Section -->
         <div class="projects-section">
             <div class="projects-header-row">
                 <div class="projects-header">Projects</div>
@@ -224,12 +224,12 @@
                 </button>
                 <input type="hidden" name="show_projects" value="{% if template_data.privacy_settings.show_projects %}1{% else %}0{% endif %}" id="show_projects">
             </div>
-            
+                                
             <!-- Add New Project Button -->
             <div class="add-project-button-container">
                 <button type="button" onclick="toggleAddProjectForm()" class="add-project-button" id="add-project-btn">+ Add New Project</button>
-            </div>
-            
+        </div>
+        
             <!-- Add New Project Form (hidden by default) -->
             <div class="add-project-block" id="add-project-form" style="display: none;">
                 <div class="info-block-header">Add New Project</div>
@@ -244,33 +244,33 @@
                 <div class="info-block-item">
                     <label class="info-label">Technologies:</label>
                     <input type="text" id="project_technologies" class="info-input" placeholder="e.g., React, Node.js, MongoDB">
-                </div>
+        </div>
                 <div class="info-block-item">
                     <label class="info-label">URL:</label>
                     <input type="url" id="project_url" class="info-input" placeholder="https://your-project.com">
-                </div>
+                            </div>
                 <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                     <button type="button" onclick="addProject()" class="submit-button">Add Project</button>
                     <button type="button" onclick="toggleAddProjectForm()" class="cancel-button">Cancel</button>
-                </div>
-            </div>
-            
+                        </div>
+                    </div>
+                    
             <div class="projects-list">
-                {% if template_data.projects %}
-                    {% for project in template_data.projects %}
-                    <div class="project-item" id="project-{{ project.id }}">
-                        <div class="project-actions">
+                        {% if template_data.projects %}
+                                {% for project in template_data.projects %}
+                                    <div class="project-item" id="project-{{ project.id }}">
+                                            <div class="project-actions">
                             <button type="button" onclick="editProject({{ project.id }}, '{{ project.title|escapejs }}', '{{ project.description|escapejs }}', '{{ project.technologies|escapejs }}', '{{ project.url|escapejs }}')" class="project-edit-btn">Edit</button>
                             <button type="button" onclick="deleteProject({{ project.id }})" class="project-delete-btn">Delete</button>
-                        </div>
+                                            </div>
                         <div class="project-header-row">
                             <div class="project-title">{{ project.title }}</div>
-                            {% if project.url %}
-                            <div class="project-url">
+                                            {% if project.url %}
+                                                <div class="project-url">
                                 <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">View Project →</a>
                             </div>
                             {% endif %}
-                        </div>
+                            </div>
                         <div class="project-description">{{ project.description }}</div>
                         {% if project.technologies %}
                         <div class="project-technologies">Technologies: {{ project.technologies }}</div>
@@ -280,9 +280,9 @@
                 {% else %}
                     <div class="project-empty-message">No projects added yet.</div>
                 {% endif %}
-            </div>
+                    </div>
         </div>
-        
+
         <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="submit-button">Save Changes</button>
@@ -716,8 +716,8 @@
 
 .add-link-btn:hover {
     opacity: 0.9;
-}
-
+    }
+    
 @media (max-width: 1024px) {
     .info-blocks-container {
         flex-direction: column;

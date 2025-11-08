@@ -70,9 +70,7 @@
                                 {{ application.listing.location }}
                             {% endif %}
                         </div>
-                        <div class="application-status status-{{ application.status|lower|cut:' ' }}" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6c757d{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#6c757d{% else %}#6c757d{% endif %}; color: {% if application.status == 'Interview' %}#212529{% else %}white{% endif %};">
-                            {{ application.status }}
-                        </div>
+                        <div class="application-status status-{{ application.status|lower|cut:' ' }}" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6f42c1{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#495057{% else %}#6c757d{% endif %};"></div>
                     </div>
                     {% empty %}
                     <div class="no-applications">
@@ -467,10 +465,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* Status colors matching the color scheme */
 .status-applied { background-color: #007bff; color: white; }
-.status-underreview { background-color: #6c757d; color: white; }
+.status-underreview { background-color: #6f42c1; color: white; }
 .status-interview { background-color: #ffc107; color: #212529; }
 .status-offer { background-color: #28a745; color: white; }
-.status-closed { background-color: #6c757d; color: white; }
+.status-closed { background-color: #495057; color: white; }
 
 </style>
 

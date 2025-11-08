@@ -422,7 +422,7 @@ def search_candidates(request):
     # Add pagination
     from django.core.paginator import Paginator
     page = request.GET.get('page', 1)
-    paginator = Paginator(applicants, 12)  # Show 12 candidates per page
+    paginator = Paginator(applicants, 40)  # Show 40 candidates per page
     applicants_page = paginator.get_page(page)
     
     # Get projects for each applicant on current page

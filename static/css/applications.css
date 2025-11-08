@@ -274,8 +274,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20px;
-  padding: 0 0 0 30px;
+  padding: 0 7px 0 20px;
   border-radius: 45px;
   background: white;
   box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
@@ -310,7 +309,6 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  text-align: left;
   margin: 0;
   padding: 0;
   height: 100%;
@@ -320,30 +318,25 @@
   line-height: 1;
   flex: 1;
 }
-.application-bar .application-date-text {
-  justify-content: flex-end;
-  margin-right: 20px;
+
+.application-bar .application-status {
+  flex-shrink: 0;
 }
 
 .application-bar .application-company {
   font-weight: 800 !important;
+
 }
 
+
 .application-status {
-  font-size: 16px;
-  font-weight: 500;
-  color: #000000;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 20px;
-  margin-top: 10px;
-  width: 100px;
-  text-align: right;
-  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
-  white-space: nowrap;
-  line-height: 1;
-  flex: 1;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .status-applied {
@@ -352,7 +345,7 @@
 }
 
 .status-review {
-  background-color: #6c757d;
+  background-color: #6f42c1;
   color: white;
 }
 
@@ -372,7 +365,7 @@
 }
 
 .status-closed {
-  background-color: #6c757d;
+  background-color: #495057;
   color: white;
 }
 
@@ -420,7 +413,7 @@
 }
 
 .status-filter-pill.status-review {
-  background-color: #6c757d;
+  background-color: #6f42c1;
 }
 
 .status-filter-pill.status-interviewing {
@@ -433,7 +426,7 @@
 }
 
 .status-filter-pill.status-closed {
-  background-color: #6c757d;
+  background-color: #495057;
 }
 
 /* Status Badge in Header */
@@ -454,7 +447,7 @@
 }
 
 .job-description-header .status-badge.status-review {
-  background-color: #6c757d;
+  background-color: #6f42c1;
   color: white;
 }
 
@@ -469,6 +462,6 @@
 }
 
 .job-description-header .status-badge.status-closed {
-  background-color: #6c757d;
+  background-color: #495057;
   color: white;
 }

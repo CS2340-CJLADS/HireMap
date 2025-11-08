@@ -151,19 +151,24 @@
                         <div class="candidate-description-container">
                             <!-- Header Section -->
                             <div class="candidate-description-header">
-                                <div class="candidate-description-name" id="candidate-description-name">
-                                    {% if template_data.specific_candidate %}
-                                        {{ template_data.specific_candidate.first_name }} {{ template_data.specific_candidate.last_name }}
-                                    {% else %}
-                                        Candidate Name
-                                    {% endif %}
-                                </div>
-                                <div class="candidate-description-title" id="candidate-description-title">
-                                    {% if template_data.specific_candidate %}
-                                        {{ template_data.specific_candidate.professional_title|default:"Professional Title" }}
-                                    {% else %}
-                                        Professional Title
-                                    {% endif %}
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                                    <div style="flex: 1;">
+                                        <div class="candidate-description-name" id="candidate-description-name">
+                                            {% if template_data.specific_candidate %}
+                                                {{ template_data.specific_candidate.first_name }} {{ template_data.specific_candidate.last_name }}
+                                            {% else %}
+                                                Candidate Name
+                                            {% endif %}
+                                        </div>
+                                        <div class="candidate-description-title" id="candidate-description-title">
+                                            {% if template_data.specific_candidate %}
+                                                {{ template_data.specific_candidate.professional_title|default:"Professional Title" }}
+                                            {% else %}
+                                                Professional Title
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <a href="#" id="message-candidate-btn" class="action-capsule-btn" style="flex-shrink: 0; margin-left: 1rem;">Send Message</a>
                                 </div>
                             </div>
                             
@@ -172,56 +177,10 @@
                                 <div class="candidate-description-section">
                                     <div class="section-title">Contact Information</div>
                                     <div class="section-content">
-                                        <div id="candidate-description-location">
-                                            {% if template_data.specific_candidate %}
-                                                {% with privacy=template_data.specific_candidate.get_privacy_settings %}
-                                                    {% if privacy.show_location %}
-                                                        {% if template_data.specific_candidate.city and template_data.specific_candidate.state %}
-                                                            {{ template_data.specific_candidate.city }}, {{ template_data.specific_candidate.state }}
-                                                        {% elif template_data.specific_candidate.street_address %}
-                                                            {{ template_data.specific_candidate.street_address }}
-                                                            {% if template_data.specific_candidate.city %}, {{ template_data.specific_candidate.city }}{% endif %}
-                                                            {% if template_data.specific_candidate.state %} {{ template_data.specific_candidate.state }}{% endif %}
-                                                        {% else %}
-                                                            Location not provided
-                                                        {% endif %}
-                                                    {% else %}
-                                                        Location not shown
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% else %}
-                                                Location
-                                            {% endif %}
-                                        </div>
-                                        <div id="candidate-description-phone">
-                                            {% if template_data.specific_candidate %}
-                                                {% with privacy=template_data.specific_candidate.get_privacy_settings %}
-                                                    {% if privacy.show_phone and template_data.specific_candidate.phone %}
-                                                        {{ template_data.specific_candidate.phone }}
-                                                    {% elif privacy.show_phone %}
-                                                        Phone not provided
-                                                    {% else %}
-                                                        Phone not shown
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% else %}
-                                                Phone
-                                            {% endif %}
-                                        </div>
-                                        <div id="candidate-description-availability">
-                                            {% if template_data.specific_candidate %}
-                                                {{ template_data.specific_candidate.get_availability_display }}
-                                            {% else %}
-                                                Availability
-                                            {% endif %}
-                                        </div>
-                                        <div id="candidate-description-email">
-                                            {% if template_data.specific_candidate %}
-                                                <a href="mailto:{{ template_data.specific_candidate.user.username }}" style="color: rgb(33, 128, 116); text-decoration: none;">{{ template_data.specific_candidate.user.username }}</a>
-                                            {% else %}
-                                                Email
-                                            {% endif %}
-                                        </div>
+                                        <div id="candidate-description-location">Location</div>
+                                        <div id="candidate-description-phone">Phone</div>
+                                        <div id="candidate-description-availability">Availability</div>
+                                        <div id="candidate-description-email">Email</div>
                                     </div>
                                 </div>
                                 
@@ -314,11 +273,6 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Contact Section -->
-                            <div class="candidate-description-actions">
-                                <a href="#" id="message-candidate-btn" class="message-btn">Message</a>
                             </div>
                         </div>
                     </div>
@@ -669,6 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fill: none;
 }
 
+
 /* Candidate-specific styles */
 .candidate-listing {
     background: white;
@@ -732,75 +687,77 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .candidate-description-container {
-    padding: 2rem;
+    padding: 0;
 }
 
 .candidate-description-header {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(19, 227, 178, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 0rem;
+    position: relative;
 }
 
 .candidate-description-name {
-    font-size: 28px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    font-family: var(--font-family-base);
 }
 
 .candidate-description-title {
-    font-size: 18px;
-    color: #666;
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    font-family: var(--font-family-base);
+    margin-bottom: 0.5rem;
 }
 
 .candidate-description-sections {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+    flex: 1;
+    gap: 1rem;
+    min-height: 0;
+    overflow-y: auto;
+    margin-top: 1rem;
 }
 
 .candidate-description-section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0rem;
 }
 
 .section-title {
     font-size: 18px;
-    font-weight: 600;
-    color: #333;
+    font-weight: 700;
+    color: #000000;
+    font-family: var(--font-family-base);
+    line-height: 1.5;
 }
 
 .section-content {
     font-size: 16px;
-    color: #666;
-    line-height: 1.6;
+    font-weight: var(--font-weight-medium);
+    color: #000000;
+    font-family: var(--font-family-base);
 }
 
 .project-item {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 8px;
     margin-bottom: 1rem;
-    border: 1px solid #e9ecef;
 }
 
-.project-title {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
+.project-item strong {
+    font-weight: 700;
+    color: #000000;
+    font-family: var(--font-family-base);
 }
 
-.project-description {
-    color: #666;
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
-}
-
-.project-technologies {
-    color: #6c757d;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+.project-item p {
+    margin: 0.5rem 0;
+    color: #000000;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-weight-medium);
 }
 
 .project-url a {
@@ -818,34 +775,6 @@ document.addEventListener('DOMContentLoaded', function() {
     font-style: italic;
 }
 
-.candidate-description-actions {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
-    display: flex;
-    justify-content: center;
-}
-
-.message-btn {
-    background: #13E3B2;
-    color: white;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.message-btn:hover {
-    background: #0fb894;
-    transform: translateY(-1px);
-    color: white;
-    text-decoration: none;
-}
 
 .search-tips-message {
     background: #f8f9fa;

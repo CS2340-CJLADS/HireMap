@@ -8,7 +8,7 @@
 <div class="job-search-container">
     <div class="page-container">
     <!-- Split Screen Layout -->
-    <div class="split-screen">
+    <div class="split-screen" style="margin-top: 1rem;">
         <!-- Left Panel: Company Openings -->
         <div class="left-panel">
             <div class="panel-header">
@@ -79,54 +79,62 @@
             <!-- Notifications Section -->
             <div id="notifications-content" class="panel-content">
                 <div class="notifications-container">
-                    <div class="notifications-header">
-                        <h3>Notifications {% if template_data.unread_count > 0 %}<span class="unread-badge">{{ template_data.unread_count }}</span>{% endif %}</h3>
-                        <div class="header-actions">
-                            <button id="mark-all-read-btn" class="mark-all-read-btn" onclick="markAllNotificationsRead()">Mark All Read</button>
-                            <button id="view-saved-searches-btn" class="view-saved-searches-btn" onclick="showSavedSearches()">Saved Searches</button>
-                    </div>
+                    <div class="notifications-header-banner">
+                        <div class="notifications-title-row">
+                            <h3>Notifications</h3>
+                            {% if template_data.unread_count > 0 %}
+                            <span class="unread-badge">{{ template_data.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="notifications-header-actions">
+                            <button id="mark-all-read-btn" class="notification-action-btn" onclick="markAllNotificationsRead()">Mark All Read</button>
+                            <button id="view-saved-searches-btn" class="notification-action-btn" onclick="showSavedSearches()">Saved Searches</button>
+                        </div>
                     </div>
                     
-                    <div class="notifications-list scrollable-content">
+                    <div class="notifications-list">
                         {% if template_data.notifications %}
                             {% for notification in template_data.notifications %}
                             <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-notification-id="{{ notification.id }}">
-                                <div class="notification-header">
-                                    <h4>{{ notification.title }}</h4>
-                                    <div class="notification-header-right">
-                                        <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
-                                        <button class="dismiss-notification-btn" onclick="dismissNotification({{ notification.id }})" title="Dismiss notification">×</button>
+                                <div class="notification-item-header">
+                                    <div class="notification-title-time">
+                                        <div class="notification-title">{{ notification.title }}</div>
+                                        <div class="notification-time">{{ notification.created_at|timesince }} ago</div>
+                                    </div>
+                                    <button class="dismiss-notification-btn" onclick="dismissNotification({{ notification.id }})" title="Dismiss notification">×</button>
                                 </div>
-                            </div>
-                                <div class="notification-body">
-                                    <p>{{ notification.message }}</p>
-                                    {% if notification.candidate and notification.candidate.user_id %}
-                                    <div class="notification-actions">
-                                        <a href="{% url 'recruiter:search_candidates' %}?candidate_id={{ notification.candidate.user_id }}" class="view-candidate-btn">View Candidate</a>
-                                        {% if not notification.is_read %}
-                                        <button class="mark-read-btn" onclick="markNotificationRead({{ notification.id }})">Mark Read</button>
-                                        {% endif %}
-                        </div>
+                                <div class="notification-message">
+                                    {{ notification.message }}
+                                </div>
+                                {% if notification.candidate and notification.candidate.user_id %}
+                                <div class="notification-actions">
+                                    <a href="{% url 'recruiter:search_candidates' %}?candidate_id={{ notification.candidate.user_id }}" class="notification-link-btn">View Candidate</a>
+                                    {% if not notification.is_read %}
+                                    <button class="notification-link-btn secondary" onclick="markNotificationRead({{ notification.id }})">Mark Read</button>
                                     {% endif %}
-                    </div>
-                </div>
+                                </div>
+                                {% endif %}
+                            </div>
                             {% endfor %}
                         {% else %}
                             <div class="no-notifications">
                                 <p>No notifications yet.</p>
-                                <p>You'll get notified about new candidate matches and saved candidate activities.</p>
-            </div>
+                            </div>
                         {% endif %}
                     </div>
-    </div>
+                </div>
 
             <!-- Saved Searches Section -->
             <div id="saved-searches-content" class="panel-content" style="display: none;">
                 <div class="saved-searches-container">
-                    <div class="saved-searches-header">
-                        <h3>Saved Searches</h3>
-                        <button id="back-to-notifications" class="back-btn" onclick="showNotifications()">← Back to Notifications</button>
-            </div>
+                    <div class="saved-searches-header-banner">
+                        <div class="saved-searches-title-row">
+                            <h3>Saved Searches</h3>
+                        </div>
+                        <div class="saved-searches-header-actions">
+                            <button id="back-to-notifications" class="notification-action-btn" onclick="showNotifications()">← Back to Notifications</button>
+                        </div>
+                    </div>
                     
                     <div class="saved-searches-list">
                         {% if template_data.saved_searches %}
@@ -137,34 +145,44 @@
                                  data-availability="{{ search.availability }}" 
                                  data-experience="{{ search.experience_level }}" 
                                  data-education="{{ search.education_level }}">
-                                <div class="search-header">
-                                    <h4>{{ search.name }}</h4>
-                                    <span class="search-date">{{ search.created_at|timesince }} ago</span>
-                        </div>
-                                <div class="search-details">
+                                <div class="saved-search-item-header">
+                                    <div class="saved-search-title-time">
+                                        <div class="saved-search-title">{{ search.name }}</div>
+                                        <div class="saved-search-date">{{ search.created_at|timesince }} ago</div>
+                                    </div>
+                                </div>
+                                <div class="saved-search-details">
                                     {% if search.skills_search %}
-                                    <span class="search-tag">Skills: {{ search.skills_search }}</span>
+                                    <div class="saved-search-detail-item">
+                                        <span class="saved-search-detail-label">Skills:</span>
+                                        <span class="saved-search-detail-value">{{ search.skills_search }}</span>
+                                    </div>
                                     {% endif %}
                                     {% if search.location_search %}
-                                    <span class="search-tag">Location: {{ search.location_search }}</span>
+                                    <div class="saved-search-detail-item">
+                                        <span class="saved-search-detail-label">Location:</span>
+                                        <span class="saved-search-detail-value">{{ search.location_search }}</span>
+                                    </div>
                                     {% endif %}
                                     {% if search.availability %}
-                                    <span class="search-tag">Availability: {{ search.availability }}</span>
+                                    <div class="saved-search-detail-item">
+                                        <span class="saved-search-detail-label">Availability:</span>
+                                        <span class="saved-search-detail-value">{{ search.availability }}</span>
+                                    </div>
                                     {% endif %}
                                     {% if search.description %}
-                                    <p class="search-description">{{ search.description }}</p>
+                                    <div class="saved-search-description">{{ search.description }}</div>
                                     {% endif %}
-                    </div>
-                                <div class="search-actions">
-                                    <button class="load-search-btn" onclick="loadSavedSearch({{ search.id }})">Load Search</button>
-                                    <button class="delete-search-btn" onclick="deleteSavedSearch({{ search.id }})">Delete</button>
                                 </div>
-                    </div>
-                    {% endfor %}
+                                <div class="saved-search-actions">
+                                    <button class="notification-link-btn" onclick="loadSavedSearch({{ search.id }})">Load Search</button>
+                                    <button class="notification-link-btn secondary" onclick="deleteSavedSearch({{ search.id }})">Delete</button>
+                                </div>
+                            </div>
+                            {% endfor %}
                         {% else %}
                             <div class="no-saved-searches">
                                 <p>No saved searches yet.</p>
-                                <p>Save your search filters to quickly access them later.</p>
                             </div>
                         {% endif %}
                     </div>
@@ -181,50 +199,58 @@
                     
              <!-- Applications (hidden by default) -->
              <div id="applications-content" class="panel-content" style="display: none;">
-                 <div class="applications-content">
-                     <div class="applications-header">
-                         <h2 id="applications-title">Applications</h2>
-                         <button id="kanban-view-btn" class="kanban-view-btn" onclick="showKanbanView()">Kanban View</button>
-                                </div>
+                 <div class="applications-dashboard">
                      <div id="applications-loading" class="loading-state" style="display: none;">
                         <div class="spinner"></div>
                          <p>Loading applications...</p>
-                                </div>
+                     </div>
                      <div id="applications-body">
-                         <div class="applications-container" id="applications-grid">
-                             <!-- Application bars will be populated here -->
-                                </div>
-                         
-                         <!-- Recommended Applicants Section -->
-                         <div class="recommended-section">
-                             <div class="recommended-header">
-                                 <h3>Recommended Candidates</h3>
-                                 <span class="recommended-info">Based on job requirements and candidate skills</span>
+                         <div class="applications-header-banner">
+                             <div class="applications-title-row">
+                                 <h3 id="applications-title">Applications</h3>
                              </div>
-                             <div id="recommended-loading" class="loading-state" style="display: none;">
-                                 <div class="spinner"></div>
-                                 <p>Loading recommendations...</p>
-                             </div>
-                             <div class="recommended-grid" id="recommended-grid">
-                                 <!-- Recommended applicant cards will be populated here -->
+                             <div class="applications-header-actions">
+                                 <button id="back-to-dashboard" class="notification-action-btn" onclick="showDashboard()">← Back to Dashboard</button>
+                                 <button id="kanban-view-btn" class="notification-action-btn" onclick="showKanbanView()">Kanban View</button>
+                                 <button class="notification-action-btn" id="view-posting-btn" onclick="showJobPosting()">View the Posting</button>
                              </div>
                          </div>
                          
-                         <div class="applications-footer">
-                             <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
-                             <button class="view-posting-btn" id="view-posting-btn" onclick="showJobPosting()">View the Posting</button>
-                            </div>
-                            </div>
-                        </div>
+                         <div class="applications-content-body">
+                             <div class="applications-container" id="applications-grid">
+                                 <!-- Application bars will be populated here -->
+                             </div>
+                             
+                             <!-- Recommended Applicants Section -->
+                             <div class="recommended-section">
+                                 <div class="recommended-header-banner">
+                                     <h3>Recommended Candidates</h3>
+                                     <div class="recommended-info">Based on job requirements and candidate skills</div>
+                                 </div>
+                                 <div id="recommended-loading" class="loading-state" style="display: none;">
+                                     <div class="spinner"></div>
+                                     <p>Loading recommendations...</p>
+                                 </div>
+                                 <div class="recommended-grid" id="recommended-grid">
+                                     <!-- Recommended applicant cards will be populated here -->
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
             </div>
             
              <!-- Kanban View (hidden by default) -->
              <div id="kanban-content" class="panel-content" style="display: none;">
-                 <div class="kanban-content">
-                     <div class="kanban-header">
-                         <button id="back-to-applications-from-kanban" class="back-btn">← Back to Applications</button>
-                         <h2 id="kanban-title">Applications - Kanban View</h2>
-                        </div>
+                 <div class="kanban-dashboard">
+                     <div class="kanban-header-banner">
+                         <div class="kanban-title-row">
+                             <h3 id="kanban-title">Applications - Kanban View</h3>
+                         </div>
+                         <div class="kanban-header-actions">
+                             <button id="back-to-applications-from-kanban" class="notification-action-btn">← Back to Applications</button>
+                         </div>
+                     </div>
                      <div id="kanban-body">
                          <div class="kanban-board">
                              <div class="kanban-column">
@@ -283,44 +309,48 @@
                             
              <!-- Job Posting View (hidden by default) -->
             <div id="job-posting-content" class="panel-content" style="display: none;">
-                <div class="job-posting-content">
-                    <div class="job-posting-header">
-                        <button id="back-to-applications" class="back-btn">← Back to Applications</button>
-                        <h2 id="job-posting-title">Job Posting</h2>
-                                    </div>
+                <div class="job-posting-dashboard">
+                    <div class="job-posting-header-banner">
+                        <div class="job-posting-title-row">
+                            <h3 id="job-posting-title">Job Posting</h3>
+                        </div>
+                        <div class="job-posting-header-actions">
+                            <button id="back-to-applications" class="notification-action-btn">← Back to Applications</button>
+                        </div>
+                    </div>
                     <div id="job-posting-body">
-                        <div class="job-posting-info">
-                            <div class="job-header">
-                                <div class="job-company" id="job-company">Company</div>
-                                <div class="job-position" id="job-position">Position</div>
+                        <div class="job-description-container">
+                            <div class="job-description-header">
+                                <div class="job-description-company" id="job-company">Company</div>
+                                <div class="job-description-position" id="job-position">Position</div>
+                            </div>
+                            
+                            <div class="job-description-sections">
+                                <div class="job-description-section">
+                                    <div class="section-title">Location</div>
+                                    <div class="section-content" id="job-location">Location</div>
                                 </div>
                                 
-                            <div class="job-details">
-                                <div class="job-detail-section">
-                                    <div class="detail-title">Location</div>
-                                    <div class="detail-content" id="job-location">Location</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Salary</div>
+                                    <div class="section-content" id="job-salary">Salary</div>
                                 </div>
                                 
-                                <div class="job-detail-section">
-                                    <div class="detail-title">Salary</div>
-                                    <div class="detail-content" id="job-salary">Salary</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Skills Required</div>
+                                    <div class="section-content" id="job-skills">Skills</div>
                                 </div>
                                 
-                                <div class="job-detail-section">
-                                    <div class="detail-title">Skills Required</div>
-                                    <div class="detail-content" id="job-skills">Skills</div>
-            </div>
-            
-                                <div class="job-detail-section">
-                                    <div class="detail-title">Description</div>
-                                    <div class="detail-content" id="job-description">Description</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Description</div>
+                                    <div class="section-content" id="job-description">Description</div>
                                 </div>
                             </div>
                             
-                                <div class="job-actions">
-                                <button class="edit-job-btn" onclick="toggleEditMode()">Edit</button>
-                                <button class="delete-job-btn" onclick="deleteJob()">Delete</button>
-                                </div>
+                            <div class="job-description-actions">
+                                <button class="notification-link-btn" onclick="toggleEditMode()">Edit</button>
+                                <button class="notification-link-btn secondary" onclick="deleteJob()">Delete</button>
+                            </div>
                             
                             <!-- Edit Form (hidden by default) -->
                             <div id="edit-form" class="edit-form" style="display: none;">
@@ -362,48 +392,52 @@
                             
             <!-- Applicant Profile View (hidden by default) -->
             <div id="applicant-profile-content" class="panel-content" style="display: none;">
-                <div class="applicant-profile-content">
-                    <div class="applicant-profile-header">
-                        <button id="back-to-applications-from-profile" class="back-btn">← Back to Applications</button>
-                        <h2 id="applicant-profile-title">Applicant Profile</h2>
-                                    </div>
+                <div class="applicant-profile-dashboard">
+                    <div class="applicant-profile-header-banner">
+                        <div class="applicant-profile-title-row">
+                            <h3 id="applicant-profile-title">Applicant Profile</h3>
+                        </div>
+                        <div class="applicant-profile-header-actions">
+                            <button id="back-to-applications-from-profile" class="notification-action-btn">← Back to Applications</button>
+                        </div>
+                    </div>
                     <div id="applicant-profile-body">
-                        <div class="applicant-profile-info">
-                            <div class="application-note">
-                                <div class="note-title">Application Note</div>
-                                <div class="note-content" id="application-note-content">No note provided</div>
+                        <div class="job-description-container">
+                            <div class="job-description-sections">
+                                <div class="job-description-section">
+                                    <div class="section-title">Application Note</div>
+                                    <div class="section-content" id="application-note-content">No note provided</div>
                                 </div>
                                 
-                            <div class="applicant-details">
-                                <div class="detail-section">
-                                    <div class="detail-title">Name</div>
-                                    <div class="detail-content" id="applicant-name">Name</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Name</div>
+                                    <div class="section-content" id="applicant-name">Name</div>
                                 </div>
                                 
-                                <div class="detail-section">
-                                    <div class="detail-title">Skills</div>
-                                    <div class="detail-content" id="applicant-skills">Skills</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Skills</div>
+                                    <div class="section-content" id="applicant-skills">Skills</div>
                                 </div>
                                 
-                                <div class="detail-section">
-                                    <div class="detail-title">Education</div>
-                                    <div class="detail-content" id="applicant-education">Education</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Education</div>
+                                    <div class="section-content" id="applicant-education">Education</div>
                                 </div>
                                 
-                                <div class="detail-section">
-                                    <div class="detail-title">Experience</div>
-                                    <div class="detail-content" id="applicant-experience">Experience</div>
+                                <div class="job-description-section">
+                                    <div class="section-title">Experience</div>
+                                    <div class="section-content" id="applicant-experience">Experience</div>
+                                </div>
+                                
+                                <div class="job-description-section">
+                                    <div class="section-title">Location</div>
+                                    <div class="section-content" id="applicant-location">Location</div>
+                                </div>
                             </div>
                             
-                                <div class="detail-section">
-                                    <div class="detail-title">Location</div>
-                                    <div class="detail-content" id="applicant-location">Location</div>
-                                </div>
-                            </div>
-                            
-                            <div class="applicant-actions">
-                                <a href="#" id="email-applicant-btn" class="email-btn">Email Applicant</a>
-                                <a href="#" id="message-applicant-btn" class="message-btn">Message Applicant</a>
+                            <div class="job-description-actions">
+                                <a href="#" id="email-applicant-btn" class="notification-link-btn">Email Applicant</a>
+                                <a href="#" id="message-applicant-btn" class="notification-link-btn secondary">Message Applicant</a>
                             </div>
                         </div>
                     </div>
@@ -578,7 +612,7 @@ function loadApplicationsForJob(jobId) {
                     <div class="application-company">${app.name || 'Unknown'}</div>
                     <div class="application-position">${jobTitle}</div>
                     <div class="application-location">${jobLocation}</div>
-                    <div class="application-status status-${statusClass}">${statusDisplay}</div>
+                    <div class="application-status status-${statusClass}"></div>
                 `;
                 applicationBar.onclick = () => {
                     // Add active class
@@ -1416,83 +1450,79 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Job openings now use application-bar style - styles are in applications.css */
 
 /* Applications View Styling */
-.applications-content {
-    padding: 2rem;
+/* ===== APPLICATIONS STYLES ===== */
+.applications-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    padding: 1.5rem;
+    gap: 1.5rem;
 }
 
-.applications-header {
+.applications-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 1rem;
-    margin-bottom: 2rem;
 }
 
-.kanban-view-btn {
-    background: #218074;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 0.5rem 1rem;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.applications-header h2 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 600;
-    color: #333;
-}
-
-.back-btn {
-    background: #218074;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 0.5rem 1rem;
-    font-size: 16px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-}
-
-/* Application bar styles are now in applications.css - keeping minimal overrides if needed */
-
-.applications-footer {
+.applications-title-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
+    gap: 0.75rem;
+}
+
+.applications-header-banner h3 {
+    margin: 0;
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.applications-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.applications-content-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* Recommended Applicants Styles */
 .recommended-section {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 2px solid #e9ecef;
-}
-
-.recommended-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.recommended-header h3 {
+.recommended-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.recommended-header-banner h3 {
     margin: 0;
-    color: #333;
-    font-size: 1.4rem;
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
 }
 
 .recommended-info {
-    color: #666;
-    font-size: 0.9rem;
-    font-style: italic;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .recommended-grid {
@@ -1632,107 +1662,42 @@ document.addEventListener('DOMContentLoaded', function() {
     display: inline-block;
 }
 
-/* Job Posting View Styling */
-.job-posting-content {
-    padding: 2rem;
+/* ===== JOB POSTING VIEW STYLES ===== */
+.job-posting-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    padding: 1.5rem;
+    gap: 1.5rem;
 }
 
-.job-posting-header {
+.job-posting-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.job-posting-title-row {
     display: flex;
     align-items: center;
-    gap: .4rem;
-    margin-bottom: 2rem;
+    gap: 0.75rem;
 }
 
-.job-posting-header h2 {
+.job-posting-header-banner h3 {
     margin: 0;
+    color: white;
     font-size: 24px;
-    font-weight: 600;
-    color: #333;
-}
-
-.job-posting-info {
-    display: flex;
-    flex-direction: column;
-    gap: .4rem;
-    border-radius: 12px;
-    padding: 1rem;
-}
-
-.job-header {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(19, 227, 178, 0.2);
-}
-
-.job-company {
-    font-size: 18px;
-    color: #666;
-    margin-bottom: 0.5rem;
-}
-
-.job-position {
-    font-size: 28px;
-    font-weight: 600;
-    color: #333;
-}
-
-.job-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0rem;
-    position: relative;
-    z-index: 10;
-    background: white;
-}
-
-.job-detail-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    position: relative;
-    z-index: 10;
-}
-
-.detail-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-}
-
-.detail-content {
-    font-size: 16px;
-    color: #666;
-    line-height: 1.6;
-}
-
-.job-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
-}
-
-.edit-job-btn {
-    background: #218074;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 0.5rem 1rem;
-    font-size: 16px;
     font-weight: 500;
-    cursor: pointer;
 }
 
-.delete-job-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    padding: 0.5rem 1rem;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
+.job-posting-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .edit-form {
@@ -1814,111 +1779,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* Applicant Profile Styles */
-.applicant-profile-content {
-    padding: 1rem;
+/* ===== APPLICANT PROFILE STYLES ===== */
+.applicant-profile-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    padding: 1.5rem;
+    gap: 1.5rem;
+}
+
+.applicant-profile-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.applicant-profile-header {
+.applicant-profile-title-row {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
-.applicant-profile-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.application-note {
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.08) 0%, rgba(101, 243, 243, 0.08) 100%);
-    border: 1px solid rgba(19, 227, 178, 0.1);
-    border-radius: 8px;
-    padding: 1rem;
-}
-
-.note-title {
-    font-weight: 600;
-    color: #333;
-    font-size: 16px;
-    margin-bottom: 0.5rem;
-}
-
-.note-content {
-    color: #666;
-    font-size: 16px;
-    line-height: 1.5;
-}
-
-.applicant-details {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.applicant-details .detail-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.applicant-details .detail-title {
-    font-weight: 600;
-    color: #333;
-    font-size: 16px;
-}
-
-.applicant-details .detail-content {
-    color: #666;
-    font-size: 16px;
-}
-
-.applicant-actions {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.email-btn {
-    background: #218074;
+.applicant-profile-header-banner h3 {
+    margin: 0;
     color: white;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-size: 16px;
+    font-size: 24px;
     font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
 }
 
-.email-btn:hover {
-    background: #1a6b5e;
-    transform: translateY(-1px);
-    color: white;
-    text-decoration: none;
-}
-
-.message-btn {
-    background: #13E3B2;
-    color: white;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
+.applicant-profile-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .message-btn:hover {
@@ -1929,41 +1825,82 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 /* Kanban View Styles */
-.kanban-content {
-    padding: 1rem;
+/* ===== KANBAN VIEW STYLES ===== */
+#kanban-content {
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+.kanban-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.kanban-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.kanban-header {
+.kanban-title-row {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+}
+
+.kanban-header-banner h3 {
+    margin: 0;
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.kanban-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+#kanban-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .kanban-board {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 0.5rem;
-    margin-top: 1rem;
-    max-width: 100%;
-    overflow-x: auto;
+    gap: 1rem;
+    width: 100%;
+    height: fit-content;
 }
 
 .kanban-column {
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+    background: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    border: none;
     min-height: 250px;
     min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
 }
 
 .kanban-column-header {
-    background: linear-gradient(135deg, rgba(19, 227, 178, 0.08) 0%, rgba(101, 243, 243, 0.08) 100%);
-    border-bottom: 1px solid rgba(19, 227, 178, 0.1);
+    background: rgba(33, 128, 116, 0.2);
+    border-bottom: 2px solid rgb(33, 128, 116);
+    border-radius: 19px 19px 0 0;
     padding: 1rem;
-    border-radius: 8px 8px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1989,6 +1926,9 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 0.5rem;
     min-height: 200px;
     transition: background-color 0.2s ease;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .kanban-application-card {
@@ -2053,321 +1993,345 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ===== NOTIFICATIONS STYLES ===== */
 .notifications-container {
     padding: 1.5rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.notifications-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e9ecef;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100%;
+    overflow-y: auto;
 }
 
-.notifications-header h3 {
+.notifications-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notifications-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.notifications-header-banner h3 {
     margin: 0;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
 }
 
 .unread-badge {
-    background: #dc3545;
+    background: rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 12px;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 600;
 }
 
-.mark-all-read-btn {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.notifications-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
-.mark-all-read-btn:hover {
-    background: #5a6268;
+.notification-action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 19px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification-action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .notifications-list {
-    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
     overflow-y: auto;
 }
 
 .notification-item {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    background: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     transition: all 0.2s ease;
 }
 
 .notification-item.unread {
-    background: #e3f2fd;
-    border-color: #2196f3;
-    border-left: 4px solid #2196f3;
+    background: rgba(33, 128, 116, 0.20);
+    border: 2px solid rgb(33, 128, 116);
 }
 
 .notification-item:hover {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
+    background: rgba(33, 128, 116, 0.15);
 }
 
-.notification-header {
+.notification-item.unread:hover {
+    background: rgba(33, 128, 116, 0.25);
+}
+
+.notification-item-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 0.5rem;
+    gap: 1rem;
 }
 
-.notification-header-right {
+.notification-title-time {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
 }
 
-.notification-header h4 {
-    margin: 0;
-    color: #333;
-    font-size: 1rem;
+.notification-title {
+    font-size: 18px;
     font-weight: 600;
+    color: #000000;
+    line-height: 1.4;
 }
 
 .notification-time {
     color: #666;
-    font-size: 0.8rem;
-    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 400;
 }
 
-.notification-body p {
-    margin: 0 0 1rem 0;
-    color: #555;
-    line-height: 1.4;
+.dismiss-notification-btn {
+    background: rgba(33, 128, 116, 0.2);
+    border: none;
+    color: rgb(33, 128, 116);
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dismiss-notification-btn:hover {
+    background: rgb(33, 128, 116);
+    color: white;
+}
+
+.notification-message {
+    font-size: 16px;
+    font-weight: 400;
+    color: #000000;
+    line-height: 1.5;
 }
 
 .notification-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
+    margin-top: 0.25rem;
 }
 
-.view-candidate-btn {
-    background: #007bff;
+.notification-link-btn {
+    background: rgb(33, 128, 116);
     color: white;
     text-decoration: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    transition: background-color 0.2s;
-}
-
-.view-candidate-btn:hover {
-    background: #0056b3;
-    color: white;
-}
-
-.mark-read-btn {
-    background: #28a745;
-    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 19px;
+    font-size: 0.875rem;
+    font-weight: 500;
     border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    display: inline-block;
 }
 
-.mark-read-btn:hover {
-    background: #218838;
+.notification-link-btn:hover {
+    background: rgba(33, 128, 116, 0.85);
+    color: white;
+}
+
+.notification-link-btn.secondary {
+    background: transparent;
+    color: rgb(33, 128, 116);
+    border: 1px solid rgb(33, 128, 116);
+}
+
+.notification-link-btn.secondary:hover {
+    background: rgba(33, 128, 116, 0.1);
 }
 
 .no-notifications {
     text-align: center;
-    padding: 2rem;
+    padding: 3rem 1rem;
     color: #666;
 }
 
 .no-notifications p {
-    margin: 0.5rem 0;
-}
-
-.dismiss-notification-btn {
-    background: none;
-    border: none;
-    color: #999;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 0.2rem 0.4rem;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    line-height: 1;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dismiss-notification-btn:hover {
-    background-color: #f0f0f0;
-    color: #666;
-    transform: scale(1.1);
+    margin: 0;
+    font-size: 16px;
 }
 
 /* ===== SAVED SEARCHES STYLES ===== */
 .saved-searches-container {
-    padding: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100%;
+    overflow-y: auto;
 }
 
-.saved-searches-header {
+.saved-searches-header-banner {
+    background: rgb(33, 128, 116);
+    border-radius: 19px;
+    padding: 1rem 1.5rem;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.saved-searches-title-row {
+    display: flex;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    gap: 0.75rem;
 }
 
-.saved-searches-header h3 {
+.saved-searches-header-banner h3 {
     margin: 0;
-    color: #333;
-    font-size: 1.2rem;
-}
-
-.header-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.view-saved-searches-btn {
-    background: #007bff;
     color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
+    font-size: 24px;
+    font-weight: 500;
 }
 
-.view-saved-searches-btn:hover {
-    background: #0056b3;
+.saved-searches-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .saved-searches-list {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    flex: 1;
 }
 
 .saved-search-item {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1rem;
-    transition: box-shadow 0.2s;
+    background: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
 }
 
 .saved-search-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: rgba(33, 128, 116, 0.15);
 }
 
-.search-header {
+.saved-search-item-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
+    align-items: flex-start;
+    gap: 1rem;
 }
 
-.search-header h4 {
-    margin: 0;
-    color: #333;
-    font-size: 1rem;
+.saved-search-title-time {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
 }
 
-.search-date {
+.saved-search-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000000;
+    line-height: 1.4;
+}
+
+.saved-search-date {
     color: #666;
-    font-size: 0.8rem;
+    font-size: 14px;
+    font-weight: 400;
 }
 
-.search-details {
-    margin-bottom: 1rem;
+.saved-search-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.search-tag {
-    display: inline-block;
-    background: #f8f9fa;
-    color: #495057;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.search-description {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0.5rem 0 0 0;
-    font-style: italic;
-}
-
-.search-actions {
+.saved-search-detail-item {
+    font-size: 16px;
     display: flex;
     gap: 0.5rem;
 }
 
-.load-search-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: background-color 0.2s;
+.saved-search-detail-label {
+    font-weight: 500;
+    color: #000000;
 }
 
-.load-search-btn:hover {
-    background: #218838;
+.saved-search-detail-value {
+    font-weight: 400;
+    color: #000000;
 }
 
-.delete-search-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: background-color 0.2s;
+.saved-search-description {
+    font-size: 16px;
+    font-weight: 400;
+    color: #000000;
+    line-height: 1.5;
+    margin-top: 0.25rem;
 }
 
-.delete-search-btn:hover {
-    background: #c82333;
+.saved-search-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
 }
 
 .no-saved-searches {
     text-align: center;
-    padding: 2rem;
+    padding: 3rem 1rem;
     color: #666;
 }
 
 .no-saved-searches p {
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
+    margin: 0;
+    font-size: 16px;
+}
+
+/* ===== JOB DESCRIPTION CONTAINER STYLES ===== */
+.job-description-container {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 /* Ensure proper hiding/showing of sections */
