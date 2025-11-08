@@ -162,7 +162,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (kanbanBoard) {
             kanbanBoard.style.display = "grid";
+            document.body.classList.add('kanban-view-active');
             renderKanban();
+        }
+        // Hide status filter pills
+        const statusFilters = document.querySelector('.status-filters');
+        if (statusFilters) {
+            statusFilters.style.display = 'none';
         }
         if (kanbanViewBtnFromSearch) {
             kanbanViewBtnFromSearch.textContent = "List View";
@@ -176,6 +182,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (listView) {
             listView.style.display = "flex"; // Use flex instead of block to maintain layout
+        }
+        document.body.classList.remove('kanban-view-active');
+        // Show status filter pills
+        const statusFilters = document.querySelector('.status-filters');
+        if (statusFilters) {
+            statusFilters.style.display = '';
         }
         if (kanbanViewBtnFromSearch) {
             kanbanViewBtnFromSearch.textContent = "Kanban View";
