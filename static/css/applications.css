@@ -70,23 +70,23 @@ body.kanban-view-active .search-form {
 }
 
 .kanban-column[data-stage="Applied"] {
-  background: rgba(0, 123, 255, 0.08);
+  background: rgba(0, 123, 255, 0.149);
 }
 
 .kanban-column[data-stage="Under Review"] {
-  background: rgba(108, 117, 125, 0.08);
+  background: rgba(110, 66, 193, 0.216);
 }
 
 .kanban-column[data-stage="Interview"] {
-  background: rgba(255, 193, 7, 0.08);
+  background: rgba(255, 193, 7, 0.18);
 }
 
 .kanban-column[data-stage="Offer"] {
-  background: rgba(40, 167, 69, 0.08);
+  background: rgba(40, 167, 69, 0.18);
 }
 
 .kanban-column[data-stage="Closed"] {
-  background: rgba(108, 117, 125, 0.08);
+  background: rgba(108, 117, 125, 0.18);
 }
 
 .kanban-column h4 {
@@ -330,17 +330,35 @@ body.kanban-view-active .search-form {
   flex: 1;
 }
 
+.application-bar .application-company {
+  font-weight: 800 !important;
+  flex: 2;
+  min-width: 0;
+}
+
+.application-bar .application-location {
+  flex: 1.5;
+  min-width: 0;
+}
+
 .application-bar .application-status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.application-bar .application-company {
-  font-weight: 800 !important;
-
+/* Search candidates specific - status contains availability badge, not circle */
+#candidate-list .candidate-listing .application-status {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  flex-shrink: 0;
 }
 
-
-.application-status {
+/* Seeker applications specific - status is a colored circle */
+#applications-list .application-bar .application-status {
   width: 25px;
   height: 25px;
   border-radius: 50%;

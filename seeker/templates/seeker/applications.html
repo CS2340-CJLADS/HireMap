@@ -46,7 +46,7 @@
                 </div>
                 <div class="applications-container" id="applications-list">
                     {% for application in template_data.applications %}
-                    <div class="application-bar" 
+                    <div class="application-bar candidate-listing" 
                          data-application-id="{{ application.id }}" 
                          data-status="{{ application.status }}"
                          data-listing-id="{{ application.listing.id }}"
@@ -62,7 +62,6 @@
                          data-message="{{ application.message|default:''|escapejs }}"
                          data-created-at="{{ application.created_at|date:'c' }}">
                         <div class="application-company">{{ application.listing.recruiter.company_name }}</div>
-                        <div class="application-position">{{ application.listing.title }}</div>
                         <div class="application-location">
                             {% if application.listing.remote %}
                                 {{ application.listing.location }} (Remote)

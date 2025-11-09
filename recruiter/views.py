@@ -723,12 +723,29 @@ def unsave_candidate(request, candidate_id):
 def notifications(request):
     """View notifications"""
     recruiter = request.user.recruiter
-    notifications = CandidateNotification.objects.filter(recruiter=recruiter)
+    all_notifications = CandidateNotification.objects.filter(recruiter=recruiter)
+    notifications_list = all_notifications.order_by('-created_at')[:20]
+    unread_count = all_notifications.filter(is_read=False).count()
+    
+    # Return JSON if requested
+    if request.GET.get('format') == 'json':
+        from django.utils import timezone
+        from django.utils.timesince import timesince
+        notifications_data = []
+        for notif in notifications_list:
+            notifications_data.append({
+                'id': notif.id,
+                'title': notif.title,
+                'message': notif.message,
+                'is_read': notif.is_read,
+                'time': timesince(notif.created_at, timezone.now()) + ' ago'
+            })
+        return JsonResponse({'notifications': notifications_data, 'unread_count': unread_count})
     
     template_data = {
         'title': 'Notifications',
-        'notifications': notifications,
-        'unread_count': notifications.filter(is_read=False).count(),
+        'notifications': notifications_list,
+        'unread_count': unread_count,
     }
     
     return render(request, 'recruiter/notifications.html', {'template_data': template_data})

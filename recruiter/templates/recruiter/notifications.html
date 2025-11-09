@@ -1,0 +1,10 @@
+{% for notification in template_data.notifications %}
+<div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-notification-id="{{ notification.id }}">
+    <div class="notification-title">{{ notification.title }}</div>
+    <div class="notification-message">{{ notification.message }}</div>
+    <div class="notification-time">{{ notification.created_at|timesince }} ago</div>
+</div>
+{% empty %}
+<div class="notification-empty">No notifications</div>
+{% endfor %}
+

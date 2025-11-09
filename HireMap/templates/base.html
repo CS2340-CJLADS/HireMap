@@ -56,6 +56,18 @@
 							<!-- Recruiter Navigation (Dashboard, Find Candidates, My Profile) -->
 							<a href="{% url 'recruiter:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
 							<a href="{% url 'home:search_candidates' %}" class="nav-link {% if request.resolver_match.url_name == 'search_candidates' %}active{% endif %}">Find Candidates</a>
+							<div class="notification-wrapper">
+								<button class="nav-link notification-btn" id="notification-btn" title="Notifications">
+									<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.89 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="white"/>
+									</svg>
+								</button>
+								<div class="notification-popup" id="notification-popup" style="display: none;">
+									<div class="notification-popup-list" id="notification-list">
+										<div class="notification-loading">Loading...</div>
+									</div>
+								</div>
+							</div>
 							<a href="{% url 'messages:index' %}" class="nav-link {% if request.resolver_match.namespace == 'messages' %}active{% endif %}" title="Messages">
 								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 									<path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="white"/>
@@ -84,5 +96,97 @@
 		{% block content %}
 		{% endblock content %}
 		</div>
+
+	{% if user.is_authenticated and user.recruiter %}
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const notificationBtn = document.getElementById('notification-btn');
+		const notificationPopup = document.getElementById('notification-popup');
+		const notificationList = document.getElementById('notification-list');
+
+		if (!notificationBtn) return;
+
+		// Toggle popup
+		notificationBtn.addEventListener('click', function(e) {
+			e.stopPropagation();
+			if (notificationPopup.style.display === 'none' || !notificationPopup.style.display) {
+				notificationPopup.style.display = 'block';
+				loadNotifications();
+			} else {
+				notificationPopup.style.display = 'none';
+			}
+		});
+
+		// Close popup when clicking outside
+		document.addEventListener('click', function(e) {
+			if (!notificationBtn.contains(e.target) && !notificationPopup.contains(e.target)) {
+				notificationPopup.style.display = 'none';
+			}
+		});
+
+		function loadNotifications() {
+			fetch('/recruiter/notifications/?format=json')
+				.then(response => response.json())
+				.then(data => {
+					const notifications = data.notifications || [];
+					
+					if (notifications.length === 0) {
+						notificationList.innerHTML = '<div class="notification-empty">No notifications</div>';
+						return;
+					}
+
+					notificationList.innerHTML = '';
+					
+					notifications.forEach(notif => {
+						const item = document.createElement('div');
+						item.className = 'notification-item-nav' + (!notif.is_read ? ' unread' : '');
+						item.innerHTML = `
+							<div class="notification-item-title">${escapeHtml(notif.title)}</div>
+							<div class="notification-item-message">${escapeHtml(notif.message)}</div>
+							<div class="notification-item-time">${escapeHtml(notif.time)}</div>
+						`;
+						item.addEventListener('click', function() {
+							if (!notif.is_read) {
+								fetch(`/recruiter/notifications/${notif.id}/read/`, {
+									method: 'POST',
+									headers: {
+										'X-CSRFToken': getCookie('csrftoken'),
+										'Content-Type': 'application/json',
+									}
+								}).then(() => loadNotifications());
+							}
+						});
+						notificationList.appendChild(item);
+					});
+				})
+				.catch(error => {
+					console.error('Error loading notifications:', error);
+					notificationList.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
+				});
+		}
+
+		function escapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		function getCookie(name) {
+			let cookieValue = null;
+			if (document.cookie && document.cookie !== '') {
+				const cookies = document.cookie.split(';');
+				for (let i = 0; i < cookies.length; i++) {
+					const cookie = cookies[i].trim();
+					if (cookie.substring(0, name.length + 1) === (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+	});
+	</script>
+	{% endif %}
 	</body>
 </html>

@@ -113,7 +113,7 @@ def dashboard(request):
     
     # Add pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(job_postings, 12)  # Show 12 jobs per page
+    paginator = Paginator(job_postings, 20)  # Show 20 jobs per page
     job_postings_page = paginator.get_page(page)
     
     # Get unique locations from actual job postings (all published, non-closed jobs)
