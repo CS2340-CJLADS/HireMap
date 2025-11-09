@@ -511,21 +511,62 @@ def get_applicant_info(request, applicant_id):
     """Get applicant info as JSON (for AJAX requests)"""
     from django.http import JsonResponse
     applicant = get_object_or_404(Applicant, pk=applicant_id)
+    privacy = applicant.get_privacy_settings()
     
-    data = {}
+    data = {
+        'first_name': applicant.first_name or '',
+        'last_name': applicant.last_name or '',
+        'email': applicant.user.username or '',  # username is used as email
+        'user_id': applicant.user.id,  # Add user_id for messaging
+    }
 
-    if applicant.get_privacy_settings().show_skills:
-        data['skills'] = applicant.skills
-    if applicant.get_privacy_settings().show_education:
-        data['education'] = applicant.education
-    if applicant.get_privacy_settings().show_experience:
-        data['experience'] = applicant.experience
-    if applicant.get_privacy_settings().show_location:
+    if privacy.show_skills:
+        data['skills'] = applicant.skills or ''
+    if privacy.show_education:
+        data['education'] = applicant.education or ''
+    if privacy.show_experience:
+        data['experience'] = applicant.experience or ''
+    if privacy.show_location:
         # Format location from city and state
-        if applicant.city and applicant.state:
-            data['location'] = f"{applicant.city}, {applicant.state}"
+        location_parts = []
+        if applicant.city:
+            location_parts.append(applicant.city)
+        if applicant.state:
+            location_parts.append(applicant.state)
+        if location_parts:
+            data['location'] = ', '.join(location_parts)
         else:
             data['location'] = None
+    if privacy.show_phone:
+        data['phone'] = applicant.phone or ''
+    if privacy.show_availability:
+        data['availability'] = applicant.availability
+        data['availability_display'] = applicant.get_availability_display()
+    if privacy.show_links:
+        if applicant.links:
+            # Parse links from JSON string
+            try:
+                import json
+                links_list = json.loads(applicant.links)
+                data['links'] = links_list if isinstance(links_list, list) else []
+            except (json.JSONDecodeError, TypeError):
+                data['links'] = []
+        else:
+            data['links'] = []
+    if privacy.show_projects:
+        from accounts.models import Project
+        projects = Project.objects.filter(applicant=applicant)
+        data['projects'] = [
+            {
+                'title': p.title or '',
+                'description': p.description or '',
+                'technologies': p.technologies or '',
+                'url': p.url or ''
+            }
+            for p in projects
+        ]
+    else:
+        data['projects'] = []
     
     return JsonResponse(data)
 

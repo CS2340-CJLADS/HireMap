@@ -399,10 +399,7 @@ body.kanban-view-active .search-form {
 }
 
 .no-applications {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6c757d;
-  font-style: italic;
+  color: #000000;
 }
 
 /* Status Filter Pills */

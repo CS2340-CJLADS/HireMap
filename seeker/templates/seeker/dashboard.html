@@ -65,6 +65,12 @@
                 </div>
             </div>
         </form>
+        <!-- Clear Filters Button -->
+        <button type="button" id="clear-filters" class="clear-filters-icon-btn" aria-label="Clear Filters" title="Clear Filters">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 4.5L4.5 13.5M4.5 4.5L13.5 13.5" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
         <!-- Separate rounded green capsule button next to the search bar -->
         <button type="button" class="action-capsule-btn">Map View</button>
     </div>
@@ -138,49 +144,15 @@
             <!-- Default: Dashboard -->
             <div id="dashboard-content" class="panel-content">
                 <div class="dashboard-container">
-                    <div class="dashboard-section">
-                        <div class="section-header">
-                            <div class="section-name">Current Search</div>
-                            <button type="button" id="clear-filters" class="clear-filters-btn">Clear Filters</button>
-                        </div>
-                        <div class="saved-searches-list" id="current-search-tags">
-                            {% if template_data.search_term %}
-                            <span class="saved-search-item">"{{ template_data.search_term }}"</span>
-                            {% endif %}
-                            {% if request.GET.title %}
-                            <span class="saved-search-item">{{ request.GET.title }}</span>
-                            {% endif %}
-                            {% if request.GET.location == 'remote' %}
-                            <span class="saved-search-item">Remote</span>
-                            {% elif request.GET.location == 'onsite' %}
-                            <span class="saved-search-item">On-site</span>
-                            {% endif %}
-                            {% if request.GET.skills %}
-                            <span class="saved-search-item">{{ request.GET.skills }}</span>
-                            {% endif %}
-                            {% if request.GET.visa_sponsorship == 'true' %}
-                            <span class="saved-search-item">Visa Sponsorship</span>
-                            {% endif %}
-                            {% if request.GET.salary_min or request.GET.salary_max %}
-                            <span class="saved-search-item">
-                                ${{ request.GET.salary_min|default:'50' }}k - ${{ request.GET.salary_max|default:'150' }}k
-                            </span>
-                            {% endif %}
-                            {% if not template_data.search_term and not request.GET.title and not request.GET.location and not request.GET.skills and not request.GET.visa_sponsorship and not request.GET.salary_min and not request.GET.salary_max %}
-                            <span class="saved-search-item">All Jobs</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
                     {% if template_data.user_is_applicant %}
                     <div class="dashboard-section">
                         <div class="section-name">Your recent applications</div>
                         <div class="recent-applications-list">
                             {% for application in template_data.recent_applications %}
                             <div class="application-tile">
+                                <span class="status-label" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6c757d{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#6c757d{% else %}#6c757d{% endif %}; color: {% if application.status == 'Interview' %}#212529{% else %}white{% endif %}; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; align-self: flex-start;">{{ application.status }}</span>
                                 <div class="application-header">
                                     <span class="company-name">{{ application.listing.recruiter.company_name|default:"Company" }}</span>
-                                    <span class="status-label" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6c757d{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#6c757d{% else %}#6c757d{% endif %}; color: {% if application.status == 'Interview' %}#212529{% else %}white{% endif %}; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">{{ application.status }}</span>
                                 </div>
                                 <div class="position">{{ application.listing.title }}</div>
                             </div>
@@ -190,10 +162,14 @@
                                 <p>Start browsing and apply to positions that interest you!</p>
                             </div>
                             {% endfor %}
+                            {% if template_data.recent_applications %}
+                            <a href="{% url 'seeker:applications' %}" class="application-tile view-all-tile">
+                                <div class="application-header">
+                                    <span class="company-name">View All</span>
+                                </div>
+                            </a>
+                            {% endif %}
                         </div>
-                        {% if template_data.recent_applications %}
-                        <a href="{% url 'seeker:applications' %}" class="view-all-button">View All</a>
-                        {% endif %}
                     </div>
                     {% endif %}
                     
@@ -646,6 +622,64 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     gap: 1rem;
     justify-content: center;
+}
+
+.clear-filters-icon-btn {
+    background: none;
+    border: 2px solid #218074;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #218074;
+    transition: all 0.2s ease;
+    width: 43px;
+    height: 43px;
+}
+
+.clear-filters-icon-btn:hover {
+    border-color: #218074;
+    color: #218074;
+}
+
+
+.clear-filters-icon-btn svg {
+    display: block;
+}
+
+.clear-filters-icon-btn svg path {
+    stroke: #218074;
+}
+
+.clear-filters-icon-btn:hover svg path {
+    stroke: #218074;
+}
+
+.view-all-tile {
+    background: #218074 !important;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-all-tile:hover {
+    background: #1a6b5f !important;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.3);
+}
+
+.view-all-tile .application-header {
+    justify-content: center;
+    width: 100%;
+}
+
+.view-all-tile .company-name {
+    color: white !important;
+    font-weight: 600;
 }
 </style>
 

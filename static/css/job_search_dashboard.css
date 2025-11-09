@@ -730,7 +730,7 @@
     min-height: 0;
     gap: 0;
     margin: 0;
-    padding: 1.5rem;
+    padding: 1.5rem 1.5rem 0.3rem 1.5rem;
     justify-content: space-between;
 }
 
@@ -745,7 +745,7 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    padding: 1.5rem 1.5rem 0 1.5rem;
+    padding: .2rem .2rem 0 .2rem;
     font-family: var(--font-family-base);
     overflow-y: auto;
     height: 100%;
@@ -813,8 +813,6 @@
 }
 
 .application-tile {
-    width: 201px;
-    height: 68px;
     flex-shrink: 0;
     border-radius: 25px;
     background: rgba(255, 255, 255, 0.77);
@@ -822,13 +820,13 @@
     padding: 0.75rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 0.5rem;
     font-family: var(--font-family-base);
 }
 
 .application-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
 }
 
@@ -882,6 +880,7 @@
     flex-direction: row;
     gap: 1rem;
     flex-wrap: wrap;
+    margin-bottom: 1rem;
 }
 
 .recommended-job-tile {
@@ -890,12 +889,13 @@
     transition: all 0.2s ease;
     position: relative;
     border-radius: 25px;
-    background: linear-gradient(180deg, rgba(19, 227, 178, 0.19) 17.31%, rgba(101, 243, 243, 0.19) 100%);
+    background: rgba(33, 128, 116, 0.20);
     box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
     font-family: var(--font-family-base);
     display: flex;
     flex-direction: column;
     gap: 0.05rem;
+    min-width: 200px;
 }
 
 .widget {

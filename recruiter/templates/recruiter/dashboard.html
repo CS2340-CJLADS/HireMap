@@ -13,7 +13,7 @@
         <div class="left-panel">
             <div class="panel-header">
                 <h3>{{ template_data.recruiter.company_name|default:"Your Company" }}'s Openings ({{ template_data.total_jobs }})</h3>
-                <a href="{% url 'recruiter:job_new' %}" class="new-job-btn">+ New Job</a>
+                <button type="button" class="new-job-btn" id="new-job-btn">+ New Job</button>
             </div>
             <div class="job-list" id="job-list">
                 <div class="applications-container">
@@ -33,6 +33,7 @@
                             <button class="job-listing-btn" onclick="showJobDetails('{{ job.id }}')">View Listing</button>
                             <button class="job-listing-btn" onclick="showApplications('{{ job.id }}')">Applications</button>
                         </div>
+                        <button class="job-listing-btn recommended-candidates-btn" onclick="showRecommendedCandidates('{{ job.id }}')" style="margin-top: 0.5rem; width: 100%;">Recommended Candidates</button>
                     </div>
                     {% empty %}
                     <div class="no-applications">
@@ -231,16 +232,136 @@
                 </div>
             </div>
             
+            <!-- Post Job Form (hidden by default) -->
+            <div id="job-post-content" class="panel-content" style="display: none;">
+                <div class="job-edit-container">
+                    <div class="job-edit-header">
+                        <div class="job-edit-title">Create New Job Posting</div>
+                        <button type="button" class="cancel-edit-btn" id="cancel-post-btn">Cancel</button>
+                    </div>
+                    
+                    <form id="job-post-form" class="job-edit-form">
+                        {% csrf_token %}
+                        
+                        <div class="edit-info-blocks-container">
+                            <!-- Job Information -->
+                            <div class="edit-info-block">
+                                <div class="edit-info-block-header">Job Information</div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Job Title *</label>
+                                    <input type="text" name="title" id="post-title" class="edit-info-input" placeholder="e.g., Software Engineer, Product Manager" required>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Job Description *</label>
+                                    <textarea name="description" id="post-description" class="edit-info-textarea" rows="6" placeholder="Describe the role, responsibilities, and what makes this opportunity exciting..." required></textarea>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Required Skills</label>
+                                    <textarea name="skills_required" id="post-skills_required" class="edit-info-textarea" rows="3" placeholder="e.g., Python, JavaScript, React, Django, AWS, etc."></textarea>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Requirements</label>
+                                    <textarea name="requirements" id="post-requirements" class="edit-info-textarea" rows="3" placeholder="e.g., 3+ years experience, Bachelor's degree, etc."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Location Information -->
+                            <div class="edit-info-block">
+                                <div class="edit-info-block-header">Location Information</div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Street Address *</label>
+                                    <input type="text" name="street_address" id="post-street_address" class="edit-info-input" placeholder="123 Main Street" required>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">City *</label>
+                                    <input type="text" name="city" id="post-city" class="edit-info-input" placeholder="San Francisco" required>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">State *</label>
+                                    <input type="text" name="state" id="post-state" class="edit-info-input" placeholder="CA" required>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Post Code (ZIP)</label>
+                                    <input type="text" name="post_code" id="post-post_code" class="edit-info-input" placeholder="12345">
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Country</label>
+                                    <input type="text" name="country" id="post-country" class="edit-info-input" value="USA" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Salary Information and Additional Options -->
+                        <div class="edit-info-blocks-container" style="margin-top: 1rem;">
+                            <!-- Salary Information -->
+                            <div class="edit-info-block">
+                                <div class="edit-info-block-header">Salary Information</div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Minimum Salary *</label>
+                                    <input type="number" name="salary_min" id="post-salary_min" class="edit-info-input" placeholder="e.g., 80000" required>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-info-label">Maximum Salary *</label>
+                                    <input type="number" name="salary_max" id="post-salary_max" class="edit-info-input" placeholder="e.g., 120000" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Options -->
+                            <div class="edit-info-block">
+                                <div class="edit-info-block-header">Additional Options</div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-checkbox-label">
+                                        <input type="checkbox" name="remote" id="post-remote" class="edit-checkbox-input">
+                                        <span class="edit-checkbox-text">Remote work available</span>
+                                    </label>
+                                </div>
+                                <div class="edit-info-block-item">
+                                    <label class="edit-checkbox-label">
+                                        <input type="checkbox" name="visa_sponsorship" id="post-visa_sponsorship" class="edit-checkbox-input">
+                                        <span class="edit-checkbox-text">Visa sponsorship available</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="edit-form-actions">
+                            <button type="submit" name="action" value="publish" class="edit-submit-btn">Publish Job</button>
+                            <button type="button" name="action" value="draft" id="save-draft-btn" class="edit-draft-btn">Save as Draft</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
             <!-- Applications View (hidden by default) -->
             <div id="applications-content" class="panel-content" style="display: none;">
                 <div class="applications-dashboard">
-                    <button type="button" class="action-capsule-btn" id="back-to-dashboard">Back to dashboard</button>
                     <div class="applications-header-section">
                         <div class="applications-title-row">
                             <h3 class="applications-title" id="applications-title">Applications</h3>
                             <button type="button" class="action-capsule-btn" id="kanban-view-toggle">Switch to Kanban</button>
                         </div>
-                        <p class="applications-tip">Tip: Right Click to change status</p>
+                        <p class="applications-tip">Tip: Left Click to view application, Right Click to change status</p>
+                    </div>
+                    <!-- Filter Row -->
+                    <div class="recruiter-filter-row">
+                        <div class="search-row">
+                            <div class="search-text">
+                                <input type="text" id="applications-search-input" placeholder="Search applications..." class="search-input" />
+                                <button type="button" class="search-icon" aria-label="Search" id="applications-search-btn">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04 1.5 1.5 1.5 1.5l3.5 3.5a1 1 0 0 0 1.415-1.414l-3.5-3.5a6.5 6.5 0 0 0-1.517-1.388zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" fill="white"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="status-filters">
+                                <div class="status-filter-pill status-applied" data-status="Applied">Applied</div>
+                                <div class="status-filter-pill status-review" data-status="Under Review">Review</div>
+                                <div class="status-filter-pill status-interviewing" data-status="Interview">Interview</div>
+                                <div class="status-filter-pill status-offer" data-status="Offer">Offer</div>
+                                <div class="status-filter-pill status-closed" data-status="Closed">Closed</div>
+                            </div>
+                        </div>
                     </div>
                     <!-- List View -->
                     <div id="applicants-list-view">
@@ -248,9 +369,87 @@
                             <!-- Applicants will be dynamically added here -->
                         </div>
                     </div>
+                    
+                    <!-- Status Context Menu -->
+                    <div id="status-context-menu" class="status-context-menu" style="display: none;">
+                        <div class="status-menu-item" data-status="Applied">Applied</div>
+                        <div class="status-menu-item" data-status="Under Review">Review</div>
+                        <div class="status-menu-item" data-status="Interview">Interview</div>
+                        <div class="status-menu-item" data-status="Offer">Offer</div>
+                        <div class="status-menu-item" data-status="Closed">Closed</div>
+                    </div>
                     <!-- Kanban View -->
                     <div id="kanban-board-view" class="kanban-board" style="display: none;">
                         <p>Loading applications...</p>
+                    </div>
+                    
+                    <!-- Applicant Details View -->
+                    <div id="applicant-details-content" class="panel-content" style="display: none;">
+                        <div class="applications-dashboard">
+                            <div id="applicant-details-loading" class="loading-state" style="display: none;">
+                                <div class="spinner"></div>
+                                <p>Loading applicant details...</p>
+                            </div>
+                            <div id="applicant-details-body">
+                                <div class="candidate-description-container">
+                                    <!-- Header Section -->
+                                    <div class="candidate-description-header">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                                            <div style="flex: 1; display: flex; align-items: flex-start; gap: 0.75rem;">
+                                                <div style="flex: 1;">
+                                                    <div class="candidate-description-name" id="applicant-description-name">Applicant Name</div>
+                                                    <div class="candidate-description-title" id="applicant-description-title">Professional Title</div>
+                                                </div>
+                                                <a href="#" id="message-applicant-btn" class="message-icon-btn" aria-label="Send Message" style="flex-shrink: 0; margin-top: 0.25rem;">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                            <button type="button" class="action-capsule-btn" id="back-to-applications-btn" style="flex-shrink: 0; margin-left: 1rem;">Back to Applications</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Description Sections -->
+                                    <div class="candidate-description-sections">
+                                        <div class="candidate-description-section">
+                                            <div class="section-title">Contact Information</div>
+                                            <div class="section-content">
+                                                <div id="applicant-description-location">Location</div>
+                                                <div id="applicant-description-phone">Phone</div>
+                                                <div id="applicant-description-availability">Availability</div>
+                                                <div id="applicant-description-email">Email</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="candidate-description-section">
+                                            <div class="section-title">Skills</div>
+                                            <div class="section-content" id="applicant-description-skills">Skills</div>
+                                        </div>
+                                        
+                                        <div class="candidate-description-section">
+                                            <div class="section-title">Education</div>
+                                            <div class="section-content" id="applicant-description-education">Education</div>
+                                        </div>
+                                        
+                                        <div class="candidate-description-section">
+                                            <div class="section-title">Experience</div>
+                                            <div class="section-content" id="applicant-description-experience">Experience</div>
+                                        </div>
+                                        
+                                        <div class="candidate-description-section">
+                                            <div class="section-title">Links</div>
+                                            <div class="section-content" id="applicant-description-links">Links</div>
+                                        </div>
+                                        
+                                        <div class="candidate-description-section">
+                                            <div class="section-title">Projects</div>
+                                            <div class="section-content" id="applicant-description-projects">Projects</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -263,6 +462,10 @@
 // Job Details Logic for Recruiter Dashboard
 let currentJobId = null;
 let jobData = {};
+let currentApplicationsData = []; // Store applications data for filtering
+let currentStatusFilter = null; // Store current status filter
+let currentSearchTerm = ''; // Store current search term
+let showingRecommended = false; // Track if showing recommended candidates
 
 // Store job data from template (recruiter's jobs)
 {% for job in template_data.jobs %}
@@ -304,8 +507,10 @@ function showJobDetails(jobId) {
     // Hide other views
     const jobEditContent = document.getElementById('job-edit-content');
     const applicationsContent = document.getElementById('applications-content');
+    const jobPostContent = document.getElementById('job-post-content');
     if (jobEditContent) jobEditContent.style.display = 'none';
     if (applicationsContent) applicationsContent.style.display = 'none';
+    if (jobPostContent) jobPostContent.style.display = 'none';
     
     // Show loading state
     const jobDetailsLoading = document.getElementById('job-details-loading');
@@ -351,6 +556,7 @@ function showJobDetails(jobId) {
 
 function showApplications(jobId) {
     currentJobId = jobId;
+    showingRecommended = false; // Reset to applications view
     
     // Remove active class from all application bars
     document.querySelectorAll('.application-bar').forEach(bar => {
@@ -367,10 +573,27 @@ function showApplications(jobId) {
     const jobDetailsContent = document.getElementById('job-details-content');
     const jobEditContent = document.getElementById('job-edit-content');
     const applicationsContent = document.getElementById('applications-content');
+    const jobPostContent = document.getElementById('job-post-content');
+    const applicantDetailsContent = document.getElementById('applicant-details-content');
     
     if (jobDetailsContent) jobDetailsContent.style.display = 'none';
     if (jobEditContent) jobEditContent.style.display = 'none';
+    if (jobPostContent) jobPostContent.style.display = 'none';
+    if (applicantDetailsContent) applicantDetailsContent.style.display = 'none';
     if (applicationsContent) applicationsContent.style.display = 'block';
+    
+    // Reset filter and search when showing applications
+    currentStatusFilter = null;
+    currentSearchTerm = '';
+    const statusFilterPills = document.querySelectorAll('.recruiter-filter-row .status-filter-pill');
+    statusFilterPills.forEach(p => {
+        p.classList.remove('active');
+        p.style.opacity = '';
+    });
+    const searchInput = document.getElementById('applications-search-input');
+    if (searchInput) {
+        searchInput.value = '';
+    }
     
     // Update title with job name
     const titleElement = document.getElementById('applications-title');
@@ -383,14 +606,96 @@ function showApplications(jobId) {
     // Always start with list view
     switchToListView();
     
+    // Show filter row
+    const filterRow = document.querySelector('.recruiter-filter-row');
+    if (filterRow) {
+        filterRow.style.display = 'flex';
+    }
+    
+    // Reset tip text for applications
+    const tipElement = document.querySelector('.applications-tip');
+    if (tipElement) {
+        tipElement.textContent = 'Tip: Left Click to view application, Right Click to change status';
+    }
+    
+    // Show kanban toggle button
+    const kanbanToggle = document.getElementById('kanban-view-toggle');
+    if (kanbanToggle) {
+        kanbanToggle.style.display = 'block';
+    }
+    
     // Load applications for this job
     loadApplicationsForJob(jobId);
+}
+
+function showRecommendedCandidates(jobId) {
+    currentJobId = jobId;
+    showingRecommended = true; // Set to recommended view
+    
+    // Remove active class from all application bars
+    document.querySelectorAll('.application-bar').forEach(bar => {
+        bar.classList.remove('active');
+    });
+    
+    // Add active class to selected application bar
+    const selectedBar = document.querySelector(`[data-job-id="${jobId}"]`);
+    if (selectedBar) {
+        selectedBar.classList.add('active');
+    }
+    
+    // Hide other views
+    const jobDetailsContent = document.getElementById('job-details-content');
+    const jobEditContent = document.getElementById('job-edit-content');
+    const applicationsContent = document.getElementById('applications-content');
+    const jobPostContent = document.getElementById('job-post-content');
+    const applicantDetailsContent = document.getElementById('applicant-details-content');
+    
+    if (jobDetailsContent) jobDetailsContent.style.display = 'none';
+    if (jobEditContent) jobEditContent.style.display = 'none';
+    if (jobPostContent) jobPostContent.style.display = 'none';
+    if (applicantDetailsContent) applicantDetailsContent.style.display = 'none';
+    if (applicationsContent) applicationsContent.style.display = 'block';
+    
+    // Update title with job name
+    const titleElement = document.getElementById('applications-title');
+    if (titleElement && jobData[jobId]) {
+        titleElement.textContent = jobData[jobId].title + ' - Recommended Candidates';
+    } else if (titleElement) {
+        titleElement.textContent = 'Recommended Candidates';
+    }
+    
+    // Always start with list view
+    switchToListView();
+    
+    // Hide filter row (no status filters for recommended)
+    const filterRow = document.querySelector('.recruiter-filter-row');
+    if (filterRow) {
+        filterRow.style.display = 'none';
+    }
+    
+    // Update tip text for recommended candidates
+    const tipElement = document.querySelector('.applications-tip');
+    if (tipElement) {
+        tipElement.textContent = 'Tip: Click on a candidate to view their profile';
+    }
+    
+    // Hide kanban toggle button (only for applications)
+    const kanbanToggle = document.getElementById('kanban-view-toggle');
+    if (kanbanToggle) {
+        kanbanToggle.style.display = 'none';
+    }
+    
+    // Load recommended candidates for this job
+    loadRecommendedApplicants(jobId);
 }
 
 function switchToListView() {
     const listView = document.getElementById('applicants-list-view');
     const kanbanView = document.getElementById('kanban-board-view');
     const toggleBtn = document.getElementById('kanban-view-toggle');
+    const filterRow = document.querySelector('.recruiter-filter-row');
+    const tipElement = document.querySelector('.applications-tip');
+    const applicantDetailsContent = document.getElementById('applicant-details-content');
     
     if (listView) {
         listView.style.display = 'block';
@@ -400,8 +705,17 @@ function switchToListView() {
         kanbanView.style.display = 'none';
         kanbanView.classList.remove('active-view');
     }
+    if (applicantDetailsContent) {
+        applicantDetailsContent.style.display = 'none';
+    }
     if (toggleBtn) {
         toggleBtn.textContent = 'Switch to Kanban';
+    }
+    if (filterRow) {
+        filterRow.style.display = 'flex';
+    }
+    if (tipElement) {
+        tipElement.textContent = 'Tip: Left Click to view application, Right Click to change status';
     }
     
     // Reload applications for list view if we have a current job
@@ -414,6 +728,9 @@ function switchToKanbanView() {
     const listView = document.getElementById('applicants-list-view');
     const kanbanView = document.getElementById('kanban-board-view');
     const toggleBtn = document.getElementById('kanban-view-toggle');
+    const filterRow = document.querySelector('.recruiter-filter-row');
+    const tipElement = document.querySelector('.applications-tip');
+    const applicantDetailsContent = document.getElementById('applicant-details-content');
     
     if (listView) {
         listView.style.display = 'none';
@@ -423,8 +740,17 @@ function switchToKanbanView() {
         kanbanView.style.display = 'grid';
         kanbanView.classList.add('active-view');
     }
+    if (applicantDetailsContent) {
+        applicantDetailsContent.style.display = 'none';
+    }
     if (toggleBtn) {
         toggleBtn.textContent = 'Switch to List';
+    }
+    if (filterRow) {
+        filterRow.style.display = 'none';
+    }
+    if (tipElement) {
+        tipElement.textContent = 'Tip: Drag to change status';
     }
     
     // Render kanban
@@ -439,8 +765,10 @@ function toggleEditMode() {
     // Hide job details, show edit form
     const jobDetailsContent = document.getElementById('job-details-content');
     const jobEditContent = document.getElementById('job-edit-content');
+    const jobPostContent = document.getElementById('job-post-content');
     
     if (jobDetailsContent) jobDetailsContent.style.display = 'none';
+    if (jobPostContent) jobPostContent.style.display = 'none';
     if (jobEditContent) {
         jobEditContent.style.display = 'block';
         
@@ -469,6 +797,65 @@ function cancelEdit() {
     if (jobDetailsContent) jobDetailsContent.style.display = 'block';
 }
 
+function showPostJobForm() {
+    // Hide all other panels
+    const jobDetailsContent = document.getElementById('job-details-content');
+    const jobEditContent = document.getElementById('job-edit-content');
+    const applicationsContent = document.getElementById('applications-content');
+    const jobPostContent = document.getElementById('job-post-content');
+    
+    if (jobDetailsContent) jobDetailsContent.style.display = 'none';
+    if (jobEditContent) jobEditContent.style.display = 'none';
+    if (applicationsContent) applicationsContent.style.display = 'none';
+    if (jobPostContent) {
+        jobPostContent.style.display = 'block';
+        // Reset form
+        document.getElementById('job-post-form').reset();
+        document.getElementById('post-country').value = 'USA';
+    }
+}
+
+function cancelPost() {
+    const jobPostContent = document.getElementById('job-post-content');
+    
+    if (jobPostContent) {
+        jobPostContent.style.display = 'none';
+        // Reset form
+        document.getElementById('job-post-form').reset();
+    }
+}
+
+function saveJobPost(isDraft = false) {
+    const form = document.getElementById('job-post-form');
+    const formData = new FormData(form);
+    formData.append('action', isDraft ? 'draft' : 'publish');
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch('/recruiter/jobs/new/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            // Reload the page to show the new job in the list
+            window.location.reload();
+        } else {
+            return response.text().then(text => {
+                throw new Error('Failed to create job: ' + text);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error creating job:', error);
+        alert('Error creating job. Please check all required fields and try again.');
+    });
+}
+
 // Add event listener for edit button
 document.addEventListener('DOMContentLoaded', function() {
     const editBtn = document.getElementById('edit-job-btn');
@@ -491,6 +878,128 @@ document.addEventListener('DOMContentLoaded', function() {
         jobEditForm.addEventListener('submit', function(e) {
             e.preventDefault();
             saveJobEdit();
+        });
+    }
+    
+    // Post job form event listeners
+    const newJobBtn = document.getElementById('new-job-btn');
+    if (newJobBtn) {
+        newJobBtn.addEventListener('click', showPostJobForm);
+    }
+    
+    const cancelPostBtn = document.getElementById('cancel-post-btn');
+    if (cancelPostBtn) {
+        cancelPostBtn.addEventListener('click', cancelPost);
+    }
+    
+    const jobPostForm = document.getElementById('job-post-form');
+    if (jobPostForm) {
+        jobPostForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveJobPost(false); // false = publish
+        });
+    }
+    
+    const saveDraftBtn = document.getElementById('save-draft-btn');
+    if (saveDraftBtn) {
+        saveDraftBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            saveJobPost(true); // true = draft
+        });
+    }
+    
+    // Filter pills event listeners
+    const statusFilterPills = document.querySelectorAll('.recruiter-filter-row .status-filter-pill');
+    statusFilterPills.forEach(pill => {
+        pill.addEventListener('click', function() {
+            // Toggle active state
+            if (this.classList.contains('active')) {
+                this.classList.remove('active');
+                currentStatusFilter = null;
+                // Remove opacity from all pills when none selected
+                statusFilterPills.forEach(p => p.style.opacity = '');
+            } else {
+                statusFilterPills.forEach(p => {
+                    p.classList.remove('active');
+                    p.style.opacity = '';
+                });
+                this.classList.add('active');
+                this.style.opacity = '1';
+                currentStatusFilter = this.textContent.trim();
+                // Set opacity for non-active pills
+                statusFilterPills.forEach(p => {
+                    if (!p.classList.contains('active')) {
+                        p.style.opacity = '0.6';
+                    }
+                });
+            }
+            filterApplicationsByStatus();
+        });
+    });
+    
+    // Search input event listeners
+    const searchInput = document.getElementById('applications-search-input');
+    const searchBtn = document.getElementById('applications-search-btn');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            currentSearchTerm = this.value;
+            filterApplicationsByStatus();
+        });
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterApplicationsByStatus();
+            }
+        });
+    }
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            filterApplicationsByStatus();
+        });
+    }
+    
+    // Status context menu event listeners
+    const statusMenuItems = document.querySelectorAll('.status-menu-item');
+    statusMenuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const status = this.dataset.status;
+            handleStatusMenuClick(status);
+        });
+    });
+    
+    // Hide context menu when clicking outside
+    document.addEventListener('click', function(e) {
+        const contextMenu = document.getElementById('status-context-menu');
+        if (contextMenu && !contextMenu.contains(e.target)) {
+            hideStatusContextMenu();
+        }
+    });
+    
+    // Hide context menu on scroll
+    document.addEventListener('scroll', hideStatusContextMenu, true);
+    
+    // Back to applications button
+    const backToApplicationsBtn = document.getElementById('back-to-applications-btn');
+    if (backToApplicationsBtn) {
+        backToApplicationsBtn.addEventListener('click', function() {
+            const applicantDetailsContent = document.getElementById('applicant-details-content');
+            const listView = document.getElementById('applicants-list-view');
+            const kanbanView = document.getElementById('kanban-board-view');
+            const filterRow = document.querySelector('.recruiter-filter-row');
+            
+            if (applicantDetailsContent) applicantDetailsContent.style.display = 'none';
+            if (listView) listView.style.display = 'block';
+            if (filterRow) filterRow.style.display = 'flex';
+            
+            // If kanban was active, show it instead
+            if (kanbanView && kanbanView.classList.contains('active-view')) {
+                listView.style.display = 'none';
+                kanbanView.style.display = 'grid';
+                filterRow.style.display = 'none';
+            }
         });
     }
 });
@@ -592,6 +1101,7 @@ function deleteJob() {
 }
 
 function loadApplicationsForJob(jobId) {
+    showingRecommended = false; // Reset to applications view
     const applicantsList = document.getElementById('applicants-list');
     applicantsList.innerHTML = '<div style="padding: 2rem; text-align: center;">Loading applications...</div>';
     
@@ -614,13 +1124,11 @@ function loadApplicationsForJob(jobId) {
         .then(applications => {
             applicantsList.innerHTML = '';
             
+            // Store applications data for filtering
+            currentApplicationsData = applications || [];
+            
             if (!applications || applications.length === 0) {
-                applicantsList.innerHTML = `
-                    <div class="no-applications-message">
-                        <p>No applications received yet.</p>
-                        <p>Applications will appear here as candidates apply to this job.</p>
-                    </div>
-                `;
+                applicantsList.innerHTML = '<div class="no-applications-message">No applications available</div>';
                 return;
             }
             
@@ -634,6 +1142,7 @@ function loadApplicationsForJob(jobId) {
                 applicantCard.className = 'applicant-card';
                 applicantCard.dataset.applicationId = app.id;
                 applicantCard.dataset.applicantId = app.applicant_id;
+                applicantCard.dataset.status = statusLabel; // Add status for filtering
                 
                 // Map status to CSS class
                 const statusClass = statusLabel.toLowerCase().replace(/\s+/g, '-');
@@ -646,6 +1155,24 @@ function loadApplicationsForJob(jobId) {
                     <div class="applicant-location">Loading location...</div>
                     <div class="applicant-applied-date">Applied on: ${appliedDate}</div>
                 `;
+                
+                // Add right-click event listener for context menu
+                applicantCard.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    showStatusContextMenu(e, applicantCard, app.id);
+                });
+                
+                // Add left-click event listener to show applicant details
+                applicantCard.addEventListener('click', function(e) {
+                    // Don't trigger if right-click menu is showing or if clicking on status label
+                    if (e.target.closest('.status-context-menu') || e.target.closest('.status-label')) {
+                        return;
+                    }
+                    showApplicantDetails(app.applicant_id, app.name, app.id);
+                });
+                
+                // Make card cursor pointer to indicate it's clickable
+                applicantCard.style.cursor = 'pointer';
                 
                 applicantsList.appendChild(applicantCard);
                 
@@ -665,21 +1192,298 @@ function loadApplicationsForJob(jobId) {
                     if (locationElement) locationElement.textContent = 'Location not specified';
                 }
             });
+            
+            // Apply current filter if any
+            filterApplicationsByStatus();
         })
         .catch(error => {
-            applicantsList.innerHTML = `
-                <div class="no-applications-message">
-                    <p>Error loading applications: ${error.message}</p>
-                    <p>Please try again later.</p>
-                </div>
-            `;
+            applicantsList.innerHTML = '<div class="no-applications-message">Error loading applications</div>';
          });
 }
 
+function filterApplicationsByStatus() {
+    const applicantCards = document.querySelectorAll('.applicant-card');
+    const searchTerm = currentSearchTerm.toLowerCase().trim();
+    let visibleCount = 0;
+    
+    applicantCards.forEach(card => {
+        const cardStatus = card.dataset.status || 'Applied';
+        
+        // Map filter labels to status values
+        const statusMap = {
+            'Applied': 'Applied',
+            'Review': 'Under Review',
+            'Interview': 'Interview',
+            'Offer': 'Offer',
+            'Closed': 'Closed'
+        };
+        
+        const matchesStatus = !currentStatusFilter || 
+            cardStatus === statusMap[currentStatusFilter] ||
+            (currentStatusFilter === 'Review' && cardStatus === 'Under Review') ||
+            (currentStatusFilter === 'Interview' && cardStatus === 'Interview');
+        
+        // Check search filter
+        let matchesSearch = true;
+        if (searchTerm) {
+            const applicantName = card.querySelector('.applicant-name')?.textContent.toLowerCase() || '';
+            const applicantLocation = card.querySelector('.applicant-location')?.textContent.toLowerCase() || '';
+            matchesSearch = applicantName.includes(searchTerm) || applicantLocation.includes(searchTerm);
+        }
+        
+        if (matchesStatus && matchesSearch) {
+            card.style.display = 'flex';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Show/hide no applications message
+    const applicantsList = document.getElementById('applicants-list');
+    const existingMessage = applicantsList.querySelector('.no-applications-message');
+    
+    if (visibleCount === 0 && applicantCards.length > 0) {
+        if (!existingMessage) {
+            const message = document.createElement('div');
+            message.className = 'no-applications-message';
+            message.textContent = 'No applications found';
+            applicantsList.appendChild(message);
+        }
+    } else if (existingMessage && visibleCount > 0) {
+        existingMessage.remove();
+    }
+}
+
+let currentContextMenuApplicationId = null;
+
+function showStatusContextMenu(e, card, applicationId) {
+    const contextMenu = document.getElementById('status-context-menu');
+    if (!contextMenu) return;
+    
+    // Store the application ID for later use
+    currentContextMenuApplicationId = applicationId;
+    
+    // Position the menu at the cursor location
+    contextMenu.style.display = 'flex';
+    contextMenu.style.left = e.pageX + 'px';
+    contextMenu.style.top = e.pageY + 'px';
+    
+    // Ensure menu stays within viewport
+    const rect = contextMenu.getBoundingClientRect();
+    if (rect.right > window.innerWidth) {
+        contextMenu.style.left = (e.pageX - rect.width) + 'px';
+    }
+    if (rect.bottom > window.innerHeight) {
+        contextMenu.style.top = (e.pageY - rect.height) + 'px';
+    }
+}
+
+function hideStatusContextMenu() {
+    const contextMenu = document.getElementById('status-context-menu');
+    if (contextMenu) {
+        contextMenu.style.display = 'none';
+    }
+    currentContextMenuApplicationId = null;
+}
+
+function handleStatusMenuClick(newStatus) {
+    if (!currentContextMenuApplicationId) return;
+    
+    const applicationId = currentContextMenuApplicationId;
+    
+    // Update status via API
+    updateApplicationStatus(applicationId, newStatus)
+        .then(() => {
+            // Update the card's status display
+            const card = document.querySelector(`.applicant-card[data-application-id="${applicationId}"]`);
+            if (card) {
+                card.dataset.status = newStatus;
+                
+                // Update status label
+                const statusLabel = card.querySelector('.status-label');
+                if (statusLabel) {
+                    const statusClass = newStatus.toLowerCase().replace(/\s+/g, '-');
+                    statusLabel.className = `status-label status-${statusClass}`;
+                    statusLabel.textContent = newStatus;
+                }
+                
+                // Re-apply filter if active
+                filterApplicationsByStatus();
+            }
+            
+            // Hide the context menu
+            hideStatusContextMenu();
+        })
+        .catch(error => {
+            console.error('Error updating application status:', error);
+            alert('Failed to update application status. Please try again.');
+            hideStatusContextMenu();
+        });
+}
+
+function showApplicantDetails(applicantId, applicantName, applicationId) {
+    if (!applicantId) return;
+    
+    // Hide other views
+    const listView = document.getElementById('applicants-list-view');
+    const kanbanView = document.getElementById('kanban-board-view');
+    const applicantDetailsContent = document.getElementById('applicant-details-content');
+    const filterRow = document.querySelector('.recruiter-filter-row');
+    
+    if (listView) listView.style.display = 'none';
+    if (kanbanView) kanbanView.style.display = 'none';
+    if (filterRow) filterRow.style.display = 'none';
+    
+    // Show loading state
+    const loadingEl = document.getElementById('applicant-details-loading');
+    const bodyEl = document.getElementById('applicant-details-body');
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (bodyEl) bodyEl.style.display = 'none';
+    if (applicantDetailsContent) applicantDetailsContent.style.display = 'block';
+    
+    // Fetch applicant details
+    fetch(`/recruiter/get_applicant_info/${applicantId}/`)
+        .then(response => response.json())
+        .then(data => {
+            // Update name
+            const nameEl = document.getElementById('applicant-description-name');
+            if (nameEl) {
+                nameEl.textContent = `${data.first_name || ''} ${data.last_name || ''}`.trim() || applicantName;
+            }
+            
+            // Update title (use first skill or default)
+            const titleEl = document.getElementById('applicant-description-title');
+            if (titleEl) {
+                if (data.skills) {
+                    const firstSkill = data.skills.split(',')[0].trim();
+                    titleEl.textContent = firstSkill ? `${firstSkill} Developer` : 'Software Developer';
+                } else {
+                    titleEl.textContent = 'Software Developer';
+                }
+            }
+            
+            // Update contact information
+            const locationEl = document.getElementById('applicant-description-location');
+            if (locationEl) {
+                if (data.location) {
+                    locationEl.textContent = data.location;
+                } else {
+                    locationEl.textContent = 'Location not provided';
+                }
+            }
+            
+            const phoneEl = document.getElementById('applicant-description-phone');
+            if (phoneEl) {
+                if (data.phone) {
+                    phoneEl.textContent = data.phone;
+                } else {
+                    phoneEl.textContent = 'Phone not provided';
+                }
+            }
+            
+            const availabilityEl = document.getElementById('applicant-description-availability');
+            if (availabilityEl) {
+                if (data.availability_display) {
+                    availabilityEl.textContent = data.availability_display;
+                } else if (data.availability) {
+                    availabilityEl.textContent = data.availability;
+                } else {
+                    availabilityEl.textContent = 'Availability not provided';
+                }
+            }
+            
+            const emailEl = document.getElementById('applicant-description-email');
+            if (emailEl) {
+                const email = data.email || '';
+                if (email) {
+                    emailEl.innerHTML = `<a href="mailto:${email}" style="color: rgb(33, 128, 116); text-decoration: none;">${email}</a>`;
+                } else {
+                    emailEl.textContent = 'Email not provided';
+                }
+            }
+            
+            // Update message button
+            const messageBtn = document.getElementById('message-applicant-btn');
+            if (messageBtn && data.user_id) {
+                messageBtn.href = `/messages/?other_user_id=${data.user_id}`;
+            } else if (messageBtn) {
+                messageBtn.href = '#';
+            }
+            
+            // Update skills
+            const skillsEl = document.getElementById('applicant-description-skills');
+            if (skillsEl) {
+                skillsEl.textContent = data.skills || 'Skills not provided';
+            }
+            
+            // Update education
+            const educationEl = document.getElementById('applicant-description-education');
+            if (educationEl) {
+                educationEl.textContent = data.education || 'Education not provided';
+            }
+            
+            // Update experience
+            const experienceEl = document.getElementById('applicant-description-experience');
+            if (experienceEl) {
+                experienceEl.textContent = data.experience || 'Experience not provided';
+            }
+            
+            // Update links
+            const linksEl = document.getElementById('applicant-description-links');
+            if (linksEl) {
+                if (data.links && Array.isArray(data.links) && data.links.length > 0) {
+                    // Links are already parsed as JSON array from backend
+                    linksEl.innerHTML = data.links.map(link => {
+                        const name = link.name || 'Link';
+                        const url = link.url || '#';
+                        return `<div style="margin-bottom: 0.5rem;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: rgb(33, 128, 116); text-decoration: none;">${name}</a></div>`;
+                    }).join('');
+                } else {
+                    linksEl.textContent = 'Links not provided';
+                }
+            }
+            
+            // Update projects
+            const projectsEl = document.getElementById('applicant-description-projects');
+            if (projectsEl) {
+                if (data.projects && data.projects.length > 0) {
+                    projectsEl.innerHTML = data.projects.map(project => {
+                        let html = `<div class="project-item"><strong>${project.title || 'Untitled Project'}</strong>`;
+                        if (project.description) {
+                            html += `<p>${project.description}</p>`;
+                        }
+                        if (project.technologies) {
+                            html += `<p><em>Technologies: ${project.technologies}</em></p>`;
+                        }
+                        if (project.url) {
+                            html += `<p><a href="${project.url}" target="_blank" rel="noopener noreferrer" style="color: rgb(33, 128, 116); text-decoration: none;">View Project →</a></p>`;
+                        }
+                        html += '</div>';
+                        return html;
+                    }).join('');
+                } else {
+                    projectsEl.textContent = 'Projects not provided';
+                }
+            }
+            
+            // Hide loading, show content
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (bodyEl) bodyEl.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error loading applicant details:', error);
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (bodyEl) {
+                bodyEl.innerHTML = '<div class="no-applications-message">Error loading applicant details</div>';
+                bodyEl.style.display = 'block';
+            }
+        });
+}
+
 function loadRecommendedApplicants(jobId) {
-    // Show loading state for recommendations
-    document.getElementById('recommended-loading').style.display = 'block';
-    document.getElementById('recommended-grid').style.display = 'none';
+    const applicantsList = document.getElementById('applicants-list');
+    applicantsList.innerHTML = '<div style="padding: 2rem; text-align: center;">Loading recommended candidates...</div>';
     
     // Get CSRF token
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
@@ -702,74 +1506,69 @@ function loadRecommendedApplicants(jobId) {
         return response.json();
     })
     .then(recommendedApplicants => {
-        const recommendedGrid = document.getElementById('recommended-grid');
-        recommendedGrid.innerHTML = '';
+        applicantsList.innerHTML = '';
         
         if (recommendedApplicants.length === 0) {
-            recommendedGrid.innerHTML = `
-                <div class="no-recommendations-message">
-                    <p>No recommended candidates found.</p>
-                    <p>Recommendations are based on job requirements and candidate skills.</p>
-                </div>
-            `;
+            applicantsList.innerHTML = '<div class="no-applications-message">No recommended candidates available</div>';
         } else {
             recommendedApplicants.forEach(applicant => {
-                const recommendedCard = document.createElement('div');
-                recommendedCard.className = 'recommended-card';
+                const applicantCard = document.createElement('div');
+                applicantCard.className = 'applicant-card';
+                applicantCard.dataset.applicantId = applicant.id;
+                // No application ID for recommended candidates
+                applicantCard.dataset.isRecommended = 'true';
                 
                 const appliedBadge = applicant.has_applied ? 
-                    '<span class="applied-badge">Already Applied</span>' : '';
+                    '<span class="status-label" style="background: rgba(255, 0, 0, 0.2); color: #000;">Already Applied</span>' : '';
                 
-                const skillsText = applicant.skills ? 
-                    `<div class="applicant-skills">${applicant.skills.substring(0, 100)}${applicant.skills.length > 100 ? '...' : ''}</div>` : '';
-                
-                const locationText = applicant.location ? 
-                    `<div class="applicant-location">📍 ${applicant.location}</div>` : '';
-                
-                recommendedCard.innerHTML = `
-                    <div class="recommended-header">
-                        <div class="applicant-info">
-                            <h4>${applicant.name}</h4>
-                        </div>
-                        <div class="badges">
-                            ${appliedBadge}
-                            <span class="recommended-badge">Recommended</span>
-                        </div>
+                applicantCard.innerHTML = `
+                    <div class="applicant-name-row">
+                        <span class="applicant-name">${applicant.name || 'Unknown'}</span>
+                        ${appliedBadge}
                     </div>
-                    <div class="applicant-details">
-                        ${locationText}
-                        ${skillsText}
-                    </div>
-                    <div class="recommended-actions">
-                        <button class="view-profile-btn" onclick="showApplicantProfile({applicant_id: ${applicant.id}, name: '${applicant.name}', email: '${applicant.email}'})">
-                            View Profile
-                        </button>
-                        ${!applicant.has_applied ? 
-                            `<button class="message-btn" onclick="messageApplicant(${applicant.id}, '${applicant.name}')">Message</button>` : 
-                            ''
-                        }
-                    </div>
+                    <div class="applicant-location">Loading location...</div>
+                    <div class="applicant-applied-date">Match Score: ${(applicant.score * 100).toFixed(0)}%</div>
                 `;
                 
-                recommendedGrid.appendChild(recommendedCard);
+                // Add left-click event listener to show applicant details (NO right-click for recommended)
+                applicantCard.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on status label
+                    if (e.target.closest('.status-label')) {
+                        return;
+                    }
+                    showApplicantDetails(applicant.id, applicant.name, null);
+                });
+                
+                // Make card cursor pointer to indicate it's clickable
+                applicantCard.style.cursor = 'pointer';
+                
+                applicantsList.appendChild(applicantCard);
+                
+                // Fetch location if available
+                if (applicant.location) {
+                    const locationElement = applicantCard.querySelector('.applicant-location');
+                    if (locationElement) locationElement.textContent = applicant.location;
+                } else if (applicant.id) {
+                    fetch(`/recruiter/get_applicant_info/${applicant.id}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const locationElement = applicantCard.querySelector('.applicant-location');
+                            if (locationElement) locationElement.textContent = data.location || 'Location not specified';
+                        })
+                        .catch(() => {
+                            const locationElement = applicantCard.querySelector('.applicant-location');
+                            if (locationElement) locationElement.textContent = 'Location not specified';
+                        });
+                } else {
+                    const locationElement = applicantCard.querySelector('.applicant-location');
+                    if (locationElement) locationElement.textContent = 'Location not specified';
+                }
             });
         }
-        
-        // Hide loading, show content
-        document.getElementById('recommended-loading').style.display = 'none';
-        document.getElementById('recommended-grid').style.display = 'block';
     })
     .catch(error => {
         console.error('Error fetching recommended applicants:', error);
-        const recommendedGrid = document.getElementById('recommended-grid');
-        recommendedGrid.innerHTML = `
-            <div class="no-recommendations-message">
-                <p>Error loading recommendations: ${error.message}</p>
-                <p>Please try again later.</p>
-            </div>
-        `;
-        document.getElementById('recommended-loading').style.display = 'none';
-        document.getElementById('recommended-grid').style.display = 'block';
+        applicantsList.innerHTML = '<div class="no-applications-message">Error loading recommendations</div>';
     });
 }
 
@@ -1547,11 +2346,15 @@ document.addEventListener('DOMContentLoaded', function() {
     border-radius: 50px;
     padding: 0.5rem 1rem;
     color: white;
-    text-decoration: none;
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.new-job-btn:hover {
+    opacity: 0.9;
 }
 
 /* Job openings now use application-bar style - styles are in applications.css */
@@ -1561,10 +2364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .applications-dashboard {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    overflow-y: auto;
-    padding: 1.5rem;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .applications-dashboard .action-capsule-btn {
@@ -1588,6 +2388,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .applications-title-row .action-capsule-btn {
     width: auto;
+    align-self: center;
 }
 
 .applications-title {
@@ -1620,6 +2421,140 @@ document.addEventListener('DOMContentLoaded', function() {
     margin: 0;
 }
 
+/* Filter Row Styling */
+.recruiter-filter-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.recruiter-filter-row .search-row {
+    display: flex;
+    gap: 0.5rem;
+    background: rgb(33, 128, 116);
+    border-radius: 9999px;
+    align-items: center;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    max-height: 42px;
+    height: 42px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.recruiter-filter-row .search-text {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 9999px;
+    padding: 0.15rem 0.2rem 0.15rem 0.6rem;
+    flex: 1;
+    overflow: hidden;
+    height: 32px;
+}
+
+.recruiter-filter-row .search-input {
+    flex: 1;
+    border: none !important;
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0;
+    margin: 0;
+    font-size: 16px;
+    color: #000000;
+}
+
+.recruiter-filter-row .search-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.recruiter-filter-row .search-input::placeholder {
+    color: #000000;
+    opacity: 0.6;
+    font-size: 16px;
+}
+
+.recruiter-filter-row .search-icon {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    border: none;
+    background: rgb(33, 128, 116);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.recruiter-filter-row .search-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.recruiter-filter-row .search-icon:hover {
+    background: #1a6b60;
+    opacity: 0.9;
+}
+
+.recruiter-filter-row .status-filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.recruiter-filter-row .status-filter-pill {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.recruiter-filter-row .status-filter-pill:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.recruiter-filter-row .status-filter-pill.active {
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.recruiter-filter-row .status-filters:has(.status-filter-pill.active) .status-filter-pill:not(.active) {
+    opacity: 0.6;
+}
+
+.recruiter-filter-row .status-filter-pill.status-applied {
+    background-color: #007bff;
+}
+
+.recruiter-filter-row .status-filter-pill.status-review {
+    background-color: #6f42c1;
+}
+
+.recruiter-filter-row .status-filter-pill.status-interviewing {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.recruiter-filter-row .status-filter-pill.status-offer {
+    background-color: #28a745;
+}
+
+.recruiter-filter-row .status-filter-pill.status-closed {
+    background-color: #495057;
+}
+
 .applicants-list {
     display: flex;
     flex-direction: row;
@@ -1643,6 +2578,59 @@ document.addEventListener('DOMContentLoaded', function() {
 .applicant-card * {
     color: #000000;
     font-size: 16px;
+}
+
+
+
+/* Status Context Menu */
+.status-context-menu {
+    position: fixed;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 150px;
+}
+
+.status-menu-item {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.status-menu-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.status-menu-item[data-status="Applied"] {
+    background-color: #007bff;
+}
+
+.status-menu-item[data-status="Under Review"] {
+    background-color: #6f42c1;
+}
+
+.status-menu-item[data-status="Interview"] {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.status-menu-item[data-status="Offer"] {
+    background-color: #28a745;
+}
+
+.status-menu-item[data-status="Closed"] {
+    background-color: #495057;
 }
 
 .applicant-name-row {
@@ -1867,11 +2855,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .no-recommendations-message {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 2rem;
-    color: #666;
-    font-style: italic;
+    color: #000000;
 }
 
 .view-posting-btn {
@@ -1978,22 +2962,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .no-applications-message {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 3rem 1rem;
-    color: #666;
-    background: #f8f9fa;
-    border-radius: 12px;
-    border: 2px dashed #dee2e6;
-}
-
-.no-applications-message p {
-    margin-bottom: 0.5rem;
-}
-
-.no-applications-message p:first-child {
-    font-weight: 500;
-    color: #495057;
+    color: #000000;
 }
 
 @media (max-width: 768px) {
@@ -2064,8 +3033,8 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    min-width: 0;
     flex: 1 1 auto;
+    min-height: 500px;
 }
 
 .kanban-column[data-stage="Applied"] {
@@ -2725,6 +3694,23 @@ margin-top: 0.3rem;
     opacity: 0.9;
 }
 
+.edit-draft-btn {
+    padding: 10px 30px;
+    border: 2px solid rgb(33, 128, 116);
+    border-radius: 9999px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: rgba(33, 128, 116, 0.1);
+    color: rgb(33, 128, 116);
+}
+
+.edit-draft-btn:hover {
+    background-color: rgba(33, 128, 116, 0.2);
+    opacity: 0.9;
+}
+
 @media (max-width: 1024px) {
     .edit-info-blocks-container {
         flex-direction: column;
@@ -2742,11 +3728,14 @@ margin-top: 0.3rem;
     visibility: visible !important;
 }
 
+
+
 /* Ensure applications content always appears on top */
-#applications-content {
+#applications-content.panel-content {
     position: relative;
     z-index: 20;
     background: white;
+    overflow-y: auto;
 }
 
 @media (max-width: 1200px) {
@@ -2759,6 +3748,119 @@ margin-top: 0.3rem;
     .kanban-board {
         grid-template-columns: 1fr;
     }
+}
+
+/* Candidate Details Styling (similar to search_candidates) */
+#applicant-details-content.panel-content {
+    overflow-y: auto;
+    padding: 0 !important;
+}
+
+.candidate-description-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0rem;
+    position: relative;
+}
+
+.candidate-description-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    font-family: var(--font-family-base);
+}
+
+.candidate-description-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    font-family: var(--font-family-base);
+    margin-bottom: 0.5rem;
+}
+
+.candidate-description-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.candidate-description-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0rem;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
+    font-family: var(--font-family-base);
+    line-height: 1.5;
+}
+
+.section-content {
+    font-size: 16px;
+    font-weight: var(--font-weight-medium);
+    color: #000000;
+    font-family: var(--font-family-base);
+}
+
+.project-item {
+    margin-bottom: 1rem;
+}
+
+.project-item strong {
+    font-weight: 700;
+    color: #000000;
+    font-family: var(--font-family-base);
+}
+
+.project-item p {
+    margin: 0.5rem 0;
+    color: #000000;
+    font-family: var(--font-family-base);
+    font-weight: var(--font-weight-medium);
+}
+
+.project-url a {
+    color: rgb(33, 128, 116);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.project-url a:hover {
+    text-decoration: underline;
+}
+
+.no-projects {
+    color: #000000;
+}
+
+/* Message Icon Button */
+.message-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgb(33, 128, 116);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.message-icon-btn:hover {
+    background: #1a6b60;
+    transform: scale(1.05);
+}
+
+.message-icon-btn svg {
+    width: 20px;
+    height: 20px;
 }
 </style>
 

@@ -88,11 +88,7 @@
                         <p>You have {{ template_data.applications.count }} application{{ template_data.applications.count|pluralize }}.</p>
                         <p>Click on an application to view details.</p>
                         {% else %}
-                        <div class="no-applications-message">
-                            <h4>No applications yet</h4>
-                            <p>You haven't applied to any jobs yet. Start browsing jobs and apply to positions that interest you!</p>
-                            <a href="{% url 'seeker:dashboard' %}" class="btn primary">Browse Jobs</a>
-                        </div>
+                        <div class="no-applications-message">No applications available</div>
                         {% endif %}
                     </div>
                 </div>
@@ -236,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
             grouped[status] = grouped[status] || [];
             grouped[status].push({
                 company: app.querySelector(".application-company")?.innerText || "",
-                title: app.querySelector(".application-position")?.innerText || "",
+                title: app.dataset.position || "",
                 location: app.querySelector(".application-location")?.innerText || ""
             });
         });
@@ -315,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const container = document.getElementById('applications-list');
                 const message = document.createElement('div');
                 message.className = 'no-applications';
-                message.innerHTML = '<p>No applications found matching your criteria.</p>';
+                message.textContent = 'No applications found';
                 container.appendChild(message);
             }
         } else if (noApplications) {
