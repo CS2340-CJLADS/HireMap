@@ -31,7 +31,7 @@
                         </div>
                         <div class="job-listing-buttons">
                             <button class="job-listing-btn" onclick="showJobDetails('{{ job.id }}')">View Listing</button>
-                            <button class="job-listing-btn">Applications</button>
+                            <button class="job-listing-btn" onclick="showApplications('{{ job.id }}')">Applications</button>
                         </div>
                     </div>
                     {% empty %}
@@ -230,6 +230,30 @@
                     </form>
                 </div>
             </div>
+            
+            <!-- Applications View (hidden by default) -->
+            <div id="applications-content" class="panel-content" style="display: none;">
+                <div class="applications-dashboard">
+                    <button type="button" class="action-capsule-btn" id="back-to-dashboard">Back to dashboard</button>
+                    <div class="applications-header-section">
+                        <div class="applications-title-row">
+                            <h3 class="applications-title" id="applications-title">Applications</h3>
+                            <button type="button" class="action-capsule-btn" id="kanban-view-toggle">Switch to Kanban</button>
+                        </div>
+                        <p class="applications-tip">Tip: Right Click to change status</p>
+                    </div>
+                    <!-- List View -->
+                    <div id="applicants-list-view">
+                        <div id="applicants-list" class="applicants-list">
+                            <!-- Applicants will be dynamically added here -->
+                        </div>
+                    </div>
+                    <!-- Kanban View -->
+                    <div id="kanban-board-view" class="kanban-board" style="display: none;">
+                        <p>Loading applications...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -277,6 +301,12 @@ function showJobDetails(jobId) {
         selectedBar.classList.add('active');
     }
     
+    // Hide other views
+    const jobEditContent = document.getElementById('job-edit-content');
+    const applicationsContent = document.getElementById('applications-content');
+    if (jobEditContent) jobEditContent.style.display = 'none';
+    if (applicationsContent) applicationsContent.style.display = 'none';
+    
     // Show loading state
     const jobDetailsLoading = document.getElementById('job-details-loading');
     const jobDetailsBody = document.getElementById('job-details-body');
@@ -317,6 +347,88 @@ function showJobDetails(jobId) {
         if (jobDetailsLoading) jobDetailsLoading.style.display = 'none';
         if (jobDetailsBody) jobDetailsBody.style.display = 'block';
     }, 500);
+}
+
+function showApplications(jobId) {
+    currentJobId = jobId;
+    
+    // Remove active class from all application bars
+    document.querySelectorAll('.application-bar').forEach(bar => {
+        bar.classList.remove('active');
+    });
+    
+    // Add active class to selected application bar
+    const selectedBar = document.querySelector(`[data-job-id="${jobId}"]`);
+    if (selectedBar) {
+        selectedBar.classList.add('active');
+    }
+    
+    // Hide other views
+    const jobDetailsContent = document.getElementById('job-details-content');
+    const jobEditContent = document.getElementById('job-edit-content');
+    const applicationsContent = document.getElementById('applications-content');
+    
+    if (jobDetailsContent) jobDetailsContent.style.display = 'none';
+    if (jobEditContent) jobEditContent.style.display = 'none';
+    if (applicationsContent) applicationsContent.style.display = 'block';
+    
+    // Update title with job name
+    const titleElement = document.getElementById('applications-title');
+    if (titleElement && jobData[jobId]) {
+        titleElement.textContent = jobData[jobId].title + ' Applications';
+    } else if (titleElement) {
+        titleElement.textContent = 'Applications';
+    }
+    
+    // Always start with list view
+    switchToListView();
+    
+    // Load applications for this job
+    loadApplicationsForJob(jobId);
+}
+
+function switchToListView() {
+    const listView = document.getElementById('applicants-list-view');
+    const kanbanView = document.getElementById('kanban-board-view');
+    const toggleBtn = document.getElementById('kanban-view-toggle');
+    
+    if (listView) {
+        listView.style.display = 'block';
+        listView.classList.add('active-view');
+    }
+    if (kanbanView) {
+        kanbanView.style.display = 'none';
+        kanbanView.classList.remove('active-view');
+    }
+    if (toggleBtn) {
+        toggleBtn.textContent = 'Switch to Kanban';
+    }
+    
+    // Reload applications for list view if we have a current job
+    if (currentJobId) {
+        loadApplicationsForJob(currentJobId);
+    }
+}
+
+function switchToKanbanView() {
+    const listView = document.getElementById('applicants-list-view');
+    const kanbanView = document.getElementById('kanban-board-view');
+    const toggleBtn = document.getElementById('kanban-view-toggle');
+    
+    if (listView) {
+        listView.style.display = 'none';
+        listView.classList.remove('active-view');
+    }
+    if (kanbanView) {
+        kanbanView.style.display = 'grid';
+        kanbanView.classList.add('active-view');
+    }
+    if (toggleBtn) {
+        toggleBtn.textContent = 'Switch to List';
+    }
+    
+    // Render kanban
+    renderKanban();
 }
 
 function toggleEditMode() {
@@ -480,11 +592,12 @@ function deleteJob() {
 }
 
 function loadApplicationsForJob(jobId) {
-    // Get CSRF token
+    const applicantsList = document.getElementById('applicants-list');
+    applicantsList.innerHTML = '<div style="padding: 2rem; text-align: center;">Loading applications...</div>';
+    
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                      document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     
-    // Fetch real applications from the existing recruiter endpoint
     fetch(`/recruiter/jobs/${jobId}/applications/?format=json`, {
         method: 'GET',
         headers: {
@@ -495,17 +608,14 @@ function loadApplicationsForJob(jobId) {
         credentials: 'same-origin'
     })
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             return response.json();
         })
         .then(applications => {
-            const applicationsGrid = document.getElementById('applications-grid');
-            applicationsGrid.innerHTML = '';
+            applicantsList.innerHTML = '';
             
-            if (applications.length === 0) {
-                applicationsGrid.innerHTML = `
+            if (!applications || applications.length === 0) {
+                applicantsList.innerHTML = `
                     <div class="no-applications-message">
                         <p>No applications received yet.</p>
                         <p>Applications will appear here as candidates apply to this job.</p>
@@ -514,67 +624,56 @@ function loadApplicationsForJob(jobId) {
                 return;
             }
             
-            // Get job data for position and location
-            const job = jobData[jobId];
-            const jobTitle = job ? job.title : 'Position';
-            let jobLocation = 'Location';
-            if (job && job.location) {
-                jobLocation = job.remote ? job.location + ' (Remote)' : job.location;
-            } else if (job) {
-                jobLocation = 'Location not specified';
-            }
-            
             applications.forEach(app => {
-                const applicationBar = document.createElement('div');
-                applicationBar.className = 'application-bar';
-                applicationBar.dataset.applicationId = app.id;
+                const appliedDate = app.application_date ? new Date(app.application_date).toLocaleDateString('en-US', { 
+                    month: '2-digit', day: '2-digit', year: 'numeric' 
+                }) : 'N/A';
+                const statusLabel = app.status || 'Applied';
                 
-                // Map status to CSS class (normalize status names)
-                let statusClass = (app.status || 'Applied').toLowerCase().replace(/\s+/g, '-');
-                // Map common status variations
-                if (statusClass.includes('review') || statusClass.includes('screening')) {
-                    statusClass = 'review';
-                } else if (statusClass.includes('interview')) {
-                    statusClass = 'interviewing';
-                } else if (statusClass.includes('offer')) {
-                    statusClass = 'offer';
-                } else if (statusClass.includes('reject') || statusClass.includes('closed')) {
-                    statusClass = 'closed';
-                } else {
-                    statusClass = 'applied';
-                }
-                const statusDisplay = app.status || 'Applied';
+                const applicantCard = document.createElement('div');
+                applicantCard.className = 'applicant-card';
+                applicantCard.dataset.applicationId = app.id;
+                applicantCard.dataset.applicantId = app.applicant_id;
                 
-                applicationBar.innerHTML = `
-                    <div class="application-company">${app.name || 'Unknown'}</div>
-                    <div class="application-position">${jobTitle}</div>
-                    <div class="application-location">${jobLocation}</div>
-                    <div class="application-status status-${statusClass}"></div>
+                // Map status to CSS class
+                const statusClass = statusLabel.toLowerCase().replace(/\s+/g, '-');
+                
+                applicantCard.innerHTML = `
+                    <div class="applicant-name-row">
+                        <span class="applicant-name">${app.name || 'Unknown'}</span>
+                        <span class="status-label status-${statusClass}">${statusLabel}</span>
+                    </div>
+                    <div class="applicant-location">Loading location...</div>
+                    <div class="applicant-applied-date">Applied on: ${appliedDate}</div>
                 `;
-                applicationBar.onclick = () => {
-                    // Add active class
-                    document.querySelectorAll('.application-bar').forEach(bar => {
-                        bar.classList.remove('active');
-                    });
-                    applicationBar.classList.add('active');
-                    showApplicantProfile(app);
-                };
-                applicationsGrid.appendChild(applicationBar);
+                
+                applicantsList.appendChild(applicantCard);
+                
+                if (app.applicant_id) {
+                    fetch(`/recruiter/get_applicant_info/${app.applicant_id}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const locationElement = applicantCard.querySelector('.applicant-location');
+                            if (locationElement) locationElement.textContent = data.location || 'Location not specified';
+                        })
+                        .catch(() => {
+                            const locationElement = applicantCard.querySelector('.applicant-location');
+                            if (locationElement) locationElement.textContent = 'Location not specified';
+                        });
+                } else {
+                    const locationElement = applicantCard.querySelector('.applicant-location');
+                    if (locationElement) locationElement.textContent = 'Location not specified';
+                }
             });
         })
         .catch(error => {
-            console.error('Error fetching applications:', error);
-            const applicationsGrid = document.getElementById('applications-grid');
-            applicationsGrid.innerHTML = `
+            applicantsList.innerHTML = `
                 <div class="no-applications-message">
                     <p>Error loading applications: ${error.message}</p>
                     <p>Please try again later.</p>
                 </div>
             `;
          });
-         
-    // Also load recommended applicants
-    loadRecommendedApplicants(jobId);
 }
 
 function loadRecommendedApplicants(jobId) {
@@ -862,179 +961,210 @@ function showApplicantProfile(application) {
 }
 
 
-function showKanbanView() {
-    // Hide applications view and show kanban view
-    document.getElementById('applications-content').style.display = 'none';
-    document.getElementById('kanban-content').style.display = 'block';
-    
-    // Load applications into kanban columns
-    loadApplicationsIntoKanban();
-}
 
-function loadApplicationsIntoKanban() {
+function renderKanban() {
     if (!currentJobId) return;
     
-    // Fetch applications data
-    fetch(`/recruiter/jobs/${currentJobId}/applications/?format=json`)
-        .then(response => response.json())
+    const kanbanBoard = document.getElementById('kanban-board-view');
+    if (!kanbanBoard) return;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch(`/recruiter/jobs/${currentJobId}/applications/?format=json`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'X-CSRFToken': csrfToken })
+        },
+        credentials: 'same-origin'
+    })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return response.json();
+        })
         .then(applications => {
-            // Clear all columns first
-            const statusMapping = {
-                'Applied': 'applied',
-                'Under Review': 'screening', 
-                'Interview': 'interview',
-                'Offer': 'offer',
-                'Closed': 'rejected'
-            };
+            const stages = ["Applied", "Under Review", "Interview", "Offer", "Closed"];
+            const grouped = {};
             
-            const columns = ['applied', 'screening', 'interview', 'offer', 'rejected'];
-            columns.forEach(column => {
-                const columnBody = document.getElementById(`${column}-column`);
-                const countSpan = columnBody.parentElement.querySelector('.count');
-                columnBody.innerHTML = '';
-                countSpan.textContent = '0';
-            });
-            
-            if (applications.length === 0) {
-                document.getElementById('applied-column').innerHTML = '';
-                return;
-            }
-            
-            // Group applications by status
-            const groupedApplications = {};
+            // First, group applications by status
             applications.forEach(app => {
-                const statusKey = statusMapping[app.status] || 'applied';
-                if (!groupedApplications[statusKey]) {
-                    groupedApplications[statusKey] = [];
-                }
-                groupedApplications[statusKey].push(app);
+                const status = app.status || "Applied";
+                grouped[status] = grouped[status] || [];
+                grouped[status].push({
+                    id: app.id,
+                    name: app.name || 'Unknown',
+                    applicant_id: app.applicant_id,
+                    application_date: app.application_date
+                });
             });
             
-            // Populate each column
-            Object.keys(statusMapping).forEach(status => {
-                const columnKey = statusMapping[status];
-                const columnBody = document.getElementById(`${columnKey}-column`);
-                const countSpan = document.querySelector(`#${columnKey}-column`).parentElement.querySelector('.count');
-                
-                const apps = groupedApplications[columnKey] || [];
-                countSpan.textContent = apps.length;
-                
-                if (apps.length === 0) {
-                    columnBody.innerHTML = '';
+            // Render kanban with placeholder locations
+            kanbanBoard.innerHTML = stages.map(stage => `
+                <div class="kanban-column" data-stage="${stage}">
+                    <h4>${stage}</h4>
+                    <div class="kanban-cards">
+                        ${(grouped[stage] || []).map(app => {
+                            const appliedDate = app.application_date ? new Date(app.application_date).toLocaleDateString('en-US', { 
+                                month: '2-digit', day: '2-digit', year: 'numeric' 
+                            }) : 'N/A';
+                            return `
+                                <div class="kanban-card" draggable="true" data-application-id="${app.id}" data-status="${stage}">
+                                    <div class="kanban-company">${app.name}</div>
+                                    <div class="kanban-title">Applied: ${appliedDate}</div>
+                                    <div class="kanban-location" data-applicant-id="${app.applicant_id}">Loading location...</div>
+                                </div>
+                            `;
+                        }).join("")}
+                    </div>
+                </div>
+            `).join("");
+            
+            // Fetch and update locations
+            document.querySelectorAll('.kanban-location[data-applicant-id]').forEach(locationEl => {
+                const applicantId = locationEl.dataset.applicantId;
+                if (applicantId) {
+                    fetch(`/recruiter/get_applicant_info/${applicantId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            locationEl.textContent = data.location || 'Location not specified';
+                        })
+                        .catch(() => {
+                            locationEl.textContent = 'Location not specified';
+                        });
                 } else {
-                    columnBody.innerHTML = '';
-                    apps.forEach(app => {
-                        const applicationCard = createKanbanCard(app);
-                        columnBody.appendChild(applicationCard);
-                    });
+                    locationEl.textContent = 'Location not specified';
                 }
             });
+            
+            // Add drag and drop functionality
+            setupKanbanDragAndDrop();
         })
         .catch(error => {
             console.error('Error loading applications for kanban:', error);
-            const appliedColumn = document.getElementById('applied-column');
-            appliedColumn.innerHTML = '<div class="empty-column">Error loading applications</div>';
+            kanbanBoard.innerHTML = '<div class="empty-column">Error loading applications</div>';
         });
 }
 
-function createKanbanCard(app) {
-    const applicationCard = document.createElement('div');
-    applicationCard.className = 'kanban-application-card';
-    applicationCard.draggable = true;
-    applicationCard.dataset.applicationId = app.id;
-    applicationCard.dataset.currentStatus = app.status;
+function setupKanbanDragAndDrop() {
+    const cards = document.querySelectorAll('#kanban-board-view .kanban-card');
+    const columns = document.querySelectorAll('#kanban-board-view .kanban-column');
     
-    applicationCard.innerHTML = `
-        <div class="application-title">${app.name}</div>
-        <div class="application-date">Applied: ${app.application_date}</div>
-        <div class="application-message">${app.message || 'No message provided'}</div>
-        <div class="application-actions">
-            <button class="btn btn-small btn-primary" onclick="showApplicantProfile(${JSON.stringify(app).replace(/"/g, '&quot;')})">View Profile</button>
-        </div>
-    `;
-    
-    // Add drag event listeners
-    applicationCard.addEventListener('dragstart', handleDragStart);
-    applicationCard.addEventListener('dragend', handleDragEnd);
-    
-    return applicationCard;
-}
-
-function handleDragStart(e) {
-    e.dataTransfer.setData('text/plain', e.target.dataset.applicationId);
-    e.target.classList.add('dragging');
-}
-
-function handleDragEnd(e) {
-    e.target.classList.remove('dragging');
-}
-
-// Add drop event listeners to columns
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up drag and drop for kanban columns
-    const columns = ['applied', 'screening', 'interview', 'offer', 'rejected'];
-    const statusMapping = {
-        'applied': 'Applied',
-        'screening': 'Under Review',
-        'interview': 'Interview', 
-        'offer': 'Offer',
-        'rejected': 'Closed'
-    };
+    cards.forEach(card => {
+        card.addEventListener('dragstart', handleKanbanDragStart);
+        card.addEventListener('dragend', handleKanbanDragEnd);
+    });
     
     columns.forEach(column => {
-        const columnBody = document.getElementById(`${column}-column`);
-        if (columnBody) {
-            columnBody.addEventListener('dragover', handleDragOver);
-            columnBody.addEventListener('dragleave', handleDragLeave);
-            columnBody.addEventListener('drop', (e) => handleDrop(e, statusMapping[column]));
-        }
+        column.addEventListener('dragover', handleKanbanDragOver);
+        column.addEventListener('dragleave', handleKanbanDragLeave);
+        column.addEventListener('drop', handleKanbanDrop);
     });
-});
+}
 
-function handleDragOver(e) {
+function handleKanbanDragStart(e) {
+    // Find the kanban-card element (might be clicking on a child)
+    const card = e.target.closest('.kanban-card');
+    if (!card) return;
+    
+    e.dataTransfer.setData('text/plain', card.dataset.applicationId);
+    e.dataTransfer.setData('text/status', card.dataset.status);
+    card.style.opacity = '0.5';
+}
+
+function handleKanbanDragEnd(e) {
+    // Find the kanban-card element (might be dragging a child)
+    const card = e.target.closest('.kanban-card');
+    if (card) {
+        card.style.opacity = '1';
+    }
+}
+
+function handleKanbanDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     e.currentTarget.classList.add('drag-over');
 }
 
-function handleDragLeave(e) {
+function handleKanbanDragLeave(e) {
     e.currentTarget.classList.remove('drag-over');
 }
 
-function handleDrop(e, newStatus) {
+function handleKanbanDrop(e) {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
     
     const applicationId = e.dataTransfer.getData('text/plain');
-    const applicationCard = document.querySelector(`[data-application-id="${applicationId}"]`);
+    const oldStatus = e.dataTransfer.getData('text/status');
+    const newStatus = e.currentTarget.dataset.stage;
     
-    if (!applicationCard) return;
+    if (oldStatus === newStatus) return;
     
-    // Update application status via API
-    updateApplicationStatus(applicationId, newStatus)
-        .then(() => {
-            // Move card to new column - map status to column ID
-            const statusToColumn = {
-                'Applied': 'applied-column',
-                'Under Review': 'screening-column',
-                'Interview': 'interview-column',
-                'Offer': 'offer-column',
-                'Closed': 'rejected-column'
-            };
-            const targetColumn = document.getElementById(statusToColumn[newStatus]);
-            if (targetColumn) {
-                targetColumn.appendChild(applicationCard);
-                applicationCard.dataset.currentStatus = newStatus;
-                
-                // Update column counts
-                updateColumnCounts();
-            }
-        })
-        .catch(error => {
-            console.error('Error updating application status:', error);
-            showNotification(`Failed to update application status: ${error.message}`, 'error');
-        });
+    // Find the card within kanban board view only
+    const card = document.querySelector(`#kanban-board-view .kanban-card[data-application-id="${applicationId}"]`);
+    if (!card) return;
+    
+    // Ensure card maintains kanban-card class and structure
+    if (!card.classList.contains('kanban-card')) {
+        card.classList.add('kanban-card');
+    }
+    
+    // Remove any list view classes that might have been added
+    card.classList.remove('applicant-card');
+    
+    // Ensure card is draggable
+    card.draggable = true;
+    
+    // Preserve card structure - ensure it has the right child elements
+    const hasKanbanStructure = card.querySelector('.kanban-company') || 
+                               card.querySelector('.kanban-title') || 
+                               card.querySelector('.kanban-location');
+    
+    if (!hasKanbanStructure) {
+        // Card structure was lost, skip moving it (shouldn't happen but safety check)
+        console.warn('Kanban card structure lost, skipping move');
+        return;
+    }
+    
+    const cardsContainer = e.currentTarget.querySelector('.kanban-cards');
+    if (cardsContainer) {
+        cardsContainer.appendChild(card);
+        card.dataset.status = newStatus;
+        card.style.opacity = '1'; // Reset opacity after drop
+        
+        // Re-setup drag handlers for the moved card (remove old ones first to avoid duplicates)
+        card.removeEventListener('dragstart', handleKanbanDragStart);
+        card.removeEventListener('dragend', handleKanbanDragEnd);
+        card.addEventListener('dragstart', handleKanbanDragStart);
+        card.addEventListener('dragend', handleKanbanDragEnd);
+        
+        updateApplicationStatus(applicationId, newStatus)
+            .catch(error => {
+                console.error('Error updating application status:', error);
+            });
+    }
 }
+
+// Kanban view toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const kanbanToggle = document.getElementById('kanban-view-toggle');
+    if (kanbanToggle) {
+        kanbanToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const kanbanView = document.getElementById('kanban-board-view');
+            const isKanbanActive = kanbanView && kanbanView.classList.contains('active-view');
+            
+            if (isKanbanActive) {
+                switchToListView();
+            } else {
+                switchToKanbanView();
+            }
+        });
+    }
+});
 
 function updateApplicationStatus(applicationId, newStatus) {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
@@ -1060,15 +1190,6 @@ function updateApplicationStatus(applicationId, newStatus) {
     });
 }
 
-function updateColumnCounts() {
-    const columns = ['applied', 'screening', 'interview', 'offer', 'rejected'];
-    columns.forEach(column => {
-        const columnBody = document.getElementById(`${column}-column`);
-        const countSpan = columnBody.parentElement.querySelector('.count');
-        const cardCount = columnBody.querySelectorAll('.kanban-application-card').length;
-        countSpan.textContent = cardCount;
-    });
-}
 
 // Back to dashboard functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -1076,8 +1197,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (backButton) {
         backButton.addEventListener('click', function() {
             const jobDetailsContent = document.getElementById('job-details-content');
+            const applicationsContent = document.getElementById('applications-content');
+            
             if (jobDetailsContent) {
                 jobDetailsContent.style.display = 'none';
+            }
+            if (applicationsContent) {
+                applicationsContent.style.display = 'none';
             }
             
             // Clear active state from all application bars
@@ -1441,6 +1567,124 @@ document.addEventListener('DOMContentLoaded', function() {
     gap: 1.5rem;
 }
 
+.applications-dashboard .action-capsule-btn {
+    align-self: flex-start;
+    width: auto;
+    
+}
+
+.applications-header-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.applications-title-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.applications-title-row .action-capsule-btn {
+    width: auto;
+}
+
+.applications-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+#applicants-list-view {
+    display: block;
+}
+
+#applicants-list-view.active-view {
+    display: block;
+}
+
+#kanban-board-view {
+    display: none;
+}
+
+#kanban-board-view.active-view {
+    display: grid;
+}
+
+.applications-tip {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    margin: 0;
+}
+
+.applicants-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.applicant-card {
+    background-color: rgba(33, 128, 116, 0.2);
+    width: 300px !important;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 25px;
+    padding: .9rem;
+    gap: .2rem;
+    color: #000000;
+    font-size: 16px;
+}
+
+.applicant-card * {
+    color: #000000;
+    font-size: 16px;
+}
+
+.applicant-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.status-label {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-label.status-applied {
+    background-color: #007bff;
+    color: white;
+}
+
+.status-label.status-under-review {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.status-label.status-interview {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.status-label.status-offer {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-label.status-closed {
+    background-color: #6c757d;
+    color: white;
+}
+
 .applications-header-banner {
     background: rgb(33, 128, 116);
     border-radius: 19px;
@@ -1574,9 +1818,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .applicant-location {
-    color: #666;
+    color: #000000;
     font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+
 }
 
 .applicant-skills {
@@ -1805,160 +2049,102 @@ document.addEventListener('DOMContentLoaded', function() {
     text-decoration: none;
 }
 
-/* Kanban View Styles */
-/* ===== KANBAN VIEW STYLES ===== */
-#kanban-content {
-    padding: 0 !important;
-    overflow: visible !important;
-}
-
-.kanban-dashboard {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 1.5rem;
-    gap: 1.5rem;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.kanban-header-banner {
-    background: rgb(33, 128, 116);
-    border-radius: 19px;
-    padding: 1rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.kanban-title-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.kanban-header-banner h3 {
-    margin: 0;
-    color: white;
-    font-size: 24px;
-    font-weight: 500;
-}
-
-.kanban-header-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-#kanban-body {
-    flex: 1;
-    min-height: 0;
-}
-
-.kanban-board {
+/* Kanban View Styles - Based on seeker/applications */
+#kanban-board-view {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
-    width: 100%;
+    margin-top: 1rem;
+    padding: 0;
+    min-height: auto;
 }
 
 .kanban-column {
-    background: rgba(33, 128, 116, 0.11);
-    border-radius: 19px;
-    border: none;
-    min-height: 250px;
-    min-width: 200px;
+    border-radius: 25px;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    max-height: 100%;
-    overflow: hidden;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
-.kanban-column-header {
-    background: rgba(33, 128, 116, 0.2);
-    border-bottom: 2px solid rgb(33, 128, 116);
-    border-radius: 19px 19px 0 0;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.kanban-column[data-stage="Applied"] {
+    background: rgba(0, 123, 255, 0.149);
 }
 
-.kanban-column-header h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
+.kanban-column[data-stage="Under Review"] {
+    background: rgba(110, 66, 193, 0.216);
 }
 
-.kanban-column-header .count {
-    background: #218074;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
+.kanban-column[data-stage="Interview"] {
+    background: rgba(255, 193, 7, 0.18);
 }
 
-.kanban-column-body {
-    padding: 0.5rem;
-    min-height: 200px;
-    transition: background-color 0.2s ease;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+.kanban-column[data-stage="Offer"] {
+    background: rgba(40, 167, 69, 0.18);
 }
 
-.kanban-application-card {
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 1rem;
+.kanban-column[data-stage="Closed"] {
+    background: rgba(108, 117, 125, 0.18);
+}
+
+.kanban-column h4 {
+    text-align: center;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    color: #000000;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 0;
+}
+
+.kanban-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.kanban-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 1rem;
+    box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     cursor: move;
     transition: all 0.2s ease;
 }
 
-.kanban-application-card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
+.kanban-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
 }
 
-.kanban-application-card.dragging {
+.kanban-card.dragging {
     opacity: 0.5;
-    transform: rotate(5deg);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
 }
 
-.kanban-column-body.drag-over {
-    background-color: rgba(19, 227, 178, 0.1);
+.kanban-column.drag-over {
+    background-color: rgba(19, 227, 178, 0.2);
     border: 2px dashed #13E3B2;
 }
 
-.kanban-application-card .application-title {
-    font-weight: 600;
-    color: #333;
+.kanban-company {
+    color: #000000;
     font-size: 16px;
-    margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
-.kanban-application-card .application-date {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 0.5rem;
+.kanban-title {
+    color: #000000;
+    font-size: 16px;
+    font-weight: 500;
 }
 
-.kanban-application-card .application-message {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 1rem;
-    line-height: 1.4;
-}
-
-.kanban-application-card .application-actions {
-    display: flex;
-    gap: 0.5rem;
+.kanban-location {
+    color: #000000;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 .empty-column {
@@ -1966,6 +2152,12 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #666;
     padding: 2rem;
     font-style: italic;
+}
+
+@media (max-width: 768px) {
+    #kanban-board-view {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ===== NOTIFICATIONS STYLES ===== */
