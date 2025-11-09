@@ -4,32 +4,47 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 <style>
 .auth-container {
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 2rem 1rem;
+  min-height: 100vh;
 }
 
-.auth-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 2.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.auth-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.5rem 0;
+.auth-name-banner {
+  background-color: rgb(33, 128, 116);
+  color: white;
+  font-size: 24px;
+  font-weight: 500;
+  padding: 5px 20px;
+  border-radius: 9999px;
   text-align: center;
+  margin-top: 0.8rem;
+  display: inline-block;
+  width: fit-content;
 }
 
 .auth-subtitle {
-  color: #6b7280;
+  color: #666;
   text-align: center;
-  margin: 0 0 2rem 0;
-  font-size: 0.95rem;
+  margin: 1rem 0 0 0;
+  font-size: 18px;
+}
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 2rem;
 }
 
 .signup-step {
@@ -48,19 +63,20 @@
 }
 
 .step-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #d1d5db;
-  transition: background 0.2s;
+  background: rgba(33, 128, 116, 0.3);
+  transition: all 0.2s;
 }
 
 .step-dot.active {
-  background: #111827;
+  background: rgb(33, 128, 116);
+  transform: scale(1.2);
 }
 
 .step-dot.completed {
-  background: #6b7280;
+  background: rgb(33, 128, 116);
 }
 
 .user-type-selection {
@@ -71,71 +87,75 @@
 }
 
 .user-type-card {
-  padding: 1.25rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 1.5rem;
+  border: 2px solid rgba(33, 128, 116, 0.3);
+  border-radius: 19px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
-  background: white;
+  background: rgba(33, 128, 116, 0.11);
 }
 
 .user-type-card:hover {
-  border-color: #9ca3af;
-  background: #f9fafb;
+  border-color: rgb(33, 128, 116);
+  background: rgba(33, 128, 116, 0.2);
 }
 
 .user-type-card.selected {
-  border-color: #111827;
-  background: #f9fafb;
+  border-color: rgb(33, 128, 116);
+  background: rgba(33, 128, 116, 0.2);
+  box-shadow: 0 0 0 2px rgba(33, 128, 116, 0.1);
 }
 
 .user-type-card h3 {
-  margin: 0 0 0.25rem 0;
-  color: #111827;
-  font-size: 1rem;
-  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #000;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .user-type-card p {
   margin: 0;
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: #666;
+  font-size: 16px;
 }
 
 .step-title {
-  font-size: 1.25rem;
+  font-size: 20px;
   font-weight: 600;
-  color: #111827;
+  color: #000;
   margin: 0 0 1.5rem 0;
   text-align: center;
 }
 
 .auth-form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .auth-label {
-  display: block;
-  font-size: 0.875rem;
+  font-size: 18px;
   font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.5rem;
+  color: #000;
 }
 
 .auth-input,
 .auth-textarea,
 .auth-select {
-  width: 100%;
+  font-size: 18px;
+  font-weight: 400;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  color: #111827;
-  background: white;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
+  border: 1px solid rgba(33, 128, 116, 0.3);
+  border-radius: 8px;
+  background-color: white;
   font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s;
+  color: #000;
 }
 
 .auth-textarea {
@@ -147,28 +167,29 @@
 .auth-textarea:focus,
 .auth-select:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: rgb(33, 128, 116);
+  box-shadow: 0 0 0 2px rgba(33, 128, 116, 0.1);
 }
 
 .auth-input[readonly] {
-  background: #f9fafb;
-  color: #6b7280;
+  background-color: #f5f5f5;
+  cursor: not-allowed;
 }
 
 .auth-small {
   display: block;
-  color: #6b7280;
-  font-size: 0.8125rem;
+  color: #666;
+  font-size: 14px;
   margin-top: 0.375rem;
 }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 18px;
   font-weight: 600;
-  color: #111827;
+  color: #000;
   margin: 2rem 0 1rem 0;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(33, 128, 116, 0.3);
 }
 
 .nav-buttons {
@@ -177,24 +198,25 @@
   gap: 1rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(33, 128, 116, 0.3);
+  width: 100%;
 }
 
 .auth-button {
   flex: 1;
-  padding: 0.75rem 1.5rem;
-  background: #111827;
+  padding: 10px 30px;
+  background-color: rgb(33, 128, 116);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  border-radius: 9999px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: opacity 0.2s;
 }
 
 .auth-button:hover {
-  background: #1f2937;
+  opacity: 0.9;
 }
 
 .auth-button:disabled {
@@ -204,15 +226,15 @@
 
 .auth-button-secondary {
   flex: 1;
-  padding: 0.75rem 1.5rem;
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  padding: 10px 30px;
+  background-color: rgba(33, 128, 116, 0.2);
+  color: rgb(33, 128, 116);
+  border: none;
+  border-radius: 9999px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.2s;
   text-decoration: none;
   display: block;
   text-align: center;
@@ -220,8 +242,7 @@
 }
 
 .auth-button-secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  opacity: 0.9;
 }
 
 .auth-error {
@@ -229,9 +250,10 @@
   border: 1px solid #fecaca;
   color: #991b1b;
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 1.5rem;
-  font-size: 0.875rem;
+  font-size: 16px;
+  width: 100%;
 }
 
 .auth-error ul {
@@ -242,15 +264,15 @@
 .auth-link {
   display: block;
   text-align: center;
-  margin-top: 1.5rem;
-  color: #6b7280;
+  margin-top: 1rem;
+  color: #666;
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 16px;
   transition: color 0.2s;
 }
 
 .auth-link:hover {
-  color: #111827;
+  color: rgb(33, 128, 116);
 }
 
 .links-container-signup {
@@ -269,17 +291,18 @@
 .link-name-input-signup,
 .link-url-input-signup {
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border: 1px solid rgba(33, 128, 116, 0.3);
+  border-radius: 8px;
+  font-size: 16px;
   font-family: inherit;
+  transition: all 0.2s;
 }
 
 .link-name-input-signup:focus,
 .link-url-input-signup:focus {
   outline: none;
-  border-color: #111827;
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1);
+  border-color: rgb(33, 128, 116);
+  box-shadow: 0 0 0 2px rgba(33, 128, 116, 0.1);
 }
 
 .remove-link-btn-signup {
@@ -303,26 +326,58 @@
 }
 
 .add-link-btn-signup {
-  padding: 6px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  color: #111827;
-  font-size: 0.875rem;
+  padding: 8px 20px;
+  border: 1px solid rgba(33, 128, 116, 0.3);
+  border-radius: 8px;
+  background: rgba(33, 128, 116, 0.11);
+  color: rgb(33, 128, 116);
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .add-link-btn-signup:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  background: rgba(33, 128, 116, 0.2);
+  border-color: rgb(33, 128, 116);
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .auth-name-banner {
+    font-size: 20px;
+    padding: 5px 15px;
+  }
+  
+  .auth-subtitle {
+    font-size: 16px;
+  }
+  
+  .user-type-selection {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-buttons {
+    flex-direction: column;
+  }
+  
+  .auth-button,
+  .auth-button-secondary {
+    width: 100%;
+  }
 }
 </style>
 
 <div class="auth-container">
-  <div class="auth-card">
-    <h1 class="auth-title">Create Account</h1>
+  <div class="auth-header">
+    <div class="auth-name-banner">Create Account</div>
     <p class="auth-subtitle">Join HireMap to get started</p>
+  </div>
+  
+  <div class="auth-card">
     
     {% if template_data.error %}
     <div class="auth-error">
@@ -349,7 +404,7 @@
     </div>
     {% endif %}
     
-    <form method="post" action="{% url 'accounts:signup' %}" id="signupForm">
+    <form method="post" action="{% url 'accounts:signup' %}" id="signupForm" style="width: 100%;">
       {% csrf_token %}
       
       <!-- Step Indicator -->
