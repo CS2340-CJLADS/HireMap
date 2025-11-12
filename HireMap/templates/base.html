@@ -7,10 +7,13 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
 		<link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 	</head>
-	<body>
+	<body style="display: flex; flex-direction: column; height: 100vh; margin: 0; padding: 0; overflow: hidden;">
 		<!-- Navigation Bar -->
 		<nav class="main-nav">
 			<div class="nav-content">
@@ -41,14 +44,45 @@
 							<!-- Seeker Navigation -->
 							<a href="{% url 'seeker:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Jobs</a>
 							<a href="{% url 'seeker:applications' %}" class="nav-link {% if request.resolver_match.url_name == 'applications' %}active{% endif %}">My Applications</a>
-							<a href="{% url 'seeker:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
+							<a href="{% url 'messages:index' %}" class="nav-link {% if request.resolver_match.namespace == 'messages' %}active{% endif %}" title="Messages">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="white"/>
+								</svg>
+							</a>
+							<a href="{% url 'seeker:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" title="My Profile">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+									<path d="M12.0002 14.5C6.99016 14.5 2.91016 17.86 2.91016 22C2.91016 22.28 3.13016 22.5 3.41016 22.5H20.5902C20.8702 22.5 21.0902 22.28 21.0902 22C21.0902 17.86 17.0102 14.5 12.0002 14.5Z" fill="white"/>
+								</svg>
+							</a>
 						{% elif user.recruiter %}
 							<!-- Recruiter Navigation (Dashboard, Find Candidates, My Profile) -->
 							<a href="{% url 'recruiter:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
 							<a href="{% url 'home:search_candidates' %}" class="nav-link {% if request.resolver_match.url_name == 'search_candidates' %}active{% endif %}">Find Candidates</a>
-							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">My Profile</a>
+							<div class="notification-wrapper">
+								<button class="nav-link notification-btn" id="notification-btn" title="Notifications">
+									<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.89 22 12 22ZM18 16V11C18 7.93 16.36 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="white"/>
+									</svg>
+								</button>
+								<div class="notification-popup" id="notification-popup" style="display: none;">
+									<div class="notification-popup-list" id="notification-list">
+										<div class="notification-loading">Loading...</div>
+									</div>
+								</div>
+							</div>
+							<a href="{% url 'messages:index' %}" class="nav-link {% if request.resolver_match.namespace == 'messages' %}active{% endif %}" title="Messages">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="white"/>
+								</svg>
+							</a>
+							<a href="{% url 'recruiter:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" title="My Profile">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+									<path d="M12.0002 14.5C6.99016 14.5 2.91016 17.86 2.91016 22C2.91016 22.28 3.13016 22.5 3.41016 22.5H20.5902C20.8702 22.5 21.0902 22.28 21.0902 22C21.0902 17.86 17.0102 14.5 12.0002 14.5Z" fill="white"/>
+								</svg>
+							</a>
 						{% endif %}
-						<a href="{% url 'messages:index' %}" class="nav-link {% if request.resolver_match.namespace == 'messages' %}active{% endif %}">Messages</a>
 						<a href="{% url 'accounts:logout' %}" class="nav-link">Logout</a>
 					{% else %}
 						<!-- Public Navigation -->
@@ -61,9 +95,105 @@
 			</div>
 		</nav>
 
-		<div>
+		<div style="flex: 1; min-height: 0; overflow-y: auto;">
 		{% block content %}
 		{% endblock content %}
 		</div>
+
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     	integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     	crossorigin=""></script>
+		
+	{% if user.is_authenticated and user.recruiter %}
+	<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const notificationBtn = document.getElementById('notification-btn');
+		const notificationPopup = document.getElementById('notification-popup');
+		const notificationList = document.getElementById('notification-list');
+
+		if (!notificationBtn) return;
+
+		// Toggle popup
+		notificationBtn.addEventListener('click', function(e) {
+			e.stopPropagation();
+			if (notificationPopup.style.display === 'none' || !notificationPopup.style.display) {
+				notificationPopup.style.display = 'block';
+				loadNotifications();
+			} else {
+				notificationPopup.style.display = 'none';
+			}
+		});
+
+		// Close popup when clicking outside
+		document.addEventListener('click', function(e) {
+			if (!notificationBtn.contains(e.target) && !notificationPopup.contains(e.target)) {
+				notificationPopup.style.display = 'none';
+			}
+		});
+
+		function loadNotifications() {
+			fetch('/recruiter/notifications/?format=json')
+				.then(response => response.json())
+				.then(data => {
+					const notifications = data.notifications || [];
+					
+					if (notifications.length === 0) {
+						notificationList.innerHTML = '<div class="notification-empty">No notifications</div>';
+						return;
+					}
+
+					notificationList.innerHTML = '';
+					
+					notifications.forEach(notif => {
+						const item = document.createElement('div');
+						item.className = 'notification-item-nav' + (!notif.is_read ? ' unread' : '');
+						item.innerHTML = `
+							<div class="notification-item-title">${escapeHtml(notif.title)}</div>
+							<div class="notification-item-message">${escapeHtml(notif.message)}</div>
+							<div class="notification-item-time">${escapeHtml(notif.time)}</div>
+						`;
+						item.addEventListener('click', function() {
+							if (!notif.is_read) {
+								fetch(`/recruiter/notifications/${notif.id}/read/`, {
+									method: 'POST',
+									headers: {
+										'X-CSRFToken': getCookie('csrftoken'),
+										'Content-Type': 'application/json',
+									}
+								}).then(() => loadNotifications());
+							}
+						});
+						notificationList.appendChild(item);
+					});
+				})
+				.catch(error => {
+					console.error('Error loading notifications:', error);
+					notificationList.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
+				});
+		}
+
+		function escapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		function getCookie(name) {
+			let cookieValue = null;
+			if (document.cookie && document.cookie !== '') {
+				const cookies = document.cookie.split(';');
+				for (let i = 0; i < cookies.length; i++) {
+					const cookie = cookies[i].trim();
+					if (cookie.substring(0, name.length + 1) === (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+	});
+	</script>
+	{% endif %}
 	</body>
 </html>

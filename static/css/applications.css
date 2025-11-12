@@ -1,4 +1,26 @@
 /* Applications board specific styles */
+/* Search bar centered with 50% width and max cap */
+.job-search-container .search-filters-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 0px !important;
+}
+
+.job-search-container .search-form {
+  width: 60%;
+  max-width: 800px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Search row styling to match homepage - ensure 42px height */
+.job-search-container .search-row {
+  height: 44px;
+  max-height: 44px;
+  width: 100%;
+}
+
 .applications-header {
   background: var(--white);
   padding: 2rem 0;
@@ -16,11 +38,109 @@
   font-size: 1.1rem;
 }
 
-.kanban {
+/* Kanban Board Styles */
+.kanban-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-top: 3rem;
+  padding: 0 1rem 3rem 1rem;
+  column-gap: 1rem;
+  min-height: auto;
+}
+
+/* Allow page scrolling when kanban is visible */
+body.kanban-view-active .job-search-container,
+body.kanban-view-active .page-container {
+  height: auto !important;
+  overflow: visible !important;
+  min-height: 100vh;
+}
+
+body.kanban-view-active .search-form {
+  max-width: 300px;
+}
+.kanban-column {
+  border-radius: 25px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.kanban-column[data-stage="Applied"] {
+  background: rgba(0, 123, 255, 0.149);
+}
+
+.kanban-column[data-stage="Under Review"] {
+  background: rgba(110, 66, 193, 0.216);
+}
+
+.kanban-column[data-stage="Interview"] {
+  background: rgba(255, 193, 7, 0.18);
+}
+
+.kanban-column[data-stage="Offer"] {
+  background: rgba(40, 167, 69, 0.18);
+}
+
+.kanban-column[data-stage="Closed"] {
+  background: rgba(108, 117, 125, 0.18);
+}
+
+.kanban-column h4 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.kanban-card {
+  background: rgb(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kanban-company {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.kanban-title {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.kanban-location {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kanban {
+  display: flex;
 }
 
 .kanban-col {
@@ -165,54 +285,86 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
+  padding: 0 7px 0 20px;
   border-radius: 45px;
-  background: var(--bg-of-cards, linear-gradient(180deg, rgba(19, 227, 178, 0.08) 17.31%, rgba(101, 243, 243, 0.08) 100%));
-  box-shadow: 0 0 5px -1px #218074;
+  background: white;
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 60px;
-}
-
-.application-bar:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px -1px #218074;
+  transition: background 0.2s ease;
+  height: 42px;
+  justify-content: space-around;
+  transform: none !important;
 }
 
 .application-bar.active {
-  border: 2px solid #007bff;
+  background: rgba(33, 128, 116, 0.20) !important;
 }
 
-.application-company,
-.application-position,
-.application-location {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
+.application-bar:hover {
+  background: rgba(33, 128, 116, 0.20) !important;
+  transform: none !important;
+}
+
+.application-bar.active:hover {
+  background: rgba(33, 128, 116, 0.20) !important;
+}
+
+.application-bar .application-company,
+.application-bar .application-position,
+.application-bar .application-location,
+.application-bar .application-date-text {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #000000 !important;
+  opacity: 1 !important;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
   flex: 1;
 }
 
-.application-company {
-  font-weight: 600;
-  min-width: 120px;
+.application-bar .application-company {
+  font-weight: 800 !important;
+  flex: 2;
+  min-width: 0;
 }
 
-.application-position {
-  min-width: 150px;
+.application-bar .application-location {
+  flex: 1.5;
+  min-width: 0;
 }
 
-.application-location {
-  min-width: 180px;
+.application-bar .application-status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.application-status {
-  font-size: 14px;
-  font-weight: 500;
-  padding: 6px 16px;
-  border-radius: 20px;
-  text-align: center;
-  min-width: 80px;
+/* Search candidates specific - status contains availability badge, not circle */
+#candidate-list .candidate-listing .application-status {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+/* Seeker applications specific - status is a colored circle */
+#applications-list .application-bar .application-status {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
@@ -222,7 +374,7 @@
 }
 
 .status-review {
-  background-color: #6c757d;
+  background-color: #6f42c1;
   color: white;
 }
 
@@ -242,15 +394,12 @@
 }
 
 .status-closed {
-  background-color: #6c757d;
+  background-color: #495057;
   color: white;
 }
 
 .no-applications {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6c757d;
-  font-style: italic;
+  color: #000000;
 }
 
 /* Status Filter Pills */
@@ -272,8 +421,17 @@
 }
 
 .status-filter-pill:hover {
-  transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.status-filter-pill.active {
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+}
+
+.status-filters:has(.status-filter-pill.active) .status-filter-pill:not(.active) {
+  opacity: 0.6;
 }
 
 .status-filter-pill.status-applied {
@@ -281,7 +439,7 @@
 }
 
 .status-filter-pill.status-review {
-  background-color: #6c757d;
+  background-color: #6f42c1;
 }
 
 .status-filter-pill.status-interviewing {
@@ -294,18 +452,19 @@
 }
 
 .status-filter-pill.status-closed {
-  background-color: #6c757d;
+  background-color: #495057;
 }
 
 /* Status Badge in Header */
-.job-description-header .status-badge {
+.job-description-header .status-badge,
+.job-description-header-row .status-badge {
   display: inline-block;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
-  margin-left: 12px;
   vertical-align: middle;
+  margin-right: 1.5rem;
 }
 
 .job-description-header .status-badge.status-applied {
@@ -314,7 +473,7 @@
 }
 
 .job-description-header .status-badge.status-review {
-  background-color: #6c757d;
+  background-color: #6f42c1;
   color: white;
 }
 
@@ -329,6 +488,6 @@
 }
 
 .job-description-header .status-badge.status-closed {
-  background-color: #6c757d;
+  background-color: #495057;
   color: white;
 }

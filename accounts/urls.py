@@ -6,7 +6,7 @@ urlpatterns = [
     path('signup/', views.signup, name = 'signup'),
     path('login/', views.login, name = 'login'),
     path('logout/', views.logout, name = 'logout'),
-    path('api/locations/', views.get_locations, name = 'get_locations'),
+    # path('api/locations/', views.get_locations, name = 'get_locations'),
     
     # Profile management
     path('profile/', views.profile_view, name = 'profile_view'),

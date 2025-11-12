@@ -3,7 +3,6 @@
 {% load static %}
 
 <div class="job-search-container">
-    <div class="page-container">
     <!-- Search & Filters Bar -->
     <div class="search-filters-bar">
         <form method="get" class="search-form">
@@ -11,7 +10,11 @@
                 <div class="search-text">
                     <input type="text" name="search" placeholder="Search jobs by title, company, or skills..." 
                            value="{{ template_data.search_term|default:'' }}" class="search-input" />
-                    <button type="submit" class="search-icon" aria-label="Search">🔍</button>
+                    <button type="submit" class="search-icon" aria-label="Search">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04 1.5 1.5 1.5 1.5l3.5 3.5a1 1 0 0 0 1.415-1.414l-3.5-3.5a6.5 6.5 0 0 0-1.517-1.388zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" fill="white"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="search-filters-inline">
                     <div class="filter-item">
@@ -78,53 +81,53 @@
             <div class="job-list" id="job-list">
                 <div class="job-listings-grid">
                     {% for job in template_data.job_postings %}
-                    <div class="job-listing" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
-                        <div class="job-tile {% if job.id in template_data.applied_job_ids %}applied{% endif %}">
+                    <div class="job-tile {% if job.id in template_data.applied_job_ids %}applied{% endif %}" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
+                        <div class="job-tile-top">
                             <div class="job-tile-company">{{ job.recruiter.company_name }}</div>
                             <div class="job-tile-position">{{ job.title }}</div>
-                            
-                            <div class="job-tile-separator"></div>
-                            
+                        </div>
+                        
+                        <div class="job-tile-bottom">
                             <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
                             <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
-                            
-                            {% if job.id in template_data.applied_job_ids %}
-                            <div class="applied-badge">✓ Applied</div>
-                            {% endif %}
                         </div>
+                        
+                        {% if job.id in template_data.applied_job_ids %}
+                        <div class="applied-badge">✓ Applied</div>
+                        {% endif %}
                     </div>
                     {% empty %}
-                    <div class="job-listing" data-job-id="demo-1" onclick="showJobDetails('demo-1')">
-                        <div class="job-tile">
+                    <div class="job-tile" data-job-id="demo-1" onclick="showJobDetails('demo-1')">
+                        <div class="job-tile-top">
                             <div class="job-tile-company">Acme Corp</div>
                             <div class="job-tile-position">Frontend Engineer</div>
-                            
-                            <div class="job-tile-separator"></div>
-                            
+                        </div>
+                        
+                        <div class="job-tile-bottom">
                             <div class="job-tile-range">$90,000 - $120,000</div>
                             <div class="job-tile-location">Remote</div>
                         </div>
                     </div>
 
-                    <div class="job-listing" data-job-id="demo-2" onclick="showJobDetails('demo-2')">
-                        <div class="job-tile">
+                    <div class="job-tile" data-job-id="demo-2" onclick="showJobDetails('demo-2')">
+                        <div class="job-tile-top">
                             <div class="job-tile-company">Globex</div>
                             <div class="job-tile-position">Backend Developer</div>
-                            
-                            <div class="job-tile-separator"></div>
-                            
+                        </div>
+                        
+                        <div class="job-tile-bottom">
                             <div class="job-tile-range">$110,000 - $140,000</div>
                             <div class="job-tile-location">New York, NY</div>
                         </div>
                     </div>
 
-                    <div class="job-listing" data-job-id="demo-3" onclick="showJobDetails('demo-3')">
-                        <div class="job-tile">
+                    <div class="job-tile" data-job-id="demo-3" onclick="showJobDetails('demo-3')">
+                        <div class="job-tile-top">
                             <div class="job-tile-company">Initech</div>
                             <div class="job-tile-position">Data Analyst</div>
-                            
-                            <div class="job-tile-separator"></div>
-                            
+                        </div>
+                        
+                        <div class="job-tile-bottom">
                             <div class="job-tile-range">$70,000 - $95,000</div>
                             <div class="job-tile-location">On-site</div>
                         </div>
@@ -212,62 +215,52 @@
 
             <!-- Job Details (hidden by default) -->
             <div id="job-details-content" class="panel-content" style="display: none;">
-                <div class="job-details-content">
-                    <div class="job-details-header">
-                        <button id="back-to-dashboard" class="back-btn">← Back to Dashboard</button>
-                    </div>
-                    <div id="job-details-loading" class="loading-state" style="display: none;">
-                        <div class="spinner"></div>
-                        <p>Loading job details...</p>
-                    </div>
-                    <div id="job-details-body">
-                        <div class="job-description-container">
-                            <!-- Header Section -->
-                            <div class="job-description-header">
-                                <div class="job-description-company" id="job-description-company">Company</div>
-                                <div class="job-description-position" id="job-description-position">Position</div>
-                            </div>
-                            
-                            <!-- Description Sections -->
-                            <div class="job-description-sections">
-                                <div class="job-description-section">
-                                    <div class="section-title">About</div>
-                                    <div class="section-content">
-                                        <div id="job-description-location">Location</div>
-                                        <div id="job-description-salary">Salary</div>
-                                        <div id="job-description-visa">Visa</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Skills</div>
-                                    <div class="section-content" id="job-description-skills">Skills</div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Requirements</div>
-                                    <div class="section-content" id="job-description-requirements">Requirements</div>
-                                </div>
-                                
-                                <div class="job-description-section">
-                                    <div class="section-title">Description</div>
-                                    <div class="section-content" id="job-description-description">Description</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Chat + Submit Section -->
-                            <div class="job-description-actions">
-                                <div class="message-input-container">
-                                    <input type="text" placeholder="Add an Optional message before applying" class="message-input" />
-                                </div>
-                                <button class="apply-button" id="apply-button">Apply</button>
-                            </div>
+                <div id="job-details-loading" class="loading-state" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading job details...</p>
+                </div>
+                
+                <!-- Header Section -->
+                <div class="job-description-header">
+                    <div class="job-description-company" id="job-description-company">Company</div>
+                    <div class="job-description-position" id="job-description-position">Position</div>
+                </div>
+                
+                <!-- Description Sections -->
+                <div class="job-description-sections-wrapper">
+                    <div class="job-description-section">
+                        <div class="section-title">About</div>
+                        <div class="section-content">
+                            <div id="job-description-location">Location</div>
+                            <div id="job-description-salary">Salary</div>
+                            <div id="job-description-visa">Visa</div>
                         </div>
                     </div>
+                    
+                    <div class="job-description-section">
+                        <div class="section-title">Skills</div>
+                        <div class="section-content" id="job-description-skills">Skills</div>
+                    </div>
+                    
+                    <div class="job-description-section">
+                        <div class="section-title">Requirements</div>
+                        <div class="section-content" id="job-description-requirements">Requirements</div>
+                    </div>
+                    
+                    <div class="job-description-section">
+                        <div class="section-title">Description</div>
+                        <div class="section-content" id="job-description-description">Description</div>
+                    </div>
                 </div>
-            </div>
+                
+                <!-- Chat + Submit Section -->
+                <div class="job-description-actions">
+                    <div class="message-input-container">
+                        <input type="text" placeholder="Add an Optional message before applying" class="message-input" />
+                    </div>
+                    <button class="apply-button" id="apply-button">Apply</button>
+                </div>
         </div>
-    </div>
     </div>
 </div>
 

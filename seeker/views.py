@@ -16,6 +16,7 @@ def dashboard(request):
     # Get filter parameters
     search_term = request.GET.get('search')
     title = request.GET.get('title')
+    work_type = request.GET.get('work_type')
     location = request.GET.get('location')
     skills = request.GET.get('skills')
     salary_min = request.GET.get('salary_min')
@@ -41,15 +42,30 @@ def dashboard(request):
     if skills:
         job_postings = job_postings.filter(skills_required__icontains=skills)
     
-    # Apply location filter
+    # Apply work type filter (Remote / In-Person)
+    if work_type == 'remote':
+        job_postings = job_postings.filter(remote=True)
+    elif work_type == 'in-person':
+        job_postings = job_postings.filter(remote=False)
+    
+    # Apply location filter (only for non-remote jobs)
     if location:
-        if location.lower() == 'remote':
-            job_postings = job_postings.filter(remote=True)
-        elif location.lower() == 'onsite' or location.lower() == 'on-site':
-            job_postings = job_postings.filter(remote=False)
+        # Location filter only applies to in-person jobs
+        # Location format is "City, State" from the dropdown
+        if ', ' in location:
+            city, state = location.split(', ', 1)
+            job_postings = job_postings.filter(
+                remote=False,
+                city__iexact=city.strip(),
+                state__iexact=state.strip()
+            )
         else:
-            # Search in location field for text matches
-            job_postings = job_postings.filter(location__icontains=location)
+            # Fallback: try to match city or state
+            job_postings = job_postings.filter(
+                remote=False
+            ).filter(
+                Q(city__icontains=location) | Q(state__icontains=location)
+            )
     
     # Apply salary filters
     if salary_min:
@@ -94,15 +110,43 @@ def dashboard(request):
         recommended_jobs = get_recommended_jobs(applicant, limit=5)
     else:
         recommended_jobs = []
+
+    all_jobs_for_map = job_postings  # For map display of all jobs
     
     # Add pagination
     page = request.GET.get('page', 1)
-    paginator = Paginator(job_postings, 12)  # Show 12 jobs per page
+    paginator = Paginator(job_postings, 20)  # Show 20 jobs per page
     job_postings_page = paginator.get_page(page)
+    
+    # Get unique locations from actual job postings (all published, non-closed jobs)
+    # Use city and state from address fields
+    # Include both remote and in-person jobs to show all available locations
+    all_jobs = JobPosting.objects.filter(
+        is_draft=False, 
+        is_closed=False
+    ).exclude(city__isnull=True).exclude(city='').exclude(state__isnull=True).exclude(state='')
+    
+    # Build location strings in "City, State" format
+    all_locations_list = []
+    seen_locations = set()
+    
+    # Filter out invalid/spam locations
+    invalid_locations = {'spam', 'SPAM', 'test', 'TEST', 'test location', 'example'}
+    
+    for job in all_jobs:
+        if job.city and job.state:
+            location_str = f"{job.city}, {job.state}"
+            # Check if location is valid and not already seen
+            if location_str not in seen_locations and location_str.lower() not in invalid_locations:
+                all_locations_list.append(location_str)
+                seen_locations.add(location_str)
+    
+    all_locations_list = sorted(all_locations_list)
     
     template_data = {
         'title': 'Job Search Dashboard',
         'job_postings': job_postings_page,
+        'all_jobs_for_map': all_jobs_for_map,
         'search_term': search_term,
         'applied_job_ids': applied_job_ids,
         'recent_applications': recent_applications,
@@ -112,6 +156,7 @@ def dashboard(request):
         'user_is_applicant': request.user.is_authenticated and hasattr(request.user, 'applicant'),
         'paginator': paginator,
         'current_page': page,
+        'non_remote_locations': all_locations_list,
     }
     
     return render(request, 'seeker/dashboard.html', {'template_data': template_data})

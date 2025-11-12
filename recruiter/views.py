@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -6,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+import requests
 from accounts.decorators import recruiter_required
 from accounts.models import Applicant
 from jobs.models import JobPosting, Application
@@ -141,12 +143,30 @@ def job_new(request):
         action = request.POST.get('action', 'publish')
         is_draft = action == 'draft'
         
+        # Validate required address fields
+        street_address = request.POST.get('street_address', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        
+        if not street_address or not city or not state:
+            # Return error - required fields missing
+            template_data = {
+                'title': 'Post New Job',
+                'error': 'Street address, city, and state are required fields.',
+            }
+            return render(request, 'recruiter/job_new.html', {'template_data': template_data})
+        
         # Create new job posting
         job = JobPosting.objects.create(
             title=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
             skills_required=request.POST.get('skills_required', ''),
-            location=request.POST.get('location', ''),
+            # Location is now handled by city, state, street_address, post_code fields
+            street_address=street_address,
+            post_code=request.POST.get('post_code', '').strip(),
+            city=city,
+            state=state,
+            country=request.POST.get('country', 'USA').strip(),
             salary_min=float(request.POST.get('salary_min', 0)),
             salary_max=float(request.POST.get('salary_max', 0)),
             remote=request.POST.get('remote') == 'on',
@@ -154,6 +174,34 @@ def job_new(request):
             recruiter=recruiter,
             is_draft=is_draft,
         )
+        
+        if (not job.is_draft) and (not job.remote):
+            print("Job is not draft and not remote; geocoding address.")
+            # Ensure location is set for non-remote jobs
+            if job.street_address:
+                # Geocode the address to get coordinates
+                location = geocode_address(
+                    street_address=job.street_address,
+                    post_code=job.post_code,
+                    city=job.city,
+                    state=job.state,
+                    country=job.country
+                )
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+            else:
+                print("Street address is missing; cannot geocode full address.")
+                # Geocode the post code to get coordinates
+                location = geocode_address(post_code=job.post_code)
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+                    job.location_lat += random.uniform(-0.0001, 0.0001)
+                    job.location_lon += random.uniform(-0.0001, 0.0001)
+        
         return redirect('recruiter:dashboard')
     
     template_data = {
@@ -172,11 +220,30 @@ def job_edit(request, job_id):
         # Get the action (publish, draft, save, or unpublish)
         action = request.POST.get('action', 'save')
         
+        # Validate required address fields
+        street_address = request.POST.get('street_address', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        
+        if not street_address or not city or not state:
+            # Return error - required fields missing
+            template_data = {
+                'title': 'Edit Job',
+                'job': job,
+                'error': 'Street address, city, and state are required fields.',
+            }
+            return render(request, 'recruiter/job_edit.html', {'template_data': template_data})
+        
         # Update job fields
         job.title = request.POST.get('title', '')
         job.description = request.POST.get('description', '')
         job.skills_required = request.POST.get('skills_required', '')
-        job.location = request.POST.get('location', '')
+        # Location is now handled by city, state, street_address, post_code fields
+        job.street_address = street_address
+        job.post_code = request.POST.get('post_code', '').strip()
+        job.city = city
+        job.state = state
+        job.country = request.POST.get('country', 'USA').strip()
         job.salary_min = float(request.POST.get('salary_min', 0))
         job.salary_max = float(request.POST.get('salary_max', 0))
         job.remote = request.POST.get('remote') == 'on'
@@ -190,6 +257,33 @@ def job_edit(request, job_id):
         elif action == 'unpublish':
             job.is_draft = True
         # For 'save' action, keep current draft status
+
+        if (not job.is_draft) and (not job.remote):
+            print("Job is not draft and not remote; geocoding address.")
+            # Ensure location is set for non-remote jobs
+            if job.street_address:
+                # Geocode the address to get coordinates
+                location = geocode_address(
+                    street_address=job.street_address,
+                    post_code=job.post_code,
+                    city=job.city,
+                    state=job.state,
+                    country=job.country
+                )
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+            else:
+                print("Street address is missing; cannot geocode full address.")
+                # Geocode the post code to get coordinates
+                location = geocode_address(post_code=job.post_code)
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+                    job.location_lat += random.uniform(-0.0001, 0.0001)
+                    job.location_lon += random.uniform(-0.0001, 0.0001)
         
         job.save()
         return redirect('recruiter:dashboard')
@@ -329,17 +423,21 @@ def search_candidates(request):
             )
     
     if location_search:
-        # Exclude applicants with no location or placeholder text
-        applicants = applicants.filter(
-            location__icontains=location_search,
-            privacy_settings__show_location=True  # Only show applicants with visible location
-        ).exclude(
-            Q(location__isnull=True) | 
-            Q(location__exact='') | 
-            Q(location__exact='None') |
-            Q(location__icontains='Location not specified') |
-            Q(location__icontains='No location specified')
-        )
+        # Location filter - format is "City, State" from the dropdown
+        if ', ' in location_search:
+            city, state = location_search.split(', ', 1)
+            applicants = applicants.filter(
+                city__iexact=city.strip(),
+                state__iexact=state.strip(),
+                privacy_settings__show_location=True  # Only show applicants with visible location
+            )
+        else:
+            # Fallback: try to match city or state
+            applicants = applicants.filter(
+                privacy_settings__show_location=True
+            ).filter(
+                Q(city__icontains=location_search) | Q(state__icontains=location_search)
+            )
     
     if availability_search:
         applicants = applicants.filter(availability=availability_search)
@@ -357,10 +455,31 @@ def search_candidates(request):
             Q(education__icontains='No education specified')
         )
     
+    # Get unique locations from actual applicants
+    # Use city and state from address fields
+    all_applicants = Applicant.objects.exclude(city__isnull=True).exclude(city='').exclude(state__isnull=True).exclude(state='')
+    
+    # Build location strings in "City, State" format
+    all_locations_list = []
+    seen_locations = set()
+    
+    # Filter out invalid/spam locations
+    invalid_locations = {'spam', 'SPAM', 'test', 'TEST', 'test location', 'example'}
+    
+    for applicant in all_applicants:
+        if applicant.city and applicant.state:
+            location_str = f"{applicant.city}, {applicant.state}"
+            # Check if location is valid and not already seen
+            if location_str not in seen_locations and location_str.lower() not in invalid_locations:
+                all_locations_list.append(location_str)
+                seen_locations.add(location_str)
+    
+    all_locations_list = sorted(all_locations_list)
+    
     # Add pagination
     from django.core.paginator import Paginator
     page = request.GET.get('page', 1)
-    paginator = Paginator(applicants, 12)  # Show 12 candidates per page
+    paginator = Paginator(applicants, 40)  # Show 40 candidates per page
     applicants_page = paginator.get_page(page)
     
     # Get projects for each applicant on current page
@@ -379,11 +498,32 @@ def search_candidates(request):
         if applicant.get_privacy_settings().show_experience:
             temp['experience'] = applicant.experience
         if applicant.get_privacy_settings().show_links:
+            # Links are already stored as JSON string, pass as-is
             temp['links'] = applicant.links
         if applicant.get_privacy_settings().show_phone:
             temp['phone'] = applicant.phone
-        if applicant.get_privacy_settings().show_location:
-            temp['location'] = applicant.location
+        # Always add location, but mark if it's hidden
+        privacy_settings = applicant.get_privacy_settings()
+        temp['location'] = None  # Default to None
+        if privacy_settings.show_location:
+            # Format location from city and state (preferred)
+            # Handle None values and strip whitespace
+            city = str(applicant.city).strip() if applicant.city else ''
+            state = str(applicant.state).strip() if applicant.state else ''
+            street = str(applicant.street_address).strip() if applicant.street_address else ''
+            old_location = str(applicant.location).strip() if applicant.location else ''
+            
+            # Build location string - prioritize city+state, then fallback to individual fields
+            if city and state:
+                temp['location'] = f"{city}, {state}"
+            elif city:
+                temp['location'] = city
+            elif state:
+                temp['location'] = state
+            elif street:
+                temp['location'] = street
+            elif old_location:
+                temp['location'] = old_location
         if applicant.get_privacy_settings().show_availability:
             temp['availability'] = applicant.availability
         applicants_with_projects.append(temp)
@@ -410,6 +550,7 @@ def search_candidates(request):
         'candidate_id': candidate_id,
         'specific_candidate': specific_candidate,
         'specific_candidate_projects': specific_candidate_projects,
+        'locations': all_locations_list,
         'filters': {
             'search': search_term,
             'skills': skills_search,
@@ -427,17 +568,62 @@ def get_applicant_info(request, applicant_id):
     """Get applicant info as JSON (for AJAX requests)"""
     from django.http import JsonResponse
     applicant = get_object_or_404(Applicant, pk=applicant_id)
+    privacy = applicant.get_privacy_settings()
     
-    data = {}
+    data = {
+        'first_name': applicant.first_name or '',
+        'last_name': applicant.last_name or '',
+        'email': applicant.user.username or '',  # username is used as email
+        'user_id': applicant.user.id,  # Add user_id for messaging
+    }
 
-    if applicant.get_privacy_settings().show_skills:
-        data['skills'] = applicant.skills
-    if applicant.get_privacy_settings().show_education:
-        data['education'] = applicant.education
-    if applicant.get_privacy_settings().show_experience:
-        data['experience'] = applicant.experience
-    if applicant.get_privacy_settings().show_location:
-        data['location'] = applicant.location
+    if privacy.show_skills:
+        data['skills'] = applicant.skills or ''
+    if privacy.show_education:
+        data['education'] = applicant.education or ''
+    if privacy.show_experience:
+        data['experience'] = applicant.experience or ''
+    if privacy.show_location:
+        # Format location from city and state
+        location_parts = []
+        if applicant.city:
+            location_parts.append(applicant.city)
+        if applicant.state:
+            location_parts.append(applicant.state)
+        if location_parts:
+            data['location'] = ', '.join(location_parts)
+        else:
+            data['location'] = None
+    if privacy.show_phone:
+        data['phone'] = applicant.phone or ''
+    if privacy.show_availability:
+        data['availability'] = applicant.availability
+        data['availability_display'] = applicant.get_availability_display()
+    if privacy.show_links:
+        if applicant.links:
+            # Parse links from JSON string
+            try:
+                import json
+                links_list = json.loads(applicant.links)
+                data['links'] = links_list if isinstance(links_list, list) else []
+            except (json.JSONDecodeError, TypeError):
+                data['links'] = []
+        else:
+            data['links'] = []
+    if privacy.show_projects:
+        from accounts.models import Project
+        projects = Project.objects.filter(applicant=applicant)
+        data['projects'] = [
+            {
+                'title': p.title or '',
+                'description': p.description or '',
+                'technologies': p.technologies or '',
+                'url': p.url or ''
+            }
+            for p in projects
+        ]
+    else:
+        data['projects'] = []
     
     return JsonResponse(data)
 
@@ -635,12 +821,29 @@ def unsave_candidate(request, candidate_id):
 def notifications(request):
     """View notifications"""
     recruiter = request.user.recruiter
-    notifications = CandidateNotification.objects.filter(recruiter=recruiter)
+    all_notifications = CandidateNotification.objects.filter(recruiter=recruiter)
+    notifications_list = all_notifications.order_by('-created_at')[:20]
+    unread_count = all_notifications.filter(is_read=False).count()
+    
+    # Return JSON if requested
+    if request.GET.get('format') == 'json':
+        from django.utils import timezone
+        from django.utils.timesince import timesince
+        notifications_data = []
+        for notif in notifications_list:
+            notifications_data.append({
+                'id': notif.id,
+                'title': notif.title,
+                'message': notif.message,
+                'is_read': notif.is_read,
+                'time': timesince(notif.created_at, timezone.now()) + ' ago'
+            })
+        return JsonResponse({'notifications': notifications_data, 'unread_count': unread_count})
     
     template_data = {
         'title': 'Notifications',
-        'notifications': notifications,
-        'unread_count': notifications.filter(is_read=False).count(),
+        'notifications': notifications_list,
+        'unread_count': unread_count,
     }
     
     return render(request, 'recruiter/notifications.html', {'template_data': template_data})
@@ -804,7 +1007,11 @@ def get_recommended_applicants_json(request, job_id):
         if privacy.show_experience:
             applicant_data['experience'] = applicant.experience
         if privacy.show_location:
-            applicant_data['location'] = applicant.location
+            # Format location from city and state
+            if applicant.city and applicant.state:
+                applicant_data['location'] = f"{applicant.city}, {applicant.state}"
+            else:
+                applicant_data['location'] = None
         if privacy.show_availability:
             applicant_data['availability'] = applicant.availability
         if privacy.show_phone:
@@ -813,3 +1020,49 @@ def get_recommended_applicants_json(request, job_id):
         data.append(applicant_data)
     
     return JsonResponse(data, safe=False)
+
+def geocode_address(post_code='', street_address='', city='', state='', country=''):
+    """Geocode an address using OpenStreetMap Nominatim API"""
+    try:
+        url = "https://nominatim.openstreetmap.org/search"
+        if post_code:
+            query = f"{post_code}"
+        if street_address:
+            query = f"{street_address}, {query}"
+        if city:
+            query += f", {city}"
+        if state:
+            query += f", {state}"
+        if country:
+            query += f", {country}"
+        print(query)
+        
+        params = {
+            'q': query,
+            'format': 'json',
+            'addressdetails': 1,
+            'limit': 1,
+        }
+        
+        headers = {
+            'User-Agent': 'HireMap-Geocoding/1.0'
+        }
+        
+
+        response = requests.get(url, params=params, headers=headers, timeout=5)
+        print("Geocoding response: ", response)
+        response.raise_for_status()
+        results = response.json()
+        print("Geocoding results: ", results)
+        if results:
+            lat = float(results[0]['lat'])
+            lon = float(results[0]['lon'])
+            class Location:
+                def __init__(self, latitude, longitude):
+                    self.latitude = latitude
+                    self.longitude = longitude
+            return Location(latitude=lat, longitude=lon)
+        else:
+            return None
+    except requests.RequestException:
+        return None

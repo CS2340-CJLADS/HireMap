@@ -1,5 +1,7 @@
+import random
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
+import requests
 from .forms import RecruiterForm, ApplicantForm, CustomUserCreationForm
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.password_validation import password_validators_help_texts
@@ -45,6 +47,48 @@ def signup(request):
                 applicant = applicant_form.save(commit=False)
                 applicant.user = user
                 applicant.availability = request.POST.get('applicant-availability', 'open-to-work')
+                
+                # Handle links as JSON array of {name, url} objects
+                import json
+                links_data = []
+                link_names = request.POST.getlist('link_name[]')
+                link_urls = request.POST.getlist('link_url[]')
+                for name, url in zip(link_names, link_urls):
+                    name = name.strip()
+                    url = url.strip()
+                    if name and url:
+                        links_data.append({'name': name, 'url': url})
+                applicant.links = json.dumps(links_data) if links_data else ''
+                
+                if applicant.post_code:
+                    if applicant.street_address:
+                        print("Geocoding full address.")
+                        # Geocode the address to get coordinates
+                        location = geocode_address(
+                            street_address=applicant.street_address,
+                            post_code=applicant.post_code,
+                            city=applicant.city,
+                            state=applicant.state,
+                            country=applicant.country
+                        )
+                        if location:
+                            print("Geocoded location: ", location)
+                            applicant.location_lat = location.latitude
+                            applicant.location_lon = location.longitude
+                    else:
+                        print("Street address is missing; cannot geocode full address.")
+                        # Geocode the post code to get coordinates
+                        location = geocode_address(post_code=applicant.post_code)
+                        if location:
+                            print("Geocoded location: ", location)
+                            applicant.location_lat = location.latitude
+                            applicant.location_lon = location.longitude
+                            applicant.location_lat += random.uniform(-0.0001, 0.0001)
+                            applicant.location_lon += random.uniform(-0.0001, 0.0001)
+                
+                if applicant.city and applicant.state:
+                    applicant.location = f"{applicant.city}, {applicant.state}"
+
                 applicant.save()
                 return redirect('accounts:login')
                 
@@ -88,125 +132,124 @@ def logout(request):
     template_data = {'title': 'Signed Out'}
     return render(request, 'signout.html', {'template_data': template_data})
 
-def get_locations(request):
-    """API endpoint to get locations using real-time geocoding"""
-    query = request.GET.get('q', '').strip()
+# def get_locations(request):
+#     """API endpoint to get locations using real-time geocoding"""
+#     query = request.GET.get('q', '').strip()
     
-    if not query or len(query) < 2:
-        # Return remote options for empty/short queries
-        remote_options = [
-            {'id': 'remote-us', 'name': 'Remote - US', 'is_remote': True, 'country': 'United States', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
-            {'id': 'remote-global', 'name': 'Remote - Global', 'is_remote': True, 'country': 'Global', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
-            {'id': 'remote-na', 'name': 'Remote - North America', 'is_remote': True, 'country': 'North America', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
-            {'id': 'remote-europe', 'name': 'Remote - Europe', 'is_remote': True, 'country': 'Europe', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
-            {'id': 'remote-anywhere', 'name': 'Remote - Anywhere', 'is_remote': True, 'country': 'Global', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
-        ]
-        return JsonResponse({
-            'locations': remote_options,
-            'total': len(remote_options),
-            'query': query
-        })
+#     if not query or len(query) < 2:
+#         # Return remote options for empty/short queries
+#         remote_options = [
+#             {'id': 'remote-us', 'name': 'Remote - US', 'is_remote': True, 'country': 'United States', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
+#             {'id': 'remote-global', 'name': 'Remote - Global', 'is_remote': True, 'country': 'Global', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
+#             {'id': 'remote-na', 'name': 'Remote - North America', 'is_remote': True, 'country': 'North America', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
+#             {'id': 'remote-europe', 'name': 'Remote - Europe', 'is_remote': True, 'country': 'Europe', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
+#             {'id': 'remote-anywhere', 'name': 'Remote - Anywhere', 'is_remote': True, 'country': 'Global', 'city': 'Remote', 'state_province': '', 'is_major_city': True},
+#         ]
+#         return JsonResponse({
+#             'locations': remote_options,
+#             'total': len(remote_options),
+#             'query': query
+#         })
     
-    try:
-        # Use OpenStreetMap Nominatim API for real-time geocoding
-        # This can handle ANY location in the world
-        url = "https://nominatim.openstreetmap.org/search"
-        params = {
-            'q': query,
-            'format': 'json',
-            'addressdetails': 1,
-            'limit': 10,
-            'countrycodes': '',  # Search globally
-            'featuretype': 'city,town,village,hamlet',  # Focus on populated places
-        }
+#     try:
+#         # Use OpenStreetMap Nominatim API for real-time geocoding
+#         # This can handle ANY location in the world
+#         url = "https://nominatim.openstreetmap.org/search"
+#         params = {
+#             'q': query,
+#             'format': 'json',
+#             'addressdetails': 1,
+#             'limit': 10,
+#             'countrycodes': '',  # Search globally
+#             'featuretype': 'city,town,village,hamlet',  # Focus on populated places
+#         }
         
-        headers = {
-            'User-Agent': 'HireMap-Location-Search/1.0'  # Required by Nominatim
-        }
+#         headers = {
+#             'User-Agent': 'HireMap-Location-Search/1.0'  # Required by Nominatim
+#         }
         
-        response = requests.get(url, params=params, headers=headers, timeout=5)
-        response.raise_for_status()
+#         response = requests.get(url, params=params, headers=headers, timeout=5)
+#         response.raise_for_status()
         
-        results = response.json()
+#         results = response.json()
         
-        location_list = []
-        for result in results:
-            address = result.get('address', {})
-            display_name = result.get('display_name', '')
+#         location_list = []
+#         for result in results:
+#             address = result.get('address', {})
+#             display_name = result.get('display_name', '')
             
-            # Extract location components
-            city = (address.get('city') or 
-                   address.get('town') or 
-                   address.get('village') or 
-                   address.get('hamlet') or 
-                   address.get('suburb') or 
-                   'Unknown')
+#             # Extract location components
+#             city = (address.get('city') or 
+#                    address.get('town') or 
+#                    address.get('village') or 
+#                    address.get('hamlet') or 
+#                    address.get('suburb') or 
+#                    'Unknown')
             
-            state = (address.get('state') or 
-                    address.get('county') or 
-                    address.get('region') or 
-                    '')
+#             state = (address.get('state') or 
+#                     address.get('county') or 
+#                     address.get('region') or 
+#                     '')
             
-            country = address.get('country', 'Unknown')
+#             country = address.get('country', 'Unknown')
             
-            # Create a clean display name
-            if state and country:
-                clean_name = f"{city}, {state}, {country}"
-            elif country:
-                clean_name = f"{city}, {country}"
-            else:
-                clean_name = city
+#             # Create a clean display name
+#             if state and country:
+#                 clean_name = f"{city}, {state}, {country}"
+#             elif country:
+#                 clean_name = f"{city}, {country}"
+#             else:
+#                 clean_name = city
             
-            location_list.append({
-                'id': f"geocoded-{result.get('place_id', 'unknown')}",
-                'name': clean_name,
-                'is_remote': False,
-                'country': country,
-                'city': city,
-                'state_province': state,
-                'is_major_city': False,
-                'is_geocoded': True,
-                'lat': result.get('lat'),
-                'lon': result.get('lon'),
-                'full_display': display_name
-            })
+#             location_list.append({
+#                 'id': f"geocoded-{result.get('place_id', 'unknown')}",
+#                 'name': clean_name,
+#                 'is_remote': False,
+#                 'country': country,
+#                 'city': city,
+#                 'state_province': state,
+#                 'is_major_city': False,
+#                 'is_geocoded': True,
+#                 'lat': result.get('lat'),
+#                 'lon': result.get('lon'),
+#                 'full_display': display_name
+#             })
         
-        # Add the original query as a custom option
-        location_list.append({
-            'id': 'custom',
-            'name': f'"{query}" (Use as entered)',
-            'is_remote': False,
-            'country': 'Custom',
-            'city': query,
-            'state_province': '',
-            'is_major_city': False,
-            'is_custom': True,
-        })
+#         # Add the original query as a custom option
+#         location_list.append({
+#             'id': 'custom',
+#             'name': f'"{query}" (Use as entered)',
+#             'is_remote': False,
+#             'country': 'Custom',
+#             'city': query,
+#             'state_province': '',
+#             'is_major_city': False,
+#             'is_custom': True,
+#         })
         
-        return JsonResponse({
-            'locations': location_list,
-            'total': len(location_list),
-            'query': query
-        })
+#         return JsonResponse({
+#             'locations': location_list,
+#             'total': len(location_list),
+#             'query': query
+#         })
         
-    except requests.RequestException as e:
-        # Fallback to custom location if API fails
-        return JsonResponse({
-            'locations': [{
-                'id': 'custom',
-                'name': f'"{query}" (Use as entered)',
-                'is_remote': False,
-                'country': 'Custom',
-                'city': query,
-                'state_province': '',
-                'is_major_city': False,
-                'is_custom': True,
-            }],
-            'total': 1,
-            'query': query,
-            'error': 'Geocoding service temporarily unavailable'
-        })
-
+#     except requests.RequestException as e:
+#         # Fallback to custom location if API fails
+#         return JsonResponse({
+#             'locations': [{
+#                 'id': 'custom',
+#                 'name': f'"{query}" (Use as entered)',
+#                 'is_remote': False,
+#                 'country': 'Custom',
+#                 'city': query,
+#                 'state_province': '',
+#                 'is_major_city': False,
+#                 'is_custom': True,
+#             }],
+#             'total': 1,
+#             'query': query,
+#             'error': 'Geocoding service temporarily unavailable'
+#         })
 
 @login_required
 def profile_view(request, user_id=None):
@@ -316,22 +359,67 @@ def profile_edit(request):
             applicant.skills = request.POST.get('skills', '').strip()
             applicant.education = request.POST.get('education', '').strip()
             applicant.experience = request.POST.get('experience', '').strip()
-            applicant.links = request.POST.get('links', '').strip()
+            
+            # Handle links as JSON array of {name, url} objects
+            import json
+            links_data = []
+            link_names = request.POST.getlist('link_name[]')
+            link_urls = request.POST.getlist('link_url[]')
+            for name, url in zip(link_names, link_urls):
+                name = name.strip()
+                url = url.strip()
+                if name and url:
+                    links_data.append({'name': name, 'url': url})
+            applicant.links = json.dumps(links_data) if links_data else ''
             applicant.phone = request.POST.get('phone', '').strip()
-            applicant.location = request.POST.get('location-value', '').strip() or request.POST.get('location', '').strip()
+            applicant.street_address = request.POST.get('street_address', '').strip()
+            applicant.post_code = request.POST.get('post_code', '').strip()
+            applicant.city = request.POST.get('city', '').strip()
+            applicant.state = request.POST.get('state', '').strip()
+            applicant.country = request.POST.get('country', 'USA').strip()
             applicant.availability = request.POST.get('availability', 'open-to-work')
+            
+            if applicant.post_code:
+                    if applicant.street_address:
+                        print("Geocoding full address.")
+                        # Geocode the address to get coordinates
+                        location = geocode_address(
+                            street_address=applicant.street_address,
+                            post_code=applicant.post_code,
+                            city=applicant.city,
+                            state=applicant.state,
+                            country=applicant.country
+                        )
+                        if location:
+                            print("Geocoded location: ", location)
+                            applicant.location_lat = location.latitude
+                            applicant.location_lon = location.longitude
+                    else:
+                        print("Street address is missing; cannot geocode full address.")
+                        # Geocode the post code to get coordinates
+                        location = geocode_address(post_code=applicant.post_code)
+                        if location:
+                            print("Geocoded location: ", location)
+                            applicant.location_lat = location.latitude
+                            applicant.location_lon = location.longitude
+                            applicant.location_lat += random.uniform(-0.0001, 0.0001)
+                            applicant.location_lon += random.uniform(-0.0001, 0.0001)
+                
+            if applicant.city and applicant.state:
+                applicant.location = f"{applicant.city}, {applicant.state}"
+            
             applicant.save()
             
             # Update privacy settings
-            privacy_settings.show_skills = bool(request.POST.get('show_skills'))
-            privacy_settings.show_education = bool(request.POST.get('show_education'))
-            privacy_settings.show_experience = bool(request.POST.get('show_experience'))
-            privacy_settings.show_projects = bool(request.POST.get('show_projects'))
-            privacy_settings.show_links = bool(request.POST.get('show_links'))
-            privacy_settings.show_phone = bool(request.POST.get('show_phone'))
-            privacy_settings.show_location = bool(request.POST.get('show_location'))
-            privacy_settings.show_availability = bool(request.POST.get('show_availability'))
-            privacy_settings.allow_email_contact = bool(request.POST.get('allow_email_contact'))
+            privacy_settings.show_skills = request.POST.get('show_skills') == '1'
+            privacy_settings.show_education = request.POST.get('show_education') == '1'
+            privacy_settings.show_experience = request.POST.get('show_experience') == '1'
+            privacy_settings.show_projects = request.POST.get('show_projects') == '1'
+            privacy_settings.show_links = request.POST.get('show_links') == '1'
+            privacy_settings.show_phone = request.POST.get('show_phone') == '1'
+            privacy_settings.show_location = request.POST.get('show_location') == '1'
+            privacy_settings.show_availability = request.POST.get('show_availability') == '1'
+            privacy_settings.allow_email_contact = request.POST.get('allow_email_contact') == '1'
             privacy_settings.save()
             
             return redirect('seeker:profile')
@@ -358,7 +446,12 @@ def recruiter_profile_edit(request):
         recruiter.first_name = request.POST.get('first_name', '').strip()
         recruiter.last_name = request.POST.get('last_name', '').strip()
         recruiter.company_name = request.POST.get('company_name', '').strip()
-        recruiter.location = request.POST.get('location', '').strip()
+        # Location is now handled by city, state, street_address, post_code fields
+        recruiter.street_address = request.POST.get('street_address', '').strip()
+        recruiter.post_code = request.POST.get('post_code', '').strip()
+        recruiter.city = request.POST.get('city', '').strip()
+        recruiter.state = request.POST.get('state', '').strip()
+        recruiter.country = request.POST.get('country', 'USA').strip()
         recruiter.save()
         return redirect('recruiter:profile')
     
@@ -425,4 +518,48 @@ def manage_projects(request):
     }
     return render(request, 'accounts/manage_projects.html', {'template_data': template_data})
 
+def geocode_address(post_code='', street_address='', city='', state='', country=''):
+    """Geocode an address using OpenStreetMap Nominatim API"""
+    try:
+        url = "https://nominatim.openstreetmap.org/search"
+        if post_code:
+            query = f"{post_code}"
+        if street_address:
+            query = f"{street_address}, {query}"
+        if city:
+            query += f", {city}"
+        if state:
+            query += f", {state}"
+        if country:
+            query += f", {country}"
+        print(query)
+        
+        params = {
+            'q': query,
+            'format': 'json',
+            'addressdetails': 1,
+            'limit': 1,
+        }
+        
+        headers = {
+            'User-Agent': 'HireMap-Geocoding/1.0'
+        }
+        
 
+        response = requests.get(url, params=params, headers=headers, timeout=5)
+        print("Geocoding response: ", response)
+        response.raise_for_status()
+        results = response.json()
+        print("Geocoding results: ", results)
+        if results:
+            lat = float(results[0]['lat'])
+            lon = float(results[0]['lon'])
+            class Location:
+                def __init__(self, latitude, longitude):
+                    self.latitude = latitude
+                    self.longitude = longitude
+            return Location(latitude=lat, longitude=lon)
+        else:
+            return None
+    except requests.RequestException:
+        return None

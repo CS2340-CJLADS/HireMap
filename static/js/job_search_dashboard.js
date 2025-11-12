@@ -15,12 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showApplicationDetails(applicationId);
         });
     });
-    
-    // Handle back to dashboard button
-    const backBtn = document.getElementById('back-to-dashboard');
-    if (backBtn) {
-        backBtn.addEventListener('click', showDashboard);
-    }
 });
 
 function showJobDetails(jobId) {
@@ -43,23 +37,47 @@ function showApplicationDetails(applicationId) {
     document.querySelectorAll('.application-bar').forEach(bar => {
         bar.classList.remove('active');
     });
-    document.querySelector(`[data-application-id="${applicationId}"]`).classList.add('active');
+    const applicationBar = document.querySelector(`[data-application-id="${applicationId}"]`);
+    if (!applicationBar) return;
+    
+    applicationBar.classList.add('active');
     
     // Switch to application details panel
     document.getElementById('dashboard-content').style.display = 'none';
     document.getElementById('job-details-content').style.display = 'block';
     
-    // Load application details from backend
-    loadApplicationDetails(applicationId);
+    // Extract data from DOM data attributes
+    const applicationData = {
+        id: applicationId,
+        status: applicationBar.dataset.status,
+        message: applicationBar.dataset.message || '',
+        created_at: applicationBar.dataset.createdAt || '',
+        listing: {
+            id: applicationBar.dataset.listingId,
+            title: applicationBar.dataset.position,
+            description: applicationBar.dataset.description || '',
+            skills_required: applicationBar.dataset.skills || '',
+            location: applicationBar.dataset.location || '',
+            remote: applicationBar.dataset.remote === 'true',
+            salary_min: applicationBar.dataset.salaryMin || '0',
+            salary_max: applicationBar.dataset.salaryMax || '0',
+            visa_sponsorship: applicationBar.dataset.visa === 'true',
+            recruiter: {
+                company_name: applicationBar.dataset.company
+            }
+        }
+    };
+    
+    // Populate application details directly
+    populateApplicationDetails(applicationData);
 }
 
 function loadJobDetails(jobId) {
     // Show loading state
     const loadingState = document.getElementById('job-details-loading');
-    const jobDetailsBody = document.getElementById('job-details-body');
+    const jobDetailsContent = document.getElementById('job-details-content');
     
     if (loadingState) loadingState.style.display = 'flex';
-    if (jobDetailsBody) jobDetailsBody.style.display = 'none';
     
     // Fetch job details from backend
     fetch(`/api/jobs/${jobId}/`)
@@ -70,42 +88,17 @@ function loadJobDetails(jobId) {
             
             // Hide loading state
             if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
+            if (jobDetailsContent) jobDetailsContent.style.display = 'flex';
         })
         .catch(error => {
             console.error('Error loading job details:', error);
             // Hide loading state
             if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
+            if (jobDetailsContent) jobDetailsContent.style.display = 'flex';
         });
 }
 
-function loadApplicationDetails(applicationId) {
-    // Show loading state
-    const loadingState = document.getElementById('job-details-loading');
-    const jobDetailsBody = document.getElementById('job-details-body');
-    
-    if (loadingState) loadingState.style.display = 'flex';
-    if (jobDetailsBody) jobDetailsBody.style.display = 'none';
-    
-    // Fetch application details from backend
-    fetch(`/api/applications/${applicationId}/`)
-        .then(response => response.json())
-        .then(data => {
-            // Populate application details
-            populateApplicationDetails(data);
-            
-            // Hide loading state
-            if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Error loading application details:', error);
-            // Hide loading state
-            if (loadingState) loadingState.style.display = 'none';
-            if (jobDetailsBody) jobDetailsBody.style.display = 'block';
-        });
-}
+// loadApplicationDetails is no longer needed - data is extracted from DOM
 
 function populateJobDetails(jobData) {
     // Populate header
@@ -130,49 +123,111 @@ function populateJobDetails(jobData) {
 
 function populateApplicationDetails(applicationData) {
     // Populate header with job information
-    document.getElementById('job-description-company').textContent = applicationData.listing.recruiter.company_name || 'Company';
-    document.getElementById('job-description-position').textContent = applicationData.listing.title || 'Position';
-    
-    // Add status badge to header
+    const header = document.querySelector('.job-description-header');
     const companyElement = document.getElementById('job-description-company');
-    const existingStatusBadge = companyElement.parentNode.querySelector('.status-badge');
+    const positionElement = document.getElementById('job-description-position');
+    
+    if (!header || !companyElement || !positionElement) {
+        console.error('Job description elements not found');
+        return;
+    }
+    
+    // Populate company name
+    companyElement.textContent = applicationData.listing.recruiter.company_name || 'Company';
+    
+    // Remove existing status badge if any
+    const existingStatusBadge = header.querySelector('.status-badge');
     if (existingStatusBadge) {
         existingStatusBadge.remove();
     }
     
+    // Create header row wrapper for company and status badge
+    let headerRow = header.querySelector('.job-description-header-row');
+    if (!headerRow) {
+        headerRow = document.createElement('div');
+        headerRow.className = 'job-description-header-row';
+        // Move company element into the row
+        header.insertBefore(headerRow, companyElement);
+        headerRow.appendChild(companyElement);
+    }
+    
+    // Add status badge next to company name
     const statusBadge = document.createElement('div');
-    statusBadge.className = `status-badge status-${applicationData.status.toLowerCase()}`;
+    // Map status to CSS class names
+    const statusMap = {
+        'Applied': 'applied',
+        'Under Review': 'review',
+        'Interview': 'interviewing',
+        'Offer': 'offer',
+        'Closed': 'closed'
+    };
+    const statusClass = statusMap[applicationData.status] || applicationData.status.toLowerCase().replace(' ', '-').replace('_', '-');
+    statusBadge.className = `status-badge status-${statusClass}`;
     statusBadge.textContent = applicationData.status;
-    companyElement.parentNode.appendChild(statusBadge);
+    headerRow.appendChild(statusBadge);
+    
+    // Populate position
+    positionElement.textContent = applicationData.listing.title || 'Position';
+    
+    // Populate applied date
+    const appliedDateEl = document.getElementById('job-description-applied-date');
+    if (appliedDateEl && applicationData.created_at) {
+        const appliedDate = new Date(applicationData.created_at);
+        const now = new Date();
+        const diffTime = Math.abs(now - appliedDate);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        let dateText = 'Applied ';
+        if (diffDays === 0) {
+            dateText += 'today';
+        } else if (diffDays === 1) {
+            dateText += 'yesterday';
+        } else if (diffDays < 7) {
+            dateText += `${diffDays} days ago`;
+        } else if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            dateText += `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+        } else if (diffDays < 365) {
+            const months = Math.floor(diffDays / 30);
+            dateText += `${months} month${months > 1 ? 's' : ''} ago`;
+        } else {
+            const years = Math.floor(diffDays / 365);
+            dateText += `${years} year${years > 1 ? 's' : ''} ago`;
+        }
+        
+        // Also show the actual date in a readable format
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = appliedDate.toLocaleDateString('en-US', dateOptions);
+        dateText += ` (${formattedDate})`;
+        
+        appliedDateEl.textContent = dateText;
+    }
     
     // Populate about section
     const location = applicationData.listing.remote ? `${applicationData.listing.location} (Remote)` : applicationData.listing.location;
-    document.getElementById('job-description-location').textContent = location || 'Location';
-    document.getElementById('job-description-salary').textContent = `$${applicationData.listing.salary_min} - $${applicationData.listing.salary_max}`;
-    document.getElementById('job-description-visa').textContent = applicationData.listing.visa_sponsorship ? 'Visa Required' : 'No Visa Required';
+    const locationEl = document.getElementById('job-description-location');
+    const salaryEl = document.getElementById('job-description-salary');
+    const visaEl = document.getElementById('job-description-visa');
+    
+    if (locationEl) locationEl.textContent = location || 'Location';
+    if (salaryEl) {
+        const salaryMin = parseFloat(applicationData.listing.salary_min) || 0;
+        const salaryMax = parseFloat(applicationData.listing.salary_max) || 0;
+        salaryEl.textContent = `$${salaryMin.toLocaleString()} - $${salaryMax.toLocaleString()}`;
+    }
+    if (visaEl) visaEl.textContent = applicationData.listing.visa_sponsorship ? 'Visa sponsorship available' : 'No visa sponsorship';
     
     // Populate skills
-    document.getElementById('job-description-skills').textContent = applicationData.listing.skills_required || 'Skills';
-    
-    // Populate requirements
-    document.getElementById('job-description-requirements').textContent = applicationData.listing.requirements || 'Requirements';
+    const skillsEl = document.getElementById('job-description-skills');
+    if (skillsEl) skillsEl.textContent = applicationData.listing.skills_required || 'Not specified';
     
     // Populate description
-    document.getElementById('job-description-description').textContent = applicationData.listing.description || 'Description';
+    const descriptionEl = document.getElementById('job-description-description');
+    if (descriptionEl) descriptionEl.textContent = applicationData.listing.description || 'No description provided';
     
     // Populate application note
-    document.getElementById('application-note').textContent = applicationData.message || 'No message provided';
-}
-
-function showDashboard() {
-    // Clear active job tile
-    document.querySelectorAll('.job-tile').forEach(tile => {
-        tile.classList.remove('active');
-    });
-    
-    // Switch to dashboard panel
-    document.getElementById('job-details-content').style.display = 'none';
-    document.getElementById('dashboard-content').style.display = 'block';
+    const noteEl = document.getElementById('application-note');
+    if (noteEl) noteEl.textContent = applicationData.message || 'No message provided';
 }
 
 // Notification function

@@ -7,7 +7,17 @@ class JobPosting(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     skills_required = models.TextField()
-    location = models.CharField(max_length=100)  # address string (used by the map)
+    location = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
+    location_lat = models.FloatField(blank=True, null=True)
+    location_lon = models.FloatField(blank=True, null=True)
+    
+    # Address fields
+    street_address = models.CharField(max_length=200, help_text="Street address")
+    post_code = models.CharField(max_length=20, blank=True, null=True, help_text="ZIP/Postal code")
+    city = models.CharField(max_length=100, blank=True, null=True, help_text="City")
+    state = models.CharField(max_length=100, blank=True, null=True, help_text="State")
+    country = models.CharField(max_length=100, default='USA', help_text="Country")
+    
     salary_min = models.DecimalField(max_digits=10, decimal_places=2)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2)
     remote = models.BooleanField(default=False)

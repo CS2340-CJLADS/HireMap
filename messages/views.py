@@ -22,7 +22,18 @@ def index(request):
                 ).order_by('timestamp')
             try:
                 template_data['other_user'] = User.objects.get(id=other_user_id)
-                template_data['messages'] = messages
+                # Add divider flags to messages
+                messages_list = list(messages)
+                for i, message in enumerate(messages_list):
+                    message.show_divider = False
+                    if i > 0:
+                        prev_message = messages_list[i-1]
+                        time_diff = message.timestamp - prev_message.timestamp
+                        # Show divider if more than 30 minutes or different day
+                        if time_diff.total_seconds() > 1800 or message.timestamp.date() != prev_message.timestamp.date():
+                            message.show_divider = True
+                            message.divider_date = message.timestamp
+                template_data['messages'] = messages_list
             except User.DoesNotExist:
                 template_data['error'] = 'User not found'
     if request.method == 'POST':
@@ -31,10 +42,22 @@ def index(request):
             success = create_message(request, other_user_id)
             if success:
                 template_data['other_user'] = User.objects.get(id=other_user_id)
-                template_data['messages'] = Message.objects.filter(
+                messages = Message.objects.filter(
                     (Q(sender=request.user) & Q(recipient__id=other_user_id)) |
                     (Q(sender__id=other_user_id) & Q(recipient=request.user))
                 ).order_by('timestamp')
+                # Add divider flags to messages
+                messages_list = list(messages)
+                for i, message in enumerate(messages_list):
+                    message.show_divider = False
+                    if i > 0:
+                        prev_message = messages_list[i-1]
+                        time_diff = message.timestamp - prev_message.timestamp
+                        # Show divider if more than 30 minutes or different day
+                        if time_diff.total_seconds() > 1800 or message.timestamp.date() != prev_message.timestamp.date():
+                            message.show_divider = True
+                            message.divider_date = message.timestamp
+                template_data['messages'] = messages_list
             else:
                 template_data['error'] = 'Failed to send message'
     return render(request, 'messages/index.html', {'template_data': template_data})

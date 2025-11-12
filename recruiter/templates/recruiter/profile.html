@@ -1,40 +1,77 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
 
-<div class="job-search-container">
-    <div class="page-container">
-        <div class="dashboard-section">
-            <h2>My Profile</h2>
-            <p>Manage your recruiter profile information and company details.</p>
-            
-            <div class="profile-content">
-                <div class="profile-info">
-                    <h3>{{ template_data.recruiter.first_name }} {{ template_data.recruiter.last_name }}</h3>
-                    <p><strong>Email:</strong> {{ template_data.recruiter.user.username }}</p>
-                    <p><strong>Company:</strong> 
+<div class="profile-container">
+    <a href="{% url 'accounts:recruiter_profile_edit' %}" class="edit-icon-button" aria-label="Edit Profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </a>
+    <div class="profile-header">
+        <div class="profile-name-banner">
+            {{ template_data.recruiter.first_name }} {{ template_data.recruiter.last_name }}'s Profile
+        </div>
+    </div>
+    
+    <div class="profile-content">
+        <div class="info-blocks-container">
+            <div class="info-block">
+                <div class="info-block-header">Contact Information</div>
+                <div class="info-block-item">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ template_data.recruiter.user.username|default:"Not provided" }}</span>
+                </div>
+                <div class="info-block-item">
+                    <span class="info-label">Company:</span>
+                    <span class="info-value">
                         {% if template_data.recruiter.company_name and template_data.recruiter.company_name != 'None' and template_data.recruiter.company_name.strip %}
                             {{ template_data.recruiter.company_name }}
                         {% else %}
-                            <em>Not provided</em>
+                            Not provided
                         {% endif %}
-                    </p>
-                    <p><strong>Location:</strong> 
-                        {% if template_data.recruiter.location and template_data.recruiter.location != 'None' and template_data.recruiter.location.strip %}
-                            {{ template_data.recruiter.location }}
-                        {% else %}
-                            <em>Not provided</em>
-                        {% endif %}
-                    </p>
-                    <p><strong>User Type:</strong> 
-                        <span class="user-type-badge">Recruiter</span>
-                    </p>
+                    </span>
                 </div>
-                
-                <div class="profile-actions">
-                    <a href="{% url 'accounts:recruiter_profile_edit' %}" class="btn">Edit Profile</a>
-                    <a href="{% url 'recruiter:dashboard' %}" class="btn secondary">Back to Dashboard</a>
+                <div class="info-block-item">
+                    <span class="info-label">Street Address:</span>
+                    <span class="info-value">
+                        {% if template_data.recruiter.street_address and template_data.recruiter.street_address != 'None' and template_data.recruiter.street_address.strip %}
+                            {{ template_data.recruiter.street_address }}
+                        {% else %}
+                            Not provided
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-block-item">
+                    <span class="info-label">City:</span>
+                    <span class="info-value">
+                        {% if template_data.recruiter.city and template_data.recruiter.city != 'None' and template_data.recruiter.city.strip %}
+                            {{ template_data.recruiter.city }}
+                        {% else %}
+                            Not provided
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-block-item">
+                    <span class="info-label">State:</span>
+                    <span class="info-value">
+                        {% if template_data.recruiter.state and template_data.recruiter.state != 'None' and template_data.recruiter.state.strip %}
+                            {{ template_data.recruiter.state }}
+                        {% else %}
+                            Not provided
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-block-item">
+                    <span class="info-label">Post Code:</span>
+                    <span class="info-value">
+                        {% if template_data.recruiter.post_code and template_data.recruiter.post_code != 'None' and template_data.recruiter.post_code.strip %}
+                            {{ template_data.recruiter.post_code }}
+                        {% else %}
+                            Not provided
+                        {% endif %}
+                    </span>
                 </div>
             </div>
         </div>
@@ -42,74 +79,110 @@
 </div>
 
 <style>
-.user-type-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    display: inline-block;
-    background: #e3f2fd; 
-    color: #1976d2; 
-}
-
-.profile-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.profile-info {
-    background: #f8f9fa;
-    padding: 2rem;
-    border-radius: 8px;
-}
-
-.profile-info h3 {
-    margin: 0 0 1rem 0;
-    color: #333;
-}
-
-.profile-info p {
-    margin: 0.75rem 0;
-    color: #555;
-}
-
-.profile-actions {
+.profile-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+    align-items: center;
+    position: relative;
+    padding-bottom: 2rem;
 }
 
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
+.edit-icon-button {
+    position: absolute;
+    top: 1rem;
+    right: 2rem;
+    background-color: rgb(33, 128, 116);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
     text-decoration: none;
-    font-size: 1rem;
     cursor: pointer;
-    display: inline-block;
-    text-align: center;
+    z-index: 10;
+    transition: opacity 0.2s;
 }
 
-.btn.primary {
-    background: #007bff;
-    color: white;
-}
-
-.btn.secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.btn:hover {
+.edit-icon-button:hover {
     opacity: 0.9;
 }
 
-@media (max-width: 768px) {
-    .profile-content {
-        grid-template-columns: 1fr;
+.edit-icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-name-banner {
+    background-color: rgb(33, 128, 116);
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+    padding: 5px 20px;
+    border-radius: 9999px;
+    text-align: center;
+    margin-top: 0.8rem;
+    display: inline-block;
+    width: fit-content;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 0 1rem;
+}
+
+.info-blocks-container {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.info-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: rgba(33, 128, 116, 0.11);
+    border-radius: 19px;
+    flex: 1;
+    padding: 1rem 1.5rem .5rem 1.5rem;
+}
+
+.info-block-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: .6rem;
+}
+
+.info-block-item {
+    font-size: 18px;
+    margin-bottom: 0.7rem;
+}
+
+.info-label {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.info-value {
+    font-weight: 400;
+}
+
+@media (max-width: 1024px) {
+    .info-blocks-container {
+        flex-direction: column;
     }
 }
 </style>

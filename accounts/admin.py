@@ -7,3 +7,7 @@ class ApplicantAdmin(admin.ModelAdmin):
     list_display = ('user', 'first_name', 'last_name', 'location', 'availability')
     search_fields = ('first_name', 'last_name', 'location', 'skills', 'user__username')
     actions = [export_as_csv]
+
+# Register your models here.
+from .models import Applicant, Recruiter, ApplicantPrivacySettings
+admin.site.register(ApplicantPrivacySettings)
