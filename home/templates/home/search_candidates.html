@@ -61,7 +61,7 @@
             <div class="panel-header">
                 <h3>Available Candidates ({{ template_data.total_candidates }})</h3>
             </div>
-            <div class="job-list" id="candidate-list">
+            <div class="job-list" id="candidate-list-panel">
                 <div class="applications-container">
                     {% for candidate_data in template_data.applicants_with_projects %}
                     {% with candidate=candidate_data.applicant %}
@@ -119,6 +119,14 @@
                     </div>
                 </div>
                 {% endif %}
+            </div>
+            <!-- Map Display Panel (hidden by default) -->
+            <div class="map-display-panel" id="map-display" style="display: none;">
+                <div class="map-container">
+                    <div id="map">
+                    <!-- Map will be rendered here -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1198,4 +1206,85 @@ function showNotification(message, type = 'info') {
     }, 4000);
 }
 </script>
+
+<script>
+// View Toggling Logic (List vs. Map)
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('map-view-btn');
+    const candidateListPanel = document.getElementById('candidate-list-panel');
+    const mapDisplayPanel = document.getElementById('map-display');
+    let mapInitialized = false;
+    var map;
+
+    toggleBtn.addEventListener('click', function() {
+        const isMapView = mapDisplayPanel.style.display === 'block';
+
+        if (isMapView) {
+            // Switch to List View
+            mapDisplayPanel.style.display = 'none';
+            candidateListPanel.style.display = 'block';
+            toggleBtn.textContent = 'Map View';
+        } else {
+            // Switch to Map View
+            candidateListPanel.style.display = 'none';
+            mapDisplayPanel.style.display = 'block';
+            toggleBtn.textContent = 'List View';
+
+            // Initialize map only once
+            if (!mapInitialized) {
+                map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                mapInitialized = true;
+
+                {% for applicant in template_data.all_candidates_for_map %}
+                {% if applicant.location_lat and applicant.location_lon %}
+                    var marker_{{ applicant.user.id }} = L.marker([{{ applicant.location_lat }}, {{ applicant.location_lon }}])
+                        .addTo(map)
+                        .bindPopup('<b>{{ applicant.first_name }} {{ applicant.last_name }}</b>')
+                        .on('click', function() {
+                            showCandidateDetails('{{ applicant.user.id }}');
+                        });
+                {% endif %}
+                {% endfor %}
+            }
+            
+            // This is important: it ensures the map tiles render correctly after being un-hidden.
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 10);
+        }
+    });
+});
+</script>
+
+<style>
+/* Add styles for the map panel, copying from seeker dashboard */
+.map-display-panel {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-container {
+    height: 90%;
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1.2rem 0;
+}
+
+#map {
+    height: 100%;
+    width: 90%;
+}
+</style>
+
 {% endblock content %}

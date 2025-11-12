@@ -15,6 +15,8 @@ class Applicant(models.Model):
     links = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
+    location_lat = models.FloatField(blank=True, null=True)
+    location_lon = models.FloatField(blank=True, null=True)
     
     # Address fields
     street_address = models.CharField(max_length=200, blank=True, null=True, help_text="Street address")

@@ -8,6 +8,8 @@ class JobPosting(models.Model):
     description = models.TextField()
     skills_required = models.TextField()
     location = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
+    location_lat = models.FloatField(blank=True, null=True)
+    location_lon = models.FloatField(blank=True, null=True)
     
     # Address fields
     street_address = models.CharField(max_length=200, help_text="Street address")
