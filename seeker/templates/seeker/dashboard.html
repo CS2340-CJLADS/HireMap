@@ -72,70 +72,83 @@
             </svg>
         </button>
         <!-- Separate rounded green capsule button next to the search bar -->
-        <button type="button" class="action-capsule-btn">Map View</button>
+        <button type="button" class="action-capsule-btn" id="toggle-view-btn">Map View</button>
     </div>
 
     <!-- Split Screen Layout -->
     <div class="split-screen">
         <!-- Left Panel: Job List -->
         <div class="left-panel">
-            <div class="panel-header">
-                <h3>Job Listings ({{ template_data.paginator.count }})</h3>
-            </div>
-            <div class="job-list" id="job-list">
-                <div class="job-listings-grid">
-                    {% for job in template_data.job_postings %}
-                    <div class="job-listing" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
-                        <div class="job-tile">
-                            <div class="job-tile-company">{{ job.recruiter.company_name|default:"Company" }}</div>
-                            <div class="job-tile-position">{{ job.title }}</div>
-                            
-                            <div class="job-tile-separator"></div>
-                            
-                            <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
-                            <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="no-jobs-message">
-                        <p>No jobs found matching your criteria.</p>
-                        <p>Try adjusting your search filters or check back later for new opportunities.</p>
-                    </div>
-                    {% endfor %}
+            <div class="job-list-panel">
+                <div class="panel-header">
+                    <h3>Job Listings ({{ template_data.paginator.count }})</h3>
                 </div>
-                
-                <!-- Pagination Controls -->
-                {% if template_data.paginator.num_pages > 1 %}
-                <div class="pagination-container">
-                    <div class="pagination">
-                        <!-- Previous button -->
-                        {% if template_data.job_postings.has_previous %}
-                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ template_data.job_postings.previous_page_number }}" class="pagination-btn prev-btn">←</a>
-                        {% endif %}
-                        
-                        <!-- Page numbers -->
-                        {% for page_num in template_data.paginator.page_range %}
-                            {% if page_num == template_data.job_postings.number %}
-                                <span class="pagination-btn current-page">{{ page_num }}</span>
-                            {% else %}
-                                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_num }}" class="pagination-btn page-number">{{ page_num }}</a>
-                            {% endif %}
+                <div class="job-list" id="job-list">
+                    <div class="job-listings-grid">
+                        {% for job in template_data.job_postings %}
+                        <div class="job-listing" data-job-id="{{ job.id }}" onclick="showJobDetails('{{ job.id }}')">
+                            <div class="job-tile">
+                                <div class="job-tile-company">{{ job.recruiter.company_name|default:"Company" }}</div>
+                                <div class="job-tile-position">{{ job.title }}</div>
+                                
+                                <div class="job-tile-separator"></div>
+                                
+                                <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
+                                <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-jobs-message">
+                            <p>No jobs found matching your criteria.</p>
+                            <p>Try adjusting your search filters or check back later for new opportunities.</p>
+                        </div>
                         {% endfor %}
-                        
-                        <!-- Next button -->
-                        {% if template_data.job_postings.has_next %}
-                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ template_data.job_postings.next_page_number }}" class="pagination-btn next-btn">→</a>
-                        {% endif %}
-                        
-                        <!-- Page jump input -->
-                        <div class="page-jump">
-                            <span>Go to:</span>
-                            <input type="number" id="page-jump-input" min="1" max="{{ template_data.paginator.num_pages }}" placeholder="Page" class="page-jump-input">
-                            <button onclick="jumpToPage()" class="pagination-btn jump-btn">Go</button>
+                    </div>
+                    
+                    <!-- Pagination Controls -->
+                    {% if template_data.paginator.num_pages > 1 %}
+                    <div class="pagination-container">
+                        <div class="pagination">
+                            <!-- Previous button -->
+                            {% if template_data.job_postings.has_previous %}
+                                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ template_data.job_postings.previous_page_number }}" class="pagination-btn prev-btn">←</a>
+                            {% endif %}
+                            
+                            <!-- Page numbers -->
+                            {% for page_num in template_data.paginator.page_range %}
+                                {% if page_num == template_data.job_postings.number %}
+                                    <span class="pagination-btn current-page">{{ page_num }}</span>
+                                {% else %}
+                                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_num }}" class="pagination-btn page-number">{{ page_num }}</a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- Next button -->
+                            {% if template_data.job_postings.has_next %}
+                                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ template_data.job_postings.next_page_number }}" class="pagination-btn next-btn">→</a>
+                            {% endif %}
+                            
+                            <!-- Page jump input -->
+                            <div class="page-jump">
+                                <span>Go to:</span>
+                                <input type="number" id="page-jump-input" min="1" max="{{ template_data.paginator.num_pages }}" placeholder="Page" class="page-jump-input">
+                                <button onclick="jumpToPage()" class="pagination-btn jump-btn">Go</button>
+                            </div>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
+            </div>
+            <!-- Map Display Panel (hidden by default) -->
+            <div class="map-display-panel" id="map-display" style="display: none;">
+                <div class="panel-header">
+                    <h3>Job Locations Map</h3>
+                </div>
+                <div class="map-container">
+                    <div id="map">
+                    <!-- Map will be rendered here -->
+                     </div>
+                </div>
             </div>
         </div>
 
@@ -558,6 +571,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+    // View Toggling Logic (List vs. Map)
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggle-view-btn');
+        const jobListPanel = document.querySelector('.job-list-panel');
+        const mapDisplayPanel = document.getElementById('map-display');
+        let mapInitialized = false;
+        var map;
+
+        toggleBtn.addEventListener('click', function() {
+            const isMapView = mapDisplayPanel.style.display === 'block';
+
+            if (isMapView) {
+                // Switch to List View
+                mapDisplayPanel.style.display = 'none';
+                jobListPanel.style.display = 'block';
+                toggleBtn.textContent = 'Map View';
+            } else {
+                // Switch to Map View
+                jobListPanel.style.display = 'none';
+                mapDisplayPanel.style.display = 'block';
+                toggleBtn.textContent = 'List View';
+
+                // Initialize map only once
+                if (!mapInitialized) {
+                    map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+                    mapInitialized = true;
+
+                    {% for job in template_data.all_jobs_for_map %}
+                    {% comment %} console.log("Adding marker for job: {{ job.title }}"); {% endcomment %}
+                    {% if job.location_lat and job.location_lon %}
+                        {% comment %} console.log("Job coordinates: {{ job.location_lat }}, {{ job.location_lon }}"); {% endcomment %}
+                        var marker_{{ job.id }} = L.marker([{{ job.location_lat }}, {{ job.location_lon }}])
+                            .addTo(map)
+                            .bindPopup('<b>{{ job.title }}</b><br>{{ job.recruiter.company_name }}<br>{{ job.location }}')
+                            .on('click', function() {
+                                showJobDetails('{{ job.id }}');
+                            });
+                    {% endif %}
+                    {% endfor %}
+                }
+                
+                // This is important: it ensures the map tiles render correctly after being un-hidden.
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 10);
+            }
+        });
+    });
 </script>
 
 <style>
@@ -680,6 +746,28 @@ document.addEventListener('DOMContentLoaded', function() {
 .view-all-tile .company-name {
     color: white !important;
     font-weight: 600;
+}
+
+.map-display-panel {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-container {
+    height: 88%;
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1.2rem 0;
+}
+
+#map {
+    height: 100%;
+    width: 90%;
 }
 </style>
 

@@ -4,7 +4,8 @@ from django.core.paginator import Paginator
 from accounts.decorators import applicant_required, recruiter_required
 from accounts.models import Applicant, Project
 from jobs.models import JobPosting, Application
-from django.db.models import Q
+from django.db.models import Q, Value, CharField
+from django.db.models.functions import Concat
 
 # Create your views here.
 def index(request):
@@ -267,6 +268,7 @@ def search_candidates(request):
     template_data = {
         'title': 'Search Candidates',
         'applicants_with_projects': applicants_with_projects,
+        'all_candidates_for_map': applicants,
         'total_candidates': paginator.count,
         'paginator': paginator,
         'current_page': page,

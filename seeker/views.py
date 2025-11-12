@@ -110,6 +110,8 @@ def dashboard(request):
         recommended_jobs = get_recommended_jobs(applicant, limit=5)
     else:
         recommended_jobs = []
+
+    all_jobs_for_map = job_postings  # For map display of all jobs
     
     # Add pagination
     page = request.GET.get('page', 1)
@@ -144,6 +146,7 @@ def dashboard(request):
     template_data = {
         'title': 'Job Search Dashboard',
         'job_postings': job_postings_page,
+        'all_jobs_for_map': all_jobs_for_map,
         'search_term': search_term,
         'applied_job_ids': applied_job_ids,
         'recent_applications': recent_applications,

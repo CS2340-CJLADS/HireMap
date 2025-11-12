@@ -1,3 +1,4 @@
+import random
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -6,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+import requests
 from accounts.decorators import recruiter_required
 from accounts.models import Applicant
 from jobs.models import JobPosting, Application
@@ -172,6 +174,34 @@ def job_new(request):
             recruiter=recruiter,
             is_draft=is_draft,
         )
+        
+        if (not job.is_draft) and (not job.remote):
+            print("Job is not draft and not remote; geocoding address.")
+            # Ensure location is set for non-remote jobs
+            if job.street_address:
+                # Geocode the address to get coordinates
+                location = geocode_address(
+                    street_address=job.street_address,
+                    post_code=job.post_code,
+                    city=job.city,
+                    state=job.state,
+                    country=job.country
+                )
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+            else:
+                print("Street address is missing; cannot geocode full address.")
+                # Geocode the post code to get coordinates
+                location = geocode_address(post_code=job.post_code)
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+                    job.location_lat += random.uniform(-0.0001, 0.0001)
+                    job.location_lon += random.uniform(-0.0001, 0.0001)
+        
         return redirect('recruiter:dashboard')
     
     template_data = {
@@ -227,6 +257,33 @@ def job_edit(request, job_id):
         elif action == 'unpublish':
             job.is_draft = True
         # For 'save' action, keep current draft status
+
+        if (not job.is_draft) and (not job.remote):
+            print("Job is not draft and not remote; geocoding address.")
+            # Ensure location is set for non-remote jobs
+            if job.street_address:
+                # Geocode the address to get coordinates
+                location = geocode_address(
+                    street_address=job.street_address,
+                    post_code=job.post_code,
+                    city=job.city,
+                    state=job.state,
+                    country=job.country
+                )
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+            else:
+                print("Street address is missing; cannot geocode full address.")
+                # Geocode the post code to get coordinates
+                location = geocode_address(post_code=job.post_code)
+                if location:
+                    print("Geocoded location: ", location)
+                    job.location_lat = location.latitude
+                    job.location_lon = location.longitude
+                    job.location_lat += random.uniform(-0.0001, 0.0001)
+                    job.location_lon += random.uniform(-0.0001, 0.0001)
         
         job.save()
         return redirect('recruiter:dashboard')
@@ -963,3 +1020,49 @@ def get_recommended_applicants_json(request, job_id):
         data.append(applicant_data)
     
     return JsonResponse(data, safe=False)
+
+def geocode_address(post_code='', street_address='', city='', state='', country=''):
+    """Geocode an address using OpenStreetMap Nominatim API"""
+    try:
+        url = "https://nominatim.openstreetmap.org/search"
+        if post_code:
+            query = f"{post_code}"
+        if street_address:
+            query = f"{street_address}, {query}"
+        if city:
+            query += f", {city}"
+        if state:
+            query += f", {state}"
+        if country:
+            query += f", {country}"
+        print(query)
+        
+        params = {
+            'q': query,
+            'format': 'json',
+            'addressdetails': 1,
+            'limit': 1,
+        }
+        
+        headers = {
+            'User-Agent': 'HireMap-Geocoding/1.0'
+        }
+        
+
+        response = requests.get(url, params=params, headers=headers, timeout=5)
+        print("Geocoding response: ", response)
+        response.raise_for_status()
+        results = response.json()
+        print("Geocoding results: ", results)
+        if results:
+            lat = float(results[0]['lat'])
+            lon = float(results[0]['lon'])
+            class Location:
+                def __init__(self, latitude, longitude):
+                    self.latitude = latitude
+                    self.longitude = longitude
+            return Location(latitude=lat, longitude=lon)
+        else:
+            return None
+    except requests.RequestException:
+        return None
