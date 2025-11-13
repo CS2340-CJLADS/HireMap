@@ -299,9 +299,9 @@
 
 <!-- Job data from server -->
 <script type="application/json" id="job-data">
-{% if template_data.job_postings %}
+{% if template_data.all_jobs_for_map %} // have to use this one instead of job_postings to get all jobs for the map to be accessible
 [
-{% for job in template_data.job_postings %}
+{% for job in template_data.all_jobs_for_map %}
 {
     "id": "{{ job.id }}",
     "title": "{{ job.title|escapejs }}",
@@ -338,6 +338,7 @@ if (jobDataElement) {
 
 function showJobDetails(jobId) {
     currentJobId = jobId;
+    console.log('Showing details for job ID:', jobId);
     
     // Show loading state
     document.getElementById('job-details-loading').style.display = 'block';
