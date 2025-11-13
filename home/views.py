@@ -290,9 +290,7 @@ def my_applications(request):
         applicant = request.user.applicant
         applications = Application.objects.filter(applicant=applicant).select_related('listing', 'listing__recruiter').order_by('-created_at')
         
-        # If no real applications, show demo data
-        if not applications.exists():
-            applications = get_demo_applications()
+        # No fallback to demo data for authenticated users - show empty state instead
     else:
         # Demo data for non-authenticated users or users without applicant profile
         applications = get_demo_applications()
