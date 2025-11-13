@@ -299,7 +299,7 @@
 
 <!-- Job data from server -->
 <script type="application/json" id="job-data">
-{% if template_data.all_jobs_for_map %} // have to use this one instead of job_postings to get all jobs for the map to be accessible
+{% if template_data.all_jobs_for_map %}
 [
 {% for job in template_data.all_jobs_for_map %}
 {
