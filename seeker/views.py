@@ -83,7 +83,19 @@ def dashboard(request):
     # Apply visa sponsorship filter
     if visa_sponsorship == 'true':
         job_postings = job_postings.filter(visa_sponsorship=True)
-    
+
+    # Check if user has address for map display
+    user_location = None
+    user_has_address = False
+    if request.user.is_authenticated and hasattr(request.user, 'applicant'):
+        applicant = request.user.applicant
+        if applicant.location_lat and applicant.location_lon:
+            user_has_address = True
+            user_location = {
+                'lat': applicant.location_lat,
+                'lon': applicant.location_lon
+            }
+
     # Get applied job IDs (only if user is logged in as applicant)
     applied_job_ids = []
     recent_applications = []
@@ -154,6 +166,8 @@ def dashboard(request):
         'total_projects': total_projects,
         'recommended_jobs': recommended_jobs,
         'user_is_applicant': request.user.is_authenticated and hasattr(request.user, 'applicant'),
+        'user_has_address': user_has_address,
+        'user_location': user_location,
         'paginator': paginator,
         'current_page': page,
         'non_remote_locations': all_locations_list,
