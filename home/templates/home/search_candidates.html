@@ -293,9 +293,9 @@
 
 <!-- Candidate data from server -->
 <script type="application/json" id="candidate-data">
-{% if template_data.applicants_with_projects %}
+{% if template_data.all_candidates_for_map %}
 [
-{% for candidate_data in template_data.applicants_with_projects %}
+{% for candidate_data in template_data.all_candidates_for_map %}
 {% with candidate=candidate_data.applicant %}
 {
     "id": "{{ candidate.user.id|escapejs }}",
@@ -1239,7 +1239,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }).addTo(map);
                 mapInitialized = true;
 
-                {% for applicant in template_data.all_candidates_for_map %}
+                {% for candidate_data in template_data.all_candidates_for_map %}
+                {% with applicant=candidate_data.applicant %}
                 {% if applicant.location_lat and applicant.location_lon %}
                     var marker_{{ applicant.user.id }} = L.marker([{{ applicant.location_lat }}, {{ applicant.location_lon }}])
                         .addTo(map)
@@ -1248,6 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             showCandidateDetails('{{ applicant.user.id }}');
                         });
                 {% endif %}
+                {% endwith %}
                 {% endfor %}
             }
             
