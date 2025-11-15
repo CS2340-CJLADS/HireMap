@@ -91,6 +91,8 @@ def dashboard(request):
         applicant = request.user.applicant
         if applicant.location_lat and applicant.location_lon:
             user_has_address = True
+
+            # Saved address- not current location
             user_location = {
                 'lat': applicant.location_lat,
                 'lon': applicant.location_lon
@@ -154,7 +156,8 @@ def dashboard(request):
                 seen_locations.add(location_str)
     
     all_locations_list = sorted(all_locations_list)
-    
+   
+
     template_data = {
         'title': 'Job Search Dashboard',
         'job_postings': job_postings_page,
