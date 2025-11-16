@@ -143,6 +143,38 @@
             <div class="map-display-panel" id="map-display" style="display: none;">
                 <div class="panel-header">
                     <h3>Job Locations Map</h3>
+                    {% if template_data.user_is_applicant and template_data.user_has_address %}
+                    <div class="map-commute-filter">
+                        <label for="map-commute-radius" class="map-commute-label">
+                            <span>Commute Radius (from saved address):</span>
+                            <span class="map-commute-value" id="map-commute-value-display">50 mi</span>
+                        </label>
+                        <input type="range" id="map-commute-radius" min="5" max="100" step="5" value="50" class="map-commute-slider" />
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Current Distance Radius Filter -->
+                    <div class="map-current-distance-filter">
+                        <button id="get-current-location-btn" class="get-location-btn">
+                            📍 Get Current Location
+                        </button>
+                        <div id="current-distance-controls" class="current-distance-filter" style="display: none;">
+                            <label for="map-current-distance-radius" class="map-current-distance-label">
+                                <span>Current Distance Radius:</span>
+                                <span class="map-current-distance-value" id="map-current-distance-value-display">25 mi</span>
+                            </label>
+                            <input type="range" id="map-current-distance-radius" min="5" max="100" step="5" value="25" class="map-current-distance-slider" />
+                            <button id="clear-current-location-btn" class="clear-location-btn">✕ Clear Current Location</button>
+                        </div>
+                        <div id="location-status" class="location-status"></div>
+                    </div>
+                    
+                    <!-- Distance Filter Toggle -->
+                    <div class="distance-filter-toggle">
+                        <button id="toggle-distance-filter-btn" class="toggle-distance-btn">
+                            🌍 Show All Jobs (No Distance Filter)
+                        </button>
+                    </div>
                 </div>
                 <div class="map-container">
                     <div id="map">
@@ -580,6 +612,240 @@ document.addEventListener('DOMContentLoaded', function() {
         const mapDisplayPanel = document.getElementById('map-display');
         let mapInitialized = false;
         var map;
+        var userMarker, commuteCircle, currentLocationMarker, currentLocationCircle;
+        var jobMarkers = [];
+        var currentLocationLat = null;
+        var currentLocationLon = null;
+        var isUsingCurrentLocation = false;
+        var isDistanceFilterDisabled = false;
+
+        {% if template_data.user_is_applicant and template_data.user_location %}
+        var userLat = {{ template_data.user_location.lat }};
+        var userLon = {{ template_data.user_location.lon }};
+        {% endif %}
+
+        // Job data for map
+        var allJobs = [
+            {% for job in template_data.all_jobs_for_map %}
+            {% if job.location_lat and job.location_lon %}
+            {
+                id: '{{ job.id }}',
+                title: '{{ job.title|escapejs }}',
+                company: '{{ job.recruiter.company_name|escapejs }}',
+                location: '{{ job.location|escapejs }}',
+                lat: {{ job.location_lat }},
+                lon: {{ job.location_lon }},
+                remote: {{ job.remote|lower }}
+            },
+            {% endif %}
+            {% endfor %}
+        ];
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            // Haversine formula - returns distance in miles
+            var R = 3958.8; // Earth's radius in miles
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function updateMapMarkers(commuteRadius) {
+            // Remove all job markers
+            jobMarkers.forEach(marker => map.removeLayer(marker));
+            jobMarkers = [];
+
+            // Add markers for jobs within radius
+            allJobs.forEach(job => {
+                var showMarker = job.remote; // Always show remote jobs
+
+                if (!job.remote) {
+                    // If distance filter is disabled, show all jobs
+                    if (isDistanceFilterDisabled) {
+                        showMarker = true;
+                    }
+                    // Check current location first if active
+                    else if (isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                        var currentDistance = calculateDistance(currentLocationLat, currentLocationLon, job.lat, job.lon);
+                        var currentRadius = parseInt(document.getElementById('map-current-distance-radius').value);
+                        showMarker = currentDistance <= currentRadius;
+                    }
+                    // Then check saved address if no current location active
+                    {% if template_data.user_is_applicant and template_data.user_location %}
+                    else if (userLat && userLon) {
+                        var distance = calculateDistance(userLat, userLon, job.lat, job.lon);
+                        showMarker = distance <= commuteRadius;
+                    }
+                    {% else %}
+                    else {
+                        showMarker = true; // Show all jobs if no location filters
+                    }
+                    {% endif %}
+                }
+
+                if (showMarker) {
+                    var marker = L.marker([job.lat, job.lon])
+                        .addTo(map)
+                        .bindPopup('<b>' + job.title + '</b><br>' + job.company + '<br>' + job.location)
+                        .on('click', function() {
+                            showJobDetails(job.id);
+                        });
+                    jobMarkers.push(marker);
+                }
+            });
+        }
+
+        function updateCommuteCircle(commuteRadius) {
+            {% if template_data.user_is_applicant and template_data.user_location %}
+            // Only show saved address circle if not using current location and distance filter is not disabled
+            if (!isUsingCurrentLocation && !isDistanceFilterDisabled) {
+                if (commuteCircle) {
+                    map.removeLayer(commuteCircle);
+                }
+                var radiusMeters = commuteRadius * 1609.34;
+                commuteCircle = L.circle([userLat, userLon], {
+                    color: '#28AC9B',
+                    fillColor: '#28AC9B',
+                    fillOpacity: 0.1,
+                    radius: radiusMeters
+                }).addTo(map);
+            } else if (commuteCircle) {
+                // Remove circle if distance filter is disabled
+                map.removeLayer(commuteCircle);
+            }
+            {% endif %}
+        }
+
+        function updateCurrentLocationCircle(radius) {
+            if (currentLocationCircle) {
+                map.removeLayer(currentLocationCircle);
+            }
+            // Only show current location circle if distance filter is not disabled
+            if (currentLocationLat && currentLocationLon && !isDistanceFilterDisabled) {
+                var radiusMeters = radius * 1609.34;
+                currentLocationCircle = L.circle([currentLocationLat, currentLocationLon], {
+                    color: '#FF746C',
+                    fillColor: '#FF746C',
+                    fillOpacity: 0.1,
+                    radius: radiusMeters
+                }).addTo(map);
+            }
+        }
+
+        function getCurrentLocation() {
+            const statusDiv = document.getElementById('location-status');
+            
+            if (!navigator.geolocation) {
+                statusDiv.innerHTML = '<span style="color: red;">❌ Geolocation not supported</span>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<span style="color: blue;">📍 Getting location...</span>';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    currentLocationLat = position.coords.latitude;
+                    currentLocationLon = position.coords.longitude;
+                    isUsingCurrentLocation = true;
+                    
+                    // Hide saved address circle
+                    {% if template_data.user_is_applicant and template_data.user_location %}
+                    if (commuteCircle) {
+                        map.removeLayer(commuteCircle);
+                    }
+                    {% endif %}
+                    
+                    // Add current location marker (red)
+                    if (currentLocationMarker) {
+                        map.removeLayer(currentLocationMarker);
+                    }
+                    currentLocationMarker = L.marker([currentLocationLat, currentLocationLon], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41]
+                        })
+                    }).addTo(map).bindPopup('<b>Your Current Location</b>');
+                    
+                    // Center map on current location
+                    map.setView([currentLocationLat, currentLocationLon], 10);
+                    
+                    // Show current distance controls
+                    document.getElementById('get-current-location-btn').style.display = 'none';
+                    document.getElementById('current-distance-controls').style.display = 'block';
+                    
+                    // Apply initial current location filter
+                    var initialRadius = 25;
+                    updateCurrentLocationCircle(initialRadius);
+                    updateMapMarkers(50); // Use default commute radius as fallback
+                    
+                    statusDiv.innerHTML = '<span style="color: green;">✅ Location found!</span>';
+                    setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
+                },
+                function(error) {
+                    let errorMsg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = '❌ Location access denied';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = '❌ Location unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = '❌ Location request timeout';
+                            break;
+                        default:
+                            errorMsg = '❌ Location error occurred';
+                            break;
+                    }
+                    statusDiv.innerHTML = '<span style="color: red;">' + errorMsg + '</span>';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000
+                }
+            );
+        }
+
+        function clearCurrentLocation() {
+            // Remove current location markers and circles
+            if (currentLocationMarker) {
+                map.removeLayer(currentLocationMarker);
+                currentLocationMarker = null;
+            }
+            if (currentLocationCircle) {
+                map.removeLayer(currentLocationCircle);
+                currentLocationCircle = null;
+            }
+            
+            // Reset variables
+            currentLocationLat = null;
+            currentLocationLon = null;
+            isUsingCurrentLocation = false;
+            
+            // Hide current location controls
+            document.getElementById('current-distance-controls').style.display = 'none';
+            document.getElementById('get-current-location-btn').style.display = 'block';
+            document.getElementById('location-status').innerHTML = '';
+            
+            // Restore saved address view if available
+            {% if template_data.user_is_applicant and template_data.user_location %}
+            var savedRadius = parseInt(document.getElementById('map-commute-radius').value);
+            updateCommuteCircle(savedRadius);
+            updateMapMarkers(savedRadius);
+            map.setView([userLat, userLon], 9);
+            {% else %}
+            updateMapMarkers(999999);
+            map.setView([39.8283, -98.5795], 4);
+            {% endif %}
+        }
 
         toggleBtn.addEventListener('click', function() {
             const isMapView = mapDisplayPanel.style.display === 'block';
@@ -602,20 +868,117 @@ document.addEventListener('DOMContentLoaded', function() {
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     }).addTo(map);
-                    mapInitialized = true;
 
-                    {% for job in template_data.all_jobs_for_map %}
-                    {% comment %} console.log("Adding marker for job: {{ job.title }}"); {% endcomment %}
-                    {% if job.location_lat and job.location_lon %}
-                        {% comment %} console.log("Job coordinates: {{ job.location_lat }}, {{ job.location_lon }}"); {% endcomment %}
-                        var marker_{{ job.id }} = L.marker([{{ job.location_lat }}, {{ job.location_lon }}])
-                            .addTo(map)
-                            .bindPopup('<b>{{ job.title }}</b><br>{{ job.recruiter.company_name }}<br>{{ job.location }}')
-                            .on('click', function() {
-                                showJobDetails('{{ job.id }}');
-                            });
+                    {% if template_data.user_is_applicant and template_data.user_location %}
+                    // Add user home marker (blue)
+                    userMarker = L.marker([userLat, userLon], {
+                        icon: L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41]
+                        })
+                    }).addTo(map).bindPopup('<b>Your Location</b>');
+
+                    // Center map on user location
+                    map.setView([userLat, userLon], 9);
+
+                    // Initial radius
+                    var initialRadius = 50;
+                    updateCommuteCircle(initialRadius);
+                    updateMapMarkers(initialRadius);
+
+                    // Setup commute slider
+                    const mapCommuteSlider = document.getElementById('map-commute-radius');
+                    const mapCommuteDisplay = document.getElementById('map-commute-value-display');
+                    if (mapCommuteSlider && mapCommuteDisplay) {
+                        mapCommuteSlider.addEventListener('input', function() {
+                            if (!isUsingCurrentLocation) {
+                                var radius = parseInt(this.value);
+                                mapCommuteDisplay.textContent = radius + ' mi';
+                                updateCommuteCircle(radius);
+                                updateMapMarkers(radius);
+                            }
+                        });
+                    }
+                    
+                    // Setup current location controls
+                    const getCurrentLocationBtn = document.getElementById('get-current-location-btn');
+                    const clearCurrentLocationBtn = document.getElementById('clear-current-location-btn');
+                    const currentDistanceSlider = document.getElementById('map-current-distance-radius');
+                    const currentDistanceDisplay = document.getElementById('map-current-distance-value-display');
+                    
+                    if (getCurrentLocationBtn) {
+                        getCurrentLocationBtn.addEventListener('click', getCurrentLocation);
+                    }
+                    
+                    if (clearCurrentLocationBtn) {
+                        clearCurrentLocationBtn.addEventListener('click', clearCurrentLocation);
+                    }
+                    
+                    if (currentDistanceSlider && currentDistanceDisplay) {
+                        currentDistanceSlider.addEventListener('input', function() {
+                            if (isUsingCurrentLocation) {
+                                var radius = parseInt(this.value);
+                                currentDistanceDisplay.textContent = radius + ' mi';
+                                updateCurrentLocationCircle(radius);
+                                updateMapMarkers(50); // Use default for saved address fallback
+                            }
+                        });
+                    }
+                    
+                    // Setup distance filter toggle
+                    const toggleDistanceFilterBtn = document.getElementById('toggle-distance-filter-btn');
+                    if (toggleDistanceFilterBtn) {
+                        toggleDistanceFilterBtn.addEventListener('click', function() {
+                            isDistanceFilterDisabled = !isDistanceFilterDisabled;
+                            
+                            if (isDistanceFilterDisabled) {
+                                this.textContent = '📍 Enable Distance Filter';
+                                this.classList.add('active');
+                                
+                                // Hide all circles when distance filter is disabled
+                                if (commuteCircle) {
+                                    map.removeLayer(commuteCircle);
+                                }
+                                if (currentLocationCircle) {
+                                    map.removeLayer(currentLocationCircle);
+                                }
+                            } else {
+                                this.textContent = '🌍 Show All Jobs (No Distance Filter)';
+                                this.classList.remove('active');
+                                
+                                // Restore circles based on current state
+                                if (isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                                    var currentRadius = parseInt(currentDistanceSlider.value);
+                                    updateCurrentLocationCircle(currentRadius);
+                                } else {
+                                    {% if template_data.user_is_applicant and template_data.user_location %}
+                                    var savedRadius = parseInt(mapCommuteSlider.value);
+                                    updateCommuteCircle(savedRadius);
+                                    {% endif %}
+                                }
+                            }
+                            
+                            // Update map markers based on new filter state
+                            var radius = 50; // Default radius
+                            {% if template_data.user_is_applicant and template_data.user_location %}
+                            if (mapCommuteSlider) {
+                                radius = parseInt(mapCommuteSlider.value);
+                            }
+                            {% endif %}
+                            updateMapMarkers(radius);
+                        });
+                    }
+                    
+                    {% else %}
+                    // No user location, show all jobs
+                    updateMapMarkers(999999);
                     {% endif %}
-                    {% endfor %}
+
+                    mapInitialized = true;
                 }
                 
                 // This is important: it ensures the map tiles render correctly after being un-hidden.
@@ -731,6 +1094,117 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Current Distance Filter Styling */
+.map-current-distance-filter {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+}
+
+.get-location-btn {
+    background: #FF746C;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.get-location-btn:hover {
+    background: #E5635B;
+}
+
+.current-distance-filter {
+    margin-top: 0.5rem;
+}
+
+.map-current-distance-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.map-current-distance-value {
+    color: #FF746C;
+    font-weight: 600;
+}
+
+.map-current-distance-slider {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    accent-color: #FF746C;
+}
+
+.map-current-distance-slider::-webkit-slider-thumb {
+    background: #FF746C;
+}
+
+.map-current-distance-slider::-moz-range-thumb {
+    background: #FF746C;
+    border: none;
+}
+
+.clear-location-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s ease;
+}
+
+.clear-location-btn:hover {
+    background: #c82333;
+}
+
+.location-status {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    min-height: 1.2rem;
+}
+
+.distance-filter-toggle {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.toggle-distance-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    width: 100%;
+}
+
+.toggle-distance-btn:hover {
+    background: #45a049;
+}
+
+.toggle-distance-btn.active {
+    background: #808080;
+}
+
+.toggle-distance-btn.active:hover {
+    background: #6b6b6b;
 }
 
 .view-all-tile:hover {
