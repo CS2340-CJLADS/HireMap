@@ -522,17 +522,22 @@ def geocode_address(post_code='', street_address='', city='', state='', country=
     """Geocode an address using OpenStreetMap Nominatim API"""
     try:
         url = "https://nominatim.openstreetmap.org/search"
-        if post_code:
-            query = f"{post_code}"
+        
+        # Build query string properly
+        query_parts = []
         if street_address:
-            query = f"{street_address}, {query}"
+            query_parts.append(street_address)
+        if post_code:
+            query_parts.append(post_code)
         if city:
-            query += f", {city}"
+            query_parts.append(city)
         if state:
-            query += f", {state}"
+            query_parts.append(state)
         if country:
-            query += f", {country}"
-        print(query)
+            query_parts.append(country)
+        
+        query = ", ".join(query_parts)
+        print(f"Geocoding query: {query}")
         
         params = {
             'q': query,

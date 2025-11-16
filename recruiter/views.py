@@ -171,6 +171,7 @@ def job_new(request):
             salary_max=float(request.POST.get('salary_max', 0)),
             remote=request.POST.get('remote') == 'on',
             visa_sponsorship=request.POST.get('visa_sponsorship') == 'on',
+            visibility='public',
             recruiter=recruiter,
             is_draft=is_draft,
         )
@@ -178,29 +179,40 @@ def job_new(request):
         if (not job.is_draft) and (not job.remote):
             print("Job is not draft and not remote; geocoding address.")
             # Ensure location is set for non-remote jobs
-            if job.street_address:
-                # Geocode the address to get coordinates
-                location = geocode_address(
-                    street_address=job.street_address,
-                    post_code=job.post_code,
-                    city=job.city,
-                    state=job.state,
-                    country=job.country
-                )
-                if location:
-                    print("Geocoded location: ", location)
-                    job.location_lat = location.latitude
-                    job.location_lon = location.longitude
-            else:
-                print("Street address is missing; cannot geocode full address.")
-                # Geocode the post code to get coordinates
-                location = geocode_address(post_code=job.post_code)
-                if location:
-                    print("Geocoded location: ", location)
-                    job.location_lat = location.latitude
-                    job.location_lon = location.longitude
-                    job.location_lat += random.uniform(-0.0001, 0.0001)
-                    job.location_lon += random.uniform(-0.0001, 0.0001)
+            try:
+                if job.street_address:
+                    # Geocode the address to get coordinates
+                    location = geocode_address(
+                        street_address=job.street_address,
+                        post_code=job.post_code,
+                        city=job.city,
+                        state=job.state,
+                        country=job.country
+                    )
+                    if location:
+                        print("Geocoded location: ", location)
+                        job.location_lat = location.latitude
+                        job.location_lon = location.longitude
+                    else:
+                        print("Geocoding failed: No results returned")
+                else:
+                    print("Street address is missing; cannot geocode full address.")
+                    # Geocode the post code to get coordinates
+                    location = geocode_address(post_code=job.post_code)
+                    if location:
+                        print("Geocoded location: ", location)
+                        job.location_lat = location.latitude
+                        job.location_lon = location.longitude
+                        job.location_lat += random.uniform(-0.0001, 0.0001)
+                        job.location_lon += random.uniform(-0.0001, 0.0001)
+                    else:
+                        print("Post code geocoding failed: No results returned")
+                job.save()  # Save the job with coordinates
+            except Exception as e:
+                print(f"Geocoding error: {e}")
+                job.save()  # Still save the job even if geocoding fails
+        else:
+            job.save()  # Save draft or remote jobs without geocoding
         
         return redirect('recruiter:dashboard')
     
@@ -248,6 +260,9 @@ def job_edit(request, job_id):
         job.salary_max = float(request.POST.get('salary_max', 0))
         job.remote = request.POST.get('remote') == 'on'
         job.visa_sponsorship = request.POST.get('visa_sponsorship') == 'on'
+        # Ensure visibility is set if not already present
+        if not hasattr(job, 'visibility') or job.visibility is None:
+            job.visibility = 'public'
         
         # Handle different actions
         if action == 'publish':
@@ -261,29 +276,36 @@ def job_edit(request, job_id):
         if (not job.is_draft) and (not job.remote):
             print("Job is not draft and not remote; geocoding address.")
             # Ensure location is set for non-remote jobs
-            if job.street_address:
-                # Geocode the address to get coordinates
-                location = geocode_address(
-                    street_address=job.street_address,
-                    post_code=job.post_code,
-                    city=job.city,
-                    state=job.state,
-                    country=job.country
-                )
-                if location:
-                    print("Geocoded location: ", location)
-                    job.location_lat = location.latitude
-                    job.location_lon = location.longitude
-            else:
-                print("Street address is missing; cannot geocode full address.")
-                # Geocode the post code to get coordinates
-                location = geocode_address(post_code=job.post_code)
-                if location:
-                    print("Geocoded location: ", location)
-                    job.location_lat = location.latitude
-                    job.location_lon = location.longitude
-                    job.location_lat += random.uniform(-0.0001, 0.0001)
-                    job.location_lon += random.uniform(-0.0001, 0.0001)
+            try:
+                if job.street_address:
+                    # Geocode the address to get coordinates
+                    location = geocode_address(
+                        street_address=job.street_address,
+                        post_code=job.post_code,
+                        city=job.city,
+                        state=job.state,
+                        country=job.country
+                    )
+                    if location:
+                        print("Geocoded location: ", location)
+                        job.location_lat = location.latitude
+                        job.location_lon = location.longitude
+                    else:
+                        print("Geocoding failed: No results returned")
+                else:
+                    print("Street address is missing; cannot geocode full address.")
+                    # Geocode the post code to get coordinates
+                    location = geocode_address(post_code=job.post_code)
+                    if location:
+                        print("Geocoded location: ", location)
+                        job.location_lat = location.latitude
+                        job.location_lon = location.longitude
+                        job.location_lat += random.uniform(-0.0001, 0.0001)
+                        job.location_lon += random.uniform(-0.0001, 0.0001)
+                    else:
+                        print("Post code geocoding failed: No results returned")
+            except Exception as e:
+                print(f"Geocoding error: {e}")
         
         job.save()
         return redirect('recruiter:dashboard')
@@ -1025,17 +1047,22 @@ def geocode_address(post_code='', street_address='', city='', state='', country=
     """Geocode an address using OpenStreetMap Nominatim API"""
     try:
         url = "https://nominatim.openstreetmap.org/search"
-        if post_code:
-            query = f"{post_code}"
+        
+        # Build query string properly
+        query_parts = []
         if street_address:
-            query = f"{street_address}, {query}"
+            query_parts.append(street_address)
+        if post_code:
+            query_parts.append(post_code)
         if city:
-            query += f", {city}"
+            query_parts.append(city)
         if state:
-            query += f", {state}"
+            query_parts.append(state)
         if country:
-            query += f", {country}"
-        print(query)
+            query_parts.append(country)
+        
+        query = ", ".join(query_parts)
+        print(f"Geocoding query: {query}")
         
         params = {
             'q': query,
@@ -1064,5 +1091,12 @@ def geocode_address(post_code='', street_address='', city='', state='', country=
             return Location(latitude=lat, longitude=lon)
         else:
             return None
-    except requests.RequestException:
+    except requests.RequestException as e:
+        print(f"Geocoding request error: {e}")
+        return None
+    except (ValueError, KeyError, IndexError) as e:
+        print(f"Geocoding parsing error: {e}")
+        return None
+    except Exception as e:
+        print(f"Unexpected geocoding error: {e}")
         return None
