@@ -22,6 +22,7 @@ class JobPosting(models.Model):
     salary_max = models.DecimalField(max_digits=10, decimal_places=2)
     remote = models.BooleanField(default=False)
     visa_sponsorship = models.BooleanField(default=False)
+    visibility = models.CharField(max_length=10, default='public', help_text="Job visibility")
     recruiter = models.ForeignKey('accounts.Recruiter', on_delete=models.CASCADE)
     is_draft = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
