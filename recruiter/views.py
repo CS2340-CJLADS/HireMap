@@ -1052,12 +1052,12 @@ def geocode_address(post_code='', street_address='', city='', state='', country=
         query_parts = []
         if street_address:
             query_parts.append(street_address)
-        if post_code:
-            query_parts.append(post_code)
         if city:
             query_parts.append(city)
         if state:
             query_parts.append(state)
+        if post_code:
+            query_parts.append(post_code)
         if country:
             query_parts.append(country)
         
