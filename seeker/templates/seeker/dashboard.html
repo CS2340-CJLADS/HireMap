@@ -523,9 +523,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const minValue = document.querySelector('.min-value');
     const maxValue = document.querySelector('.max-value');
     
-    // Auto-submit on filter change
+    // Auto-submit on filter change (or update map if in map view)
     function autoSubmit() {
-        form.submit();
+        // Check if map view is currently active
+        const mapDisplayPanel = document.getElementById('map-display');
+        if (!mapDisplayPanel) {
+            form.submit();
+            return;
+        }
+        
+        const mapComputedStyle = window.getComputedStyle(mapDisplayPanel);
+        const isMapView = mapComputedStyle.display !== 'none';
+
+        // Check if map is initialized and updateMapMarkers function exists
+        if (isMapView && window.mapInitialized && typeof window.updateMapMarkers === 'function' && window.map) {
+            // If in map view, filter markers instead of submitting form
+            window.updateMapMarkers();
+        } else {
+            // If in list view, submit form normally
+            form.submit();
+        }
     }
     
     // Clear all filters
@@ -623,26 +640,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
     // View Toggling Logic (List vs. Map)
+    // Make map and related variables globally accessible
+    window.map = null;
+    window.mapInitialized = false;
+    var userMarker, commuteCircle, currentLocationMarker, currentLocationCircle;
+    var jobMarkers = [];
+    var currentLocationLat = null;
+    var currentLocationLon = null;
+    var isUsingCurrentLocation = false;
+    var isDistanceFilterDisabled = false;
+    
     document.addEventListener('DOMContentLoaded', function() {
         const toggleBtn = document.getElementById('toggle-view-btn');
         const jobListPanel = document.querySelector('.job-list-panel');
         const mapDisplayPanel = document.getElementById('map-display');
-        let mapInitialized = false;
-        var map;
-        var userMarker, commuteCircle, currentLocationMarker, currentLocationCircle;
-        var jobMarkers = [];
-        var currentLocationLat = null;
-        var currentLocationLon = null;
-        var isUsingCurrentLocation = false;
-        var isDistanceFilterDisabled = false;
 
         {% if template_data.user_is_applicant and template_data.user_location %}
         var userLat = {{ template_data.user_location.lat }};
         var userLon = {{ template_data.user_location.lon }};
         {% endif %}
 
-        // Job data for map
-        var allJobs = [
+        // Job data for map - include all filterable fields (make globally accessible)
+        window.allJobs = [
             {% for job in template_data.all_jobs_for_map %}
             {% if job.location_lat and job.location_lon %}
             {
@@ -650,9 +669,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: '{{ job.title|escapejs }}',
                 company: '{{ job.recruiter.company_name|escapejs }}',
                 location: '{% if job.city and job.state %}{{ job.city }}, {{ job.state }}{% else %}Location not specified{% endif %}',
+                city: '{{ job.city|default:""|escapejs }}',
+                state: '{{ job.state|default:""|escapejs }}',
                 lat: {{ job.location_lat }},
                 lon: {{ job.location_lon }},
-                remote: {{ job.remote|lower }}
+                remote: {{ job.remote|lower }},
+                salary_min: {{ job.salary_min }},
+                salary_max: {{ job.salary_max }},
+                visa_sponsorship: {{ job.visa_sponsorship|yesno:"true,false" }},
+                skills_required: '{{ job.skills_required|default:""|escapejs }}'
             },
             {% endif %}
             {% endfor %}
@@ -670,10 +695,76 @@ document.addEventListener('DOMContentLoaded', function() {
             return R * c;
         }
 
-        function updateMapMarkers() {
+        // Get current filter values from the form (make globally accessible)
+        window.getCurrentFilters = function() {
+            const searchInput = document.getElementById('search-input');
+            const workTypeSelect = document.getElementById('work_type');
+            const locationSelect = document.getElementById('location');
+            const skillsInput = document.getElementById('skills');
+            const visaCheckbox = document.getElementById('visa_sponsorship');
+            const minSlider = document.getElementById('salary_min');
+            const maxSlider = document.getElementById('salary_max');
+
+            return {
+                search: searchInput ? searchInput.value.toLowerCase().trim() : '',
+                workType: workTypeSelect ? workTypeSelect.value : '',
+                location: locationSelect ? locationSelect.value : '',
+                skills: skillsInput ? skillsInput.value.toLowerCase().trim() : '',
+                visa: visaCheckbox ? visaCheckbox.checked : false,
+                salaryMin: minSlider ? parseFloat(minSlider.value) : null,
+                salaryMax: maxSlider ? parseFloat(maxSlider.value) : null
+            };
+        };
+
+        // Check if a job matches the current filters (make globally accessible)
+        window.jobMatchesFilters = function(job, filters) {
+            // Search filter (title, company, skills)
+            if (filters.search) {
+                const searchLower = filters.search;
+                const matchesSearch = 
+                    job.title.toLowerCase().includes(searchLower) ||
+                    job.company.toLowerCase().includes(searchLower) ||
+                    job.skills_required.toLowerCase().includes(searchLower);
+                if (!matchesSearch) return false;
+            }
+
+            // Work type filter
+            if (filters.workType === 'remote' && !job.remote) return false;
+            if (filters.workType === 'in-person' && job.remote) return false;
+
+            // Location filter (only for in-person jobs)
+            if (filters.location && !job.remote) {
+                const locationStr = job.city && job.state ? `${job.city}, ${job.state}` : '';
+                if (locationStr !== filters.location) return false;
+            }
+
+            // Skills filter
+            if (filters.skills) {
+                const skillsArray = filters.skills.split(',').map(s => s.trim().toLowerCase());
+                const jobSkills = job.skills_required.toLowerCase();
+                const matchesSkills = skillsArray.some(skill => jobSkills.includes(skill));
+                if (!matchesSkills) return false;
+            }
+
+            // Visa filter
+            if (filters.visa && !job.visa_sponsorship) return false;
+
+            // Salary filters
+            if (filters.salaryMin !== null && job.salary_max < filters.salaryMin) return false;
+            if (filters.salaryMax !== null && job.salary_min > filters.salaryMax) return false;
+
+            return true;
+        };
+
+        window.updateMapMarkers = function() {
+            if (!window.map) return;
+            
             // Remove all job markers
-            jobMarkers.forEach(marker => map.removeLayer(marker));
+            jobMarkers.forEach(marker => window.map.removeLayer(marker));
             jobMarkers = [];
+
+            // Get current navbar filters
+            const filters = window.getCurrentFilters();
 
             let homeRadius = 0;
             {% if template_data.user_is_applicant and template_data.user_location %}
@@ -689,9 +780,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentRadius = parseInt(currentDistanceSlider.value);
             }
 
-            // Add markers for jobs
-            allJobs.forEach(job => {
-                let showMarker = job.remote; // Always show remote jobs
+            // Add markers for jobs that match filters
+            window.allJobs.forEach(job => {
+                // First check if job matches navbar filters
+                if (!window.jobMatchesFilters(job, filters)) {
+                    return; // Skip this job if it doesn't match filters
+                }
+
+                let showMarker = job.remote; // Always show remote jobs that match filters
 
                 if (!job.remote) {
                     // Check if job is within home radius
@@ -706,14 +802,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (fromHome || fromCurrent) {
                         showMarker = true;
                     } else if (homeRadius === 0 && currentRadius === 0) {
-                        // If no filters active, show all jobs
+                        // If no distance filters active, show all jobs that match navbar filters
                         showMarker = true;
                     }
                 }
 
                 if (showMarker) {
                     var marker = L.marker([job.lat, job.lon])
-                        .addTo(map)
+                        .addTo(window.map)
                         .bindPopup('<b>' + job.title + '</b><br>' + job.company + '<br>' + job.location)
                         .on('click', function() {
                             showJobDetails(job.id);
@@ -721,14 +817,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     jobMarkers.push(marker);
                 }
             });
-        }
+        };
 
         function updateCommuteCircle(commuteRadius) {
             {% if template_data.user_is_applicant and template_data.user_location %}
+            if (!window.map) return;
             console.log('Drawing home circle at:', userLat, userLon, 'radius:', commuteRadius, 'miles');
             // Always show saved address circle if user has an address
             if (commuteCircle) {
-                map.removeLayer(commuteCircle);
+                window.map.removeLayer(commuteCircle);
             }
             var radiusMeters = commuteRadius * 1609.34;
             commuteCircle = L.circle([userLat, userLon], {
@@ -737,7 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 fillOpacity: 0.15,
                 radius: radiusMeters,
                 weight: 2
-            }).addTo(map);
+            }).addTo(window.map);
             console.log('Home circle drawn successfully');
             {% else %}
             console.log('No user location available for home circle');
@@ -745,8 +842,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function updateCurrentLocationCircle(radius) {
+            if (!window.map) return;
             if (currentLocationCircle) {
-                map.removeLayer(currentLocationCircle);
+                window.map.removeLayer(currentLocationCircle);
             }
             // Always show current location circle when active
             if (currentLocationLat && currentLocationLon) {
@@ -756,7 +854,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     fillColor: '#FF746C',
                     fillOpacity: 0.15,
                     radius: radiusMeters
-                }).addTo(map);
+                }).addTo(window.map);
             }
         }
 
@@ -778,7 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Add current location marker (red)
                     if (currentLocationMarker) {
-                        map.removeLayer(currentLocationMarker);
+                        window.map.removeLayer(currentLocationMarker);
                     }
                     currentLocationMarker = L.marker([currentLocationLat, currentLocationLon], {
                         icon: L.icon({
@@ -789,10 +887,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             popupAnchor: [1, -34],
                             shadowSize: [41, 41]
                         })
-                    }).addTo(map).bindPopup('<b>Your Current Location</b>');
+                    }).addTo(window.map).bindPopup('<b>Your Current Location</b>');
                     
                     // Center map on current location
-                    map.setView([currentLocationLat, currentLocationLon], 10);
+                    window.map.setView([currentLocationLat, currentLocationLon], 10);
                     
                     // Show current distance controls
                     document.getElementById('get-current-location-btn').style.display = 'none';
@@ -801,7 +899,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Apply initial current location filter
                     var initialRadius = 25;
                     updateCurrentLocationCircle(initialRadius);
-                    updateMapMarkers();
+                    window.updateMapMarkers();
 
                     statusDiv.innerHTML = '<span style="color: green;">✅ Location found!</span>';
                     setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
@@ -833,13 +931,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function clearCurrentLocation() {
+            if (!window.map) return;
+            
             // Remove current location markers and circles
             if (currentLocationMarker) {
-                map.removeLayer(currentLocationMarker);
+                window.map.removeLayer(currentLocationMarker);
                 currentLocationMarker = null;
             }
             if (currentLocationCircle) {
-                map.removeLayer(currentLocationCircle);
+                window.map.removeLayer(currentLocationCircle);
                 currentLocationCircle = null;
             }
             
@@ -857,11 +957,11 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if template_data.user_is_applicant and template_data.user_location %}
             var savedRadius = parseInt(document.getElementById('map-commute-radius').value);
             updateCommuteCircle(savedRadius);
-            updateMapMarkers();
-            map.setView([userLat, userLon], 9);
+            window.updateMapMarkers();
+            window.map.setView([userLat, userLon], 9);
             {% else %}
-            updateMapMarkers();
-            map.setView([39.8283, -98.5795], 4);
+            window.updateMapMarkers();
+            window.map.setView([39.8283, -98.5795], 4);
             {% endif %}
         }
 
@@ -902,14 +1002,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 jobListPanel.style.display = 'none';
                 mapDisplayPanel.style.display = 'flex'; // Use 'flex' to match CSS, not 'block'
                 toggleBtn.textContent = 'List View';
+                
+                // Reset URL to base path (remove query parameters) since map view uses client-side filtering
+                // This prevents having a stale URL that doesn't match what's displayed on the map
+                const basePath = window.location.pathname;
+                if (window.location.search) {
+                    window.history.pushState({}, '', basePath);
+                }
 
                 // Initialize map only once
-                if (!mapInitialized) {
-                    map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
+                if (!window.mapInitialized) {
+                    window.map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
 
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    }).addTo(map);
+                    }).addTo(window.map);
 
                     {% if template_data.user_is_applicant and template_data.user_location %}
                     console.log('User has address - initializing home marker and circle');
@@ -925,15 +1032,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             popupAnchor: [1, -34],
                             shadowSize: [41, 41]
                         })
-                    }).addTo(map).bindPopup('<b>Your Location</b>');
+                    }).addTo(window.map).bindPopup('<b>Your Location</b>');
 
                     // Center map on user location
-                    map.setView([userLat, userLon], 9);
+                    window.map.setView([userLat, userLon], 9);
 
                     // Initial radius
                     var initialRadius = 50;
                     updateCommuteCircle(initialRadius);
-                    updateMapMarkers();
+                    window.updateMapMarkers();
 
                     // Setup commute slider and input (two-way binding)
                     const mapCommuteSlider = document.getElementById('map-commute-radius');
@@ -944,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             var radius = parseInt(this.value);
                             mapCommuteDisplay.value = radius;
                             updateCommuteCircle(radius);
-                            updateMapMarkers();
+                            window.updateMapMarkers();
                         });
 
                         // Input updates slider
@@ -953,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (radius >= 5 && radius <= 100) {
                                 mapCommuteSlider.value = radius;
                                 updateCommuteCircle(radius);
-                                updateMapMarkers();
+                                window.updateMapMarkers();
                             }
                         });
 
@@ -968,13 +1075,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             this.value = radius;
                             mapCommuteSlider.value = radius;
                             updateCommuteCircle(radius);
-                            updateMapMarkers();
+                            window.updateMapMarkers();
                         });
                     }
 
                     {% else %}
                     // No user location, show all jobs
-                    updateMapMarkers();
+                    window.updateMapMarkers();
                     {% endif %}
 
                     // Setup current location controls (works with or without saved address)
@@ -997,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             var radius = parseInt(this.value);
                             currentDistanceDisplay.value = radius;
                             updateCurrentLocationCircle(radius);
-                            updateMapMarkers();
+                            window.updateMapMarkers();
                         });
 
                         // Input updates slider
@@ -1006,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (radius >= 5 && radius <= 100) {
                                 currentDistanceSlider.value = radius;
                                 updateCurrentLocationCircle(radius);
-                                updateMapMarkers();
+                                window.updateMapMarkers();
                             }
                         });
 
@@ -1021,17 +1128,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             this.value = radius;
                             currentDistanceSlider.value = radius;
                             updateCurrentLocationCircle(radius);
-                            updateMapMarkers();
+                            window.updateMapMarkers();
                         });
                     }
 
 
-                    mapInitialized = true;
+                    window.mapInitialized = true;
                 }
                 
                 // This is important: it ensures the map tiles render correctly after being un-hidden.
                 setTimeout(() => {
-                    map.invalidateSize();
+                    if (window.map) {
+                        window.map.invalidateSize();
+                    }
                 }, 10);
             }
         });
