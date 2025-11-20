@@ -1044,59 +1044,51 @@ def get_recommended_applicants_json(request, job_id):
     return JsonResponse(data, safe=False)
 
 def geocode_address(post_code='', street_address='', city='', state='', country=''):
-    """Geocode an address using OpenStreetMap Nominatim API"""
-    try:
-        url = "https://nominatim.openstreetmap.org/search"
-        
-        # Build query string properly
-        query_parts = []
-        if street_address:
-            query_parts.append(street_address)
-        if city:
-            query_parts.append(city)
-        if state:
-            query_parts.append(state)
-        if post_code:
-            query_parts.append(post_code)
-        if country:
-            query_parts.append(country)
-        
-        query = ", ".join(query_parts)
-        print(f"Geocoding query: {query}")
-        
-        params = {
-            'q': query,
-            'format': 'json',
-            'addressdetails': 1,
-            'limit': 1,
-        }
-        
-        headers = {
-            'User-Agent': 'HireMap-Geocoding/1.0'
-        }
-        
-
-        response = requests.get(url, params=params, headers=headers, timeout=5)
-        print("Geocoding response: ", response)
-        response.raise_for_status()
-        results = response.json()
-        print("Geocoding results: ", results)
-        if results:
-            lat = float(results[0]['lat'])
-            lon = float(results[0]['lon'])
-            class Location:
-                def __init__(self, latitude, longitude):
-                    self.latitude = latitude
-                    self.longitude = longitude
-            return Location(latitude=lat, longitude=lon)
-        else:
-            return None
-    except requests.RequestException as e:
-        print(f"Geocoding request error: {e}")
-        return None
-    except (ValueError, KeyError, IndexError) as e:
-        print(f"Geocoding parsing error: {e}")
-        return None
-    except Exception as e:
-        print(f"Unexpected geocoding error: {e}")
-        return None
+    """Geocode an address using OpenStreetMap Nominatim API with fallback strategies"""
+    url = "https://nominatim.openstreetmap.org/search"
+    headers = {'User-Agent': 'HireMap-Geocoding/1.0'}
+    
+    # Try multiple query strategies in order of preference
+    query_strategies = []
+    
+    # Strategy 1: Full address
+    if street_address and city and state:
+        query_strategies.append(", ".join(filter(None, [street_address, city, state, post_code, country])))
+    
+    # Strategy 2: City + State + Postal Code + Country
+    if city and state and post_code:
+        query_strategies.append(", ".join(filter(None, [city, state, post_code, country])))
+    
+    # Strategy 3: City + State + Country
+    if city and state:
+        query_strategies.append(", ".join(filter(None, [city, state, country])))
+    
+    # Try each strategy until one works
+    for query in query_strategies:
+        try:
+            print(f"Geocoding query: {query}")
+            params = {
+                'q': query,
+                'format': 'json',
+                'addressdetails': 1,
+                'limit': 1,
+            }
+            
+            response = requests.get(url, params=params, headers=headers, timeout=5)
+            response.raise_for_status()
+            results = response.json()
+            print(f"Geocoding results: {len(results)} result(s)")
+            
+            if results:
+                lat = float(results[0]['lat'])
+                lon = float(results[0]['lon'])
+                class Location:
+                    def __init__(self, latitude, longitude):
+                        self.latitude = latitude
+                        self.longitude = longitude
+                return Location(latitude=lat, longitude=lon)
+        except requests.RequestException as e:
+            print(f"Geocoding error for query '{query}': {e}")
+            continue
+    
+    return None
