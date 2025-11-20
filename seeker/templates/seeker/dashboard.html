@@ -95,7 +95,7 @@
                                 <div class="job-tile-separator"></div>
                                 
                                 <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
-                                <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
+                                <div class="job-tile-location">{% if job.city and job.state %}{% if job.remote %}{{ job.city }}, {{ job.state }} (Remote){% else %}{{ job.city }}, {{ job.state }}{% endif %}{% elif job.remote %}Remote{% else %}Location not specified{% endif %}</div>
                             </div>
                         </div>
                         {% empty %}
@@ -247,7 +247,7 @@
                                 <div class="job-tile-separator"></div>
                                 
                                 <div class="job-tile-range">${{ job.0.salary_min|floatformat:0 }} - ${{ job.0.salary_max|floatformat:0 }}</div>
-                                <div class="job-tile-location">{% if job.0.remote %}{{ job.0.location }} (Remote){% else %}{{ job.0.location }}{% endif %}</div>
+                                <div class="job-tile-location">{% if job.0.city and job.0.state %}{% if job.0.remote %}{{ job.0.city }}, {{ job.0.state }} (Remote){% else %}{{ job.0.city }}, {{ job.0.state }}{% endif %}{% elif job.0.remote %}Remote{% else %}Location not specified{% endif %}</div>
                             </div>
                             {% empty %}
                             <div class="no-recommendations-message">
@@ -355,7 +355,7 @@
     "id": "{{ job.id }}",
     "title": "{{ job.title|escapejs }}",
     "company": "{{ job.recruiter.company_name|default:"Company"|escapejs }}",
-    "location": "{{ job.location|escapejs }}",
+    "location": "{% if job.city and job.state %}{{ job.city }}, {{ job.state }}{% else %}Location not specified{% endif %}",
     "remote": {{ job.remote|yesno:"true,false" }},
     "salary_min": {{ job.salary_min }},
     "salary_max": {{ job.salary_max }},
@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: '{{ job.id }}',
                 title: '{{ job.title|escapejs }}',
                 company: '{{ job.recruiter.company_name|escapejs }}',
-                location: '{{ job.location|escapejs }}',
+                location: '{% if job.city and job.state %}{{ job.city }}, {{ job.state }}{% else %}Location not specified{% endif %}',
                 lat: {{ job.location_lat }},
                 lon: {{ job.location_lon }},
                 remote: {{ job.remote|lower }}

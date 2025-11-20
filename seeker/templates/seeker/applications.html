@@ -52,7 +52,7 @@
                          data-listing-id="{{ application.listing.id }}"
                          data-company="{{ application.listing.recruiter.company_name|escapejs }}"
                          data-position="{{ application.listing.title|escapejs }}"
-                         data-location="{{ application.listing.location|escapejs }}"
+                         data-location="{% if application.listing.city and application.listing.state %}{{ application.listing.city }}, {{ application.listing.state }}{% else %}Location not specified{% endif %}"
                          data-remote="{{ application.listing.remote|yesno:'true,false' }}"
                          data-salary-min="{{ application.listing.salary_min }}"
                          data-salary-max="{{ application.listing.salary_max }}"
@@ -63,10 +63,16 @@
                          data-created-at="{{ application.created_at|date:'c' }}">
                         <div class="application-company">{{ application.listing.recruiter.company_name }}</div>
                         <div class="application-location">
-                            {% if application.listing.remote %}
-                                {{ application.listing.location }} (Remote)
+                            {% if application.listing.city and application.listing.state %}
+                                {% if application.listing.remote %}
+                                    {{ application.listing.city }}, {{ application.listing.state }} (Remote)
+                                {% else %}
+                                    {{ application.listing.city }}, {{ application.listing.state }}
+                                {% endif %}
+                            {% elif application.listing.remote %}
+                                Remote
                             {% else %}
-                                {{ application.listing.location }}
+                                Location not specified
                             {% endif %}
                         </div>
                         <div class="application-status status-{{ application.status|lower|cut:' ' }}" style="background-color: {% if application.status == 'Applied' %}#007bff{% elif application.status == 'Under Review' %}#6f42c1{% elif application.status == 'Interview' %}#ffc107{% elif application.status == 'Offer' %}#28a745{% elif application.status == 'Closed' %}#495057{% else %}#6c757d{% endif %};"></div>

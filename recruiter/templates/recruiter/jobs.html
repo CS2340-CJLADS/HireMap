@@ -33,7 +33,7 @@
                              role="button" tabindex="0"
                              data-job-id="{{ job.id }}"
                              data-title="{{ job.title|escape }}"
-                             data-location="{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}"
+                             data-location="{% if job.city and job.state %}{% if job.remote %}{{ job.city }}, {{ job.state }} (Remote){% else %}{{ job.city }}, {{ job.state }}{% endif %}{% elif job.remote %}Remote{% else %}Location not specified{% endif %}"
                              data-salary-min="{{ job.salary_min|default_if_none:''|floatformat:0 }}"
                              data-salary-max="{{ job.salary_max|default_if_none:''|floatformat:0 }}"
                              data-status="{% if job.is_draft %}Draft{% elif job.is_closed %}Closed{% else %}Active{% endif %}"
@@ -54,7 +54,7 @@
                             <div class="job-meta">
                                 <div class="job-location">
                                     <span class="icon">📍</span>
-                                    {% if job.remote %}Remote{% else %}{{ job.location }}{% endif %}
+                                    {% if job.city and job.state %}{% if job.remote %}{{ job.city }}, {{ job.state }} (Remote){% else %}{{ job.city }}, {{ job.state }}{% endif %}{% elif job.remote %}Remote{% else %}Location not specified{% endif %}
                                 </div>
                                 <div class="job-salary">
                                     <span class="icon">💰</span>

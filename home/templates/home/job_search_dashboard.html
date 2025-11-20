@@ -89,7 +89,7 @@
                         
                         <div class="job-tile-bottom">
                             <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
-                            <div class="job-tile-location">{% if job.remote %}{{ job.location }} (Remote){% else %}{{ job.location }}{% endif %}</div>
+                            <div class="job-tile-location">{% if job.city and job.state %}{% if job.remote %}{{ job.city }}, {{ job.state }} (Remote){% else %}{{ job.city }}, {{ job.state }}{% endif %}{% elif job.remote %}Remote{% else %}Location not specified{% endif %}</div>
                         </div>
                         
                         {% if job.id in template_data.applied_job_ids %}
