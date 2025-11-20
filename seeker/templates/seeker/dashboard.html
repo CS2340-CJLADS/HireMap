@@ -848,17 +848,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         toggleBtn.addEventListener('click', function() {
-            const isMapView = mapDisplayPanel.style.display === 'block';
+            // Check if map view is currently active by checking computed style
+            const mapComputedStyle = window.getComputedStyle(mapDisplayPanel);
+            const isMapView = mapComputedStyle.display !== 'none';
 
             if (isMapView) {
                 // Switch to List View
                 mapDisplayPanel.style.display = 'none';
-                jobListPanel.style.display = 'block';
+                jobListPanel.style.display = 'flex'; // Use 'flex' to match CSS, not 'block'
                 toggleBtn.textContent = 'Map View';
+                
+                // Force browser to recalculate layout and enable scrolling
+                // This fixes the scrolling issue when switching back from map view
+                setTimeout(function() {
+                    const jobListPanel = document.querySelector('.job-list-panel');
+                    const jobList = document.querySelector('.job-list');
+                    const jobListingsGrid = document.querySelector('.job-listings-grid');
+                    
+                    if (jobListPanel && jobList && jobListingsGrid) {
+                        // Force reflow by accessing offsetHeight on parent containers
+                        void jobListPanel.offsetHeight;
+                        void jobList.offsetHeight;
+                        void jobListingsGrid.offsetHeight;
+                        
+                        // Ensure overflow properties are correctly applied
+                        jobListingsGrid.style.overflowY = 'auto';
+                        jobListingsGrid.style.overflowX = 'hidden';
+                        
+                        // Trigger a resize event to ensure layout recalculation
+                        window.dispatchEvent(new Event('resize'));
+                    }
+                }, 10);
             } else {
                 // Switch to Map View
                 jobListPanel.style.display = 'none';
-                mapDisplayPanel.style.display = 'block';
+                mapDisplayPanel.style.display = 'flex'; // Use 'flex' to match CSS, not 'block'
                 toggleBtn.textContent = 'List View';
 
                 // Initialize map only once
