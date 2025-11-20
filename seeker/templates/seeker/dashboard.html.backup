@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <div class="job-search-container">
     <div class="page-container">
@@ -153,18 +152,7 @@
                             </div>
                             <div class="range-slider">
                                 <input type="range" id="map-commute-radius" min="5" max="100" step="5" value="50" class="map-slider home-slider">
-                                <input type="number" id="map-commute-value-display" class="range-value-input" min="5" max="100" step="5" value="50">
-                                <span class="range-unit">mi</span>
-                            </div>
-                        </div>
-                        {% elif template_data.user_is_applicant %}
-                        <div class="map-filter-group">
-                            <div class="filter-header">
-                                <i class="fas fa-home filter-icon-home"></i>
-                                <span>Home Address Radius</span>
-                            </div>
-                            <div style="padding: 0.75rem; background: #fff3cd; border-radius: 6px; color: #856404; font-size: 0.9rem;">
-                                <i class="fas fa-info-circle"></i> <a href="{% url 'accounts:profile_edit' %}" style="color: #28AC9B; font-weight: 600;">Add your home address</a> to see jobs near you
+                                <span class="range-value" id="map-commute-value-display">50 mi</span>
                             </div>
                         </div>
                         {% endif %}
@@ -181,8 +169,7 @@
                                 <div id="current-distance-slider-container" style="display: none;">
                                     <div class="range-slider">
                                         <input type="range" id="map-current-distance-radius" min="5" max="100" step="5" value="25" class="map-slider current-slider">
-                                        <input type="number" id="map-current-distance-value-display" class="range-value-input" min="5" max="100" step="5" value="25">
-                                        <span class="range-unit">mi</span>
+                                        <span class="range-value" id="map-current-distance-value-display">25 mi</span>
                                     </div>
                                     <button id="clear-current-location-btn" class="clear-location-btn">
                                         <i class="fas fa-times"></i> Clear
@@ -398,12 +385,12 @@ function showJobDetails(jobId) {
     // Simulate loading delay for better UX
     setTimeout(() => {
         if (jobData[jobId]) {
-            const job = jobData[jobId];
-            
+                    document.getElementById('current-distance-slider-container').style.display = 'flex';
+
             // Update job details
             document.getElementById('job-description-company').textContent = job.company;
             document.getElementById('job-description-position').textContent = job.title;
-            document.getElementById('job-description-location').textContent = job.remote ? job.location + ' (Remote)' : job.location;
+                    updateMapMarkers();
             document.getElementById('job-description-salary').textContent = '$' + job.salary_min.toLocaleString() + ' - $' + job.salary_max.toLocaleString();
             document.getElementById('job-description-visa').textContent = job.visa_sponsorship ? 'Visa sponsorship available' : 'No visa sponsorship';
             document.getElementById('job-description-skills').textContent = job.skills_required || 'Not specified';
@@ -451,18 +438,18 @@ function applyToJob() {
     if (!csrfToken) {
         showNotification('CSRF token not found. Please refresh the page and try again.', 'error');
         applyButton.disabled = false;
-        applyButton.textContent = 'Apply';
-        return;
+            document.getElementById('current-distance-slider-container').style.display = 'none';
+            document.getElementById('get-current-location-btn').style.display = 'inline-flex';
     }
     
     // Submit application
     fetch(`/jobs/${currentJobId}/apply/`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            updateMapMarkers();
             'X-CSRFToken': csrfToken.value,
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
+            updateMapMarkers();
         },
         body: `note=${encodeURIComponent(note)}`
     })
@@ -532,8 +519,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearFilters() {
         // Redirect to the same page without any query parameters to show all jobs
         window.location.href = window.location.pathname;
-    }
-    
+                    updateMapMarkers();
+
     // Update slider display values
     function updateSliderValues() {
         if (minSlider && maxSlider && minValue && maxValue) {
@@ -634,6 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var currentLocationLat = null;
         var currentLocationLon = null;
         var isUsingCurrentLocation = false;
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
         var isDistanceFilterDisabled = false;
 
         {% if template_data.user_is_applicant and template_data.user_location %}
@@ -676,17 +664,13 @@ document.addEventListener('DOMContentLoaded', function() {
             jobMarkers = [];
 
             let homeRadius = 0;
-            {% if template_data.user_is_applicant and template_data.user_location %}
-            const mapCommuteSlider = document.getElementById('map-commute-radius');
-            if (userLat && userLon && mapCommuteSlider) {
-                homeRadius = parseInt(mapCommuteSlider.value);
+            if (userLat && userLon) {
+                homeRadius = parseInt(document.getElementById('map-commute-radius').value);
             }
-            {% endif %}
 
             let currentRadius = 0;
-            const currentDistanceSlider = document.getElementById('map-current-distance-radius');
-            if (isUsingCurrentLocation && currentLocationLat && currentLocationLon && currentDistanceSlider) {
-                currentRadius = parseInt(currentDistanceSlider.value);
+            if (isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                currentRadius = parseInt(document.getElementById('map-current-distance-radius').value);
             }
 
             // Add markers for jobs
@@ -694,19 +678,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 let showMarker = job.remote; // Always show remote jobs
 
                 if (!job.remote) {
-                    // Check if job is within home radius
-                    const fromHome = homeRadius > 0 && userLat && userLon ?
-                        calculateDistance(userLat, userLon, job.lat, job.lon) <= homeRadius : false;
+                    const fromHome = userLat ? calculateDistance(userLat, userLon, job.lat, job.lon) <= homeRadius : false;
+                    const fromCurrent = isUsingCurrentLocation && currentLocationLat ? calculateDistance(currentLocationLat, currentLocationLon, job.lat, job.lon) <= currentRadius : false;
 
-                    // Check if job is within current location radius
-                    const fromCurrent = currentRadius > 0 && currentLocationLat && currentLocationLon ?
-                        calculateDistance(currentLocationLat, currentLocationLon, job.lat, job.lon) <= currentRadius : false;
-
-                    // Show if in either radius (OR logic)
                     if (fromHome || fromCurrent) {
-                        showMarker = true;
-                    } else if (homeRadius === 0 && currentRadius === 0) {
-                        // If no filters active, show all jobs
                         showMarker = true;
                     }
                 }
@@ -725,22 +700,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function updateCommuteCircle(commuteRadius) {
             {% if template_data.user_is_applicant and template_data.user_location %}
-            console.log('Drawing home circle at:', userLat, userLon, 'radius:', commuteRadius, 'miles');
-            // Always show saved address circle if user has an address
-            if (commuteCircle) {
+            // Only show saved address circle if not using current location and distance filter is not disabled
+            if (!isUsingCurrentLocation && !isDistanceFilterDisabled) {
+                if (commuteCircle) {
+                    map.removeLayer(commuteCircle);
+                }
+                var radiusMeters = commuteRadius * 1609.34;
+                commuteCircle = L.circle([userLat, userLon], {
+                    color: '#28AC9B',
+                    fillColor: '#28AC9B',
+                    fillOpacity: 0.1,
+                    radius: radiusMeters
+                }).addTo(map);
+            } else if (commuteCircle) {
+                // Remove circle if distance filter is disabled
                 map.removeLayer(commuteCircle);
             }
-            var radiusMeters = commuteRadius * 1609.34;
-            commuteCircle = L.circle([userLat, userLon], {
-                color: '#28AC9B',
-                fillColor: '#28AC9B',
-                fillOpacity: 0.15,
-                radius: radiusMeters,
-                weight: 2
-            }).addTo(map);
-            console.log('Home circle drawn successfully');
-            {% else %}
-            console.log('No user location available for home circle');
             {% endif %}
         }
 
@@ -748,13 +723,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentLocationCircle) {
                 map.removeLayer(currentLocationCircle);
             }
-            // Always show current location circle when active
-            if (currentLocationLat && currentLocationLon) {
+            // Only show current location circle if distance filter is not disabled
+            if (currentLocationLat && currentLocationLon && !isDistanceFilterDisabled) {
                 var radiusMeters = radius * 1609.34;
                 currentLocationCircle = L.circle([currentLocationLat, currentLocationLon], {
                     color: '#FF746C',
                     fillColor: '#FF746C',
-                    fillOpacity: 0.15,
+                    fillOpacity: 0.1,
                     radius: radiusMeters
                 }).addTo(map);
             }
@@ -776,6 +751,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentLocationLon = position.coords.longitude;
                     isUsingCurrentLocation = true;
                     
+                    // Hide saved address circle
+                    {% if template_data.user_is_applicant and template_data.user_location %}
+                    if (commuteCircle) {
+                        map.removeLayer(commuteCircle);
+                    }
+                    {% endif %}
+                    
                     // Add current location marker (red)
                     if (currentLocationMarker) {
                         map.removeLayer(currentLocationMarker);
@@ -796,103 +778,129 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Show current distance controls
                     document.getElementById('get-current-location-btn').style.display = 'none';
-                    document.getElementById('current-distance-slider-container').style.display = 'flex';
+                    document.getElementById('current-distance-controls').style.display = 'block';
 
                     // Apply initial current location filter
                     var initialRadius = 25;
                     updateCurrentLocationCircle(initialRadius);
-                    updateMapMarkers();
+                    updateMapMarkers(50); // Use default commute radius as fallback
 
                     statusDiv.innerHTML = '<span style="color: green;">✅ Location found!</span>';
                     setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
                 },
-                function(error) {
-                    let errorMsg = '';
+    background: none;
                     switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMsg = '❌ Location access denied';
+    color: #dc3545;
                             break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMsg = '❌ Location unavailable';
+    font-size: 1.2rem;
+}
+
+.map-filters-container {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.map-filter-group {
+    flex: 1;
+}
+
+.filter-header {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #333;
+}
+
+.filter-icon-home {
+    color: #28AC9B;
+    margin-right: 0.5rem;
+}
+
+.filter-icon-current {
+    color: #FF746C;
+    margin-right: 0.5rem;
                             break;
                         case error.TIMEOUT:
-                            errorMsg = '❌ Location request timeout';
-                            break;
+.range-slider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
                         default:
                             errorMsg = '❌ Location error occurred';
-                            break;
-                    }
-                    statusDiv.innerHTML = '<span style="color: red;">' + errorMsg + '</span>';
-                },
+.map-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
                 {
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 300000
-                }
-            );
+.map-slider:hover {
+    opacity: 1;
         }
 
-        function clearCurrentLocation() {
-            // Remove current location markers and circles
+.map-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.home-slider::-webkit-slider-thumb {
+    background: #28AC9B;
+}
+
+.current-slider::-webkit-slider-thumb {
+    background: #FF746C;
+}
+
+.range-value {
+    font-weight: 500;
+    color: #555;
+    min-width: 50px;
+    text-align: right;
+}
+
+.location-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #FF746C;
             if (currentLocationMarker) {
                 map.removeLayer(currentLocationMarker);
-                currentLocationMarker = null;
-            }
+    padding: 0.6rem 1rem;
+    border-radius: 5px;
             if (currentLocationCircle) {
-                map.removeLayer(currentLocationCircle);
                 currentLocationCircle = null;
-            }
-            
-            // Reset variables
-            currentLocationLat = null;
-            currentLocationLon = null;
-            isUsingCurrentLocation = false;
-            
-            // Hide current location controls
-            document.getElementById('current-distance-slider-container').style.display = 'none';
-            document.getElementById('get-current-location-btn').style.display = 'inline-flex';
-            document.getElementById('location-status').innerHTML = '';
-            
-            // Restore saved address view if available
-            {% if template_data.user_is_applicant and template_data.user_location %}
+    transition: background-color 0.2s;
             var savedRadius = parseInt(document.getElementById('map-commute-radius').value);
             updateCommuteCircle(savedRadius);
-            updateMapMarkers();
-            map.setView([userLat, userLon], 9);
-            {% else %}
-            updateMapMarkers();
+.location-btn:hover {
+    background-color: #E5635B;
             map.setView([39.8283, -98.5795], 4);
             {% endif %}
-        }
-
-        toggleBtn.addEventListener('click', function() {
-            // Check if map view is currently active by checking computed style
-            const mapComputedStyle = window.getComputedStyle(mapDisplayPanel);
-            const isMapView = mapComputedStyle.display !== 'none';
-
-            if (isMapView) {
-                // Switch to List View
-                mapDisplayPanel.style.display = 'none';
-                jobListPanel.style.display = 'flex'; // Use 'flex' to match CSS, not 'block'
-                toggleBtn.textContent = 'Map View';
-                
-                // Force browser to recalculate layout and enable scrolling
-                // This fixes the scrolling issue when switching back from map view
-                setTimeout(function() {
-                    const jobListPanel = document.querySelector('.job-list-panel');
-                    const jobList = document.querySelector('.job-list');
-                    const jobListingsGrid = document.querySelector('.job-listings-grid');
-                    
-                    if (jobListPanel && jobList && jobListingsGrid) {
+#current-distance-slider-container {
                         // Force reflow by accessing offsetHeight on parent containers
                         void jobListPanel.offsetHeight;
-                        void jobList.offsetHeight;
-                        void jobListingsGrid.offsetHeight;
-                        
+    gap: 1rem;
+
                         // Ensure overflow properties are correctly applied
-                        jobListingsGrid.style.overflowY = 'auto';
-                        jobListingsGrid.style.overflowX = 'hidden';
-                        
+.clear-location-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 1.2rem;
                         // Trigger a resize event to ensure layout recalculation
                         window.dispatchEvent(new Event('resize'));
                     }
@@ -912,9 +920,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }).addTo(map);
 
                     {% if template_data.user_is_applicant and template_data.user_location %}
-                    console.log('User has address - initializing home marker and circle');
-                    console.log('User location:', userLat, userLon);
-
                     // Add user home marker (blue)
                     userMarker = L.marker([userLat, userLon], {
                         icon: L.icon({
@@ -933,51 +938,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Initial radius
                     var initialRadius = 50;
                     updateCommuteCircle(initialRadius);
-                    updateMapMarkers();
+                    updateMapMarkers(initialRadius);
 
-                    // Setup commute slider and input (two-way binding)
+                    // Setup commute slider
                     const mapCommuteSlider = document.getElementById('map-commute-radius');
                     const mapCommuteDisplay = document.getElementById('map-commute-value-display');
                     if (mapCommuteSlider && mapCommuteDisplay) {
-                        // Slider updates input
                         mapCommuteSlider.addEventListener('input', function() {
                             var radius = parseInt(this.value);
-                            mapCommuteDisplay.value = radius;
-                            updateCommuteCircle(radius);
-                            updateMapMarkers();
-                        });
-
-                        // Input updates slider
-                        mapCommuteDisplay.addEventListener('input', function() {
-                            var radius = parseInt(this.value);
-                            if (radius >= 5 && radius <= 100) {
-                                mapCommuteSlider.value = radius;
-                                updateCommuteCircle(radius);
-                                updateMapMarkers();
-                            }
-                        });
-
-                        // Validate input on blur
-                        mapCommuteDisplay.addEventListener('blur', function() {
-                            var radius = parseInt(this.value);
-                            if (isNaN(radius) || radius < 5) {
-                                radius = 5;
-                            } else if (radius > 100) {
-                                radius = 100;
-                            }
-                            this.value = radius;
-                            mapCommuteSlider.value = radius;
+                            mapCommuteDisplay.textContent = radius + ' mi';
                             updateCommuteCircle(radius);
                             updateMapMarkers();
                         });
                     }
-
-                    {% else %}
-                    // No user location, show all jobs
-                    updateMapMarkers();
-                    {% endif %}
-
-                    // Setup current location controls (works with or without saved address)
+                    
+                    // Setup current location controls
                     const getCurrentLocationBtn = document.getElementById('get-current-location-btn');
                     const clearCurrentLocationBtn = document.getElementById('clear-current-location-btn');
                     const currentDistanceSlider = document.getElementById('map-current-distance-radius');
@@ -992,39 +967,62 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     if (currentDistanceSlider && currentDistanceDisplay) {
-                        // Slider updates input
                         currentDistanceSlider.addEventListener('input', function() {
                             var radius = parseInt(this.value);
-                            currentDistanceDisplay.value = radius;
-                            updateCurrentLocationCircle(radius);
-                            updateMapMarkers();
-                        });
-
-                        // Input updates slider
-                        currentDistanceDisplay.addEventListener('input', function() {
-                            var radius = parseInt(this.value);
-                            if (radius >= 5 && radius <= 100) {
-                                currentDistanceSlider.value = radius;
-                                updateCurrentLocationCircle(radius);
-                                updateMapMarkers();
-                            }
-                        });
-
-                        // Validate input on blur
-                        currentDistanceDisplay.addEventListener('blur', function() {
-                            var radius = parseInt(this.value);
-                            if (isNaN(radius) || radius < 5) {
-                                radius = 5;
-                            } else if (radius > 100) {
-                                radius = 100;
-                            }
-                            this.value = radius;
-                            currentDistanceSlider.value = radius;
+                            currentDistanceDisplay.textContent = radius + ' mi';
                             updateCurrentLocationCircle(radius);
                             updateMapMarkers();
                         });
                     }
-
+                    
+                    // Setup distance filter toggle
+                    const toggleDistanceFilterBtn = document.getElementById('toggle-distance-filter-btn');
+                    if (toggleDistanceFilterBtn) {
+                        toggleDistanceFilterBtn.addEventListener('click', function() {
+                            isDistanceFilterDisabled = !isDistanceFilterDisabled;
+                            
+                            if (isDistanceFilterDisabled) {
+                                this.textContent = '📍 Enable Distance Filter';
+                                this.classList.add('active');
+                                
+                                // Hide all circles when distance filter is disabled
+                                if (commuteCircle) {
+                                    map.removeLayer(commuteCircle);
+                                }
+                                if (currentLocationCircle) {
+                                    map.removeLayer(currentLocationCircle);
+                                }
+                            } else {
+                                this.textContent = '🌍 Show All Jobs (No Distance Filter)';
+                                this.classList.remove('active');
+                                
+                                // Restore circles based on current state
+                                if (isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                                    var currentRadius = parseInt(currentDistanceSlider.value);
+                                    updateCurrentLocationCircle(currentRadius);
+                                } else {
+                                    {% if template_data.user_is_applicant and template_data.user_location %}
+                                    var savedRadius = parseInt(mapCommuteSlider.value);
+                                    updateCommuteCircle(savedRadius);
+                                    {% endif %}
+                                }
+                            }
+                            
+                            // Update map markers based on new filter state
+                            var radius = 50; // Default radius
+                            {% if template_data.user_is_applicant and template_data.user_location %}
+                            if (mapCommuteSlider) {
+                                radius = parseInt(mapCommuteSlider.value);
+                            }
+                            {% endif %}
+                            updateMapMarkers(radius);
+                        });
+                    }
+                    
+                    {% else %}
+                    // No user location, show all jobs
+                    updateMapMarkers(999999);
+                    {% endif %}
 
                     mapInitialized = true;
                 }
@@ -1269,252 +1267,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .view-all-tile .company-name {
     color: white !important;
     font-weight: 600;
-}
-
-/* Map Filters Container - Modern Dual Radius UI */
-.map-filters-container {
-    display: flex;
-    gap: 2rem;
-    padding: 1.25rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 12px;
-    margin: 1rem 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.map-filter-group {
-    flex: 1;
-    background: white;
-    padding: 1rem;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-}
-
-.filter-header {
-    display: flex;
-    align-items: center;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: #2c3e50;
-    font-size: 1rem;
-    gap: 0.5rem;
-}
-
-.filter-icon-home {
-    color: #28AC9B;
-    font-size: 1.2rem;
-}
-
-.filter-icon-current {
-    color: #FF746C;
-    font-size: 1.2rem;
-}
-
-.range-slider {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.5rem 0;
-}
-
-.map-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 8px;
-    border-radius: 5px;
-    background: linear-gradient(to right, #e0e0e0 0%, #e0e0e0 100%);
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.map-slider:hover {
-    background: linear-gradient(to right, #d0d0d0 0%, #d0d0d0 100%);
-}
-
-.map-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
-    border: 3px solid white;
-}
-
-.map-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-}
-
-.map-slider::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
-    border: 3px solid white;
-}
-
-.map-slider::-moz-range-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-}
-
-.home-slider::-webkit-slider-thumb {
-    background: #28AC9B;
-}
-
-.home-slider::-moz-range-thumb {
-    background: #28AC9B;
-}
-
-.current-slider::-webkit-slider-thumb {
-    background: #FF746C;
-}
-
-.current-slider::-moz-range-thumb {
-    background: #FF746C;
-}
-
-.range-value {
-    font-weight: 700;
-    color: #2c3e50;
-    min-width: 55px;
-    text-align: right;
-    font-size: 0.95rem;
-    background: #f8f9fa;
-    padding: 0.35rem 0.75rem;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
-}
-
-.range-value-input {
-    font-weight: 700;
-    color: #2c3e50;
-    width: 60px;
-    text-align: right;
-    font-size: 0.95rem;
-    background: #ffffff;
-    padding: 0.35rem 0.5rem;
-    border-radius: 6px;
-    border: 2px solid #28AC9B;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.range-value-input:hover {
-    border-color: #218c7e;
-    background: #f8fff8;
-}
-
-.range-value-input:focus {
-    border-color: #1a6d5f;
-    box-shadow: 0 0 0 3px rgba(40, 172, 155, 0.1);
-}
-
-.range-unit {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 0.95rem;
-    margin-left: 0.25rem;
-}
-
-.location-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    background: linear-gradient(135deg, #FF746C 0%, #FF5A50 100%);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-    width: 100%;
-    box-shadow: 0 2px 6px rgba(255, 116, 108, 0.3);
-}
-
-.location-btn:hover {
-    background: linear-gradient(135deg, #E5635B 0%, #E54840 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(255, 116, 108, 0.4);
-}
-
-.location-btn:active {
-    transform: translateY(0);
-}
-
-.location-btn i {
-    font-size: 1.1rem;
-}
-
-#current-distance-slider-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.clear-location-btn {
-    background: none;
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    border-radius: 6px;
-}
-
-.clear-location-btn:hover {
-    background: rgba(220, 53, 69, 0.1);
-    color: #c82333;
-}
-
-.clear-location-btn i {
-    font-size: 1rem;
-}
-
-.location-status {
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    min-height: 1.5rem;
-    text-align: center;
-    padding: 0.25rem;
-    border-radius: 4px;
-    font-weight: 500;
-}
-
-/* Responsive adjustments for map filters */
-@media (max-width: 1200px) {
-    .map-filters-container {
-        flex-direction: column;
-        gap: 1rem;
-    }
 }
 
 .map-display-panel {

@@ -38,19 +38,19 @@
                 </div>
                 <div class="info-block-item">
                     <label class="info-label">Street Address:</label>
-                    <input type="text" name="street_address" class="info-input" value="{{ template_data.recruiter.street_address|default:'' }}" placeholder="Not provided">
+                    <input type="text" name="street_address" class="info-input" value="{{ template_data.recruiter.street_address|default:'' }}" placeholder="Not provided" autocomplete="off">
                 </div>
                 <div class="info-block-item">
                     <label class="info-label">City:</label>
-                    <input type="text" name="city" class="info-input" value="{{ template_data.recruiter.city|default:'' }}" placeholder="Not provided">
+                    <input type="text" name="city" class="info-input" value="{{ template_data.recruiter.city|default:'' }}" placeholder="Not provided" autocomplete="off">
                 </div>
                 <div class="info-block-item">
                     <label class="info-label">State:</label>
-                    <input type="text" name="state" class="info-input" value="{{ template_data.recruiter.state|default:'' }}" placeholder="Not provided">
+                    <input type="text" name="state" class="info-input" value="{{ template_data.recruiter.state|default:'' }}" placeholder="Not provided" autocomplete="off">
                 </div>
                 <div class="info-block-item">
                     <label class="info-label">Post Code:</label>
-                    <input type="text" name="post_code" class="info-input" value="{{ template_data.recruiter.post_code|default:'' }}" placeholder="Not provided">
+                    <input type="text" name="post_code" class="info-input" value="{{ template_data.recruiter.post_code|default:'' }}" placeholder="Not provided" autocomplete="off">
                 </div>
             </div>
         </div>
@@ -239,4 +239,20 @@
     }
 }
 </style>
+
+<input type="hidden" id="lat" name="lat">
+<input type="hidden" id="lon" name="lon">
+
+<!-- Google Maps Autocomplete - DISABLED until valid API key is added -->
+<!-- To enable: Replace YOUR_API_KEY with actual key and uncomment -->
+<!-- <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async defer></script> -->
+
+<script>
+function initAutocomplete() {
+    // Google Maps API not loaded - autocomplete disabled
+    // Manual entry works fine without this
+    console.log('Autocomplete disabled - manual address entry enabled');
+}
+</script>
+
 {% endblock content %}

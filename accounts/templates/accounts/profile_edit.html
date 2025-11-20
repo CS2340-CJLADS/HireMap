@@ -70,20 +70,26 @@
                     </button>
                     <input type="hidden" name="show_location" value="{% if template_data.privacy_settings.show_location %}1{% else %}0{% endif %}" id="show_location">
                 </div>
-                <input type="text" name="street_address" class="info-input" value="{{ template_data.applicant.street_address|default:'' }}" placeholder="Not provided">
+                <input
+                    type="text"
+                    name="street_address"
+                    id="street_address"
+                    class="info-input"
+                    value="{{ template_data.applicant.street_address|default:'' }}"
+                    placeholder="Street Address">
             </div>
             <div class="info-block-item">
                 <label class="info-label">City:</label>
-                <input type="text" name="city" class="info-input" value="{{ template_data.applicant.city|default:'' }}" placeholder="Not provided">
+                <input type="text" name="city" id="city" class="info-input" value="{{ template_data.applicant.city|default:'' }}" placeholder="City">
             </div>
             <div class="info-block-item">
                 <label class="info-label">State:</label>
-                <input type="text" name="state" class="info-input" value="{{ template_data.applicant.state|default:'' }}" placeholder="Not provided">
-        </div>
+                <input type="text" name="state" id="state" class="info-input" value="{{ template_data.applicant.state|default:'' }}" placeholder="State (e.g., GA)">
+            </div>
             <div class="info-block-item">
                 <label class="info-label">Post Code:</label>
-                <input type="text" name="post_code" class="info-input" value="{{ template_data.applicant.post_code|default:'' }}" placeholder="Not provided">
-                        </div>
+                <input type="text" name="post_code" id="post_code" class="info-input" value="{{ template_data.applicant.post_code|default:'' }}" placeholder="Zip Code">
+            </div>
         </div>
         
             <!-- Professional Information -->
@@ -897,5 +903,18 @@ function deleteProject(id) {
         alert('Error deleting project. Please try again.');
     });
 }
+
+// ========== NO CLIENT-SIDE AUTOCOMPLETE ==========
+// Address geocoding happens on the server when you save
+// All fields are fully editable without any restrictions
+
+console.log('✅ Address fields ready for manual entry');
+console.log('💡 Server will geocode your address automatically when you save');
 </script>
+
+<input type="hidden" id="lat" name="lat" value="{{ template_data.applicant.location_lat|default:'' }}">
+<input type="hidden" id="lon" name="lon" value="{{ template_data.applicant.location_lon|default:'' }}">
+
+<!-- No Google Maps API needed - server-side geocoding only -->
+
 {% endblock content %}

@@ -379,32 +379,31 @@ def profile_edit(request):
             applicant.country = request.POST.get('country', 'USA').strip()
             applicant.availability = request.POST.get('availability', 'open-to-work')
             
-            if applicant.post_code:
-                    if applicant.street_address:
-                        print("Geocoding full address.")
-                        # Geocode the address to get coordinates
-                        location = geocode_address(
-                            street_address=applicant.street_address,
-                            post_code=applicant.post_code,
-                            city=applicant.city,
-                            state=applicant.state,
-                            country=applicant.country
-                        )
-                        if location:
-                            print("Geocoded location: ", location)
-                            applicant.location_lat = location.latitude
-                            applicant.location_lon = location.longitude
-                    else:
-                        print("Street address is missing; cannot geocode full address.")
-                        # Geocode the post code to get coordinates
-                        location = geocode_address(post_code=applicant.post_code)
-                        if location:
-                            print("Geocoded location: ", location)
-                            applicant.location_lat = location.latitude
-                            applicant.location_lon = location.longitude
-                            applicant.location_lat += random.uniform(-0.0001, 0.0001)
-                            applicant.location_lon += random.uniform(-0.0001, 0.0001)
-                
+            lat = request.POST.get('lat', '').strip()
+            lon = request.POST.get('lon', '').strip()
+
+            if lat and lon:
+                # Use coordinates from autocomplete
+                try:
+                    applicant.location_lat = float(lat)
+                    applicant.location_lon = float(lon)
+                except (ValueError, TypeError):
+                    # Invalid coordinates, try geocoding instead
+                    lat = lon = None
+
+            # If no coordinates provided or invalid, try geocoding the address
+            if not (lat and lon) and (applicant.street_address or applicant.city):
+                geocode_result = geocode_address(
+                    post_code=applicant.post_code,
+                    street_address=applicant.street_address,
+                    city=applicant.city,
+                    state=applicant.state,
+                    country=applicant.country
+                )
+                if geocode_result and hasattr(geocode_result, 'latitude') and hasattr(geocode_result, 'longitude'):
+                    applicant.location_lat = geocode_result.latitude
+                    applicant.location_lon = geocode_result.longitude
+
             if applicant.city and applicant.state:
                 applicant.location = f"{applicant.city}, {applicant.state}"
             
