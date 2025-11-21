@@ -715,7 +715,7 @@ class Command(BaseCommand):
                 )
                 application_count += 1
         
-        self.stdout.write(f'  ✓ Created {application_count} applications')
+        self.stdout.write(f'  [OK] Created {application_count} applications')
 
         # Summary
         self.stdout.write(self.style.SUCCESS('\n' + '='*60))
@@ -731,5 +731,5 @@ class Command(BaseCommand):
         self.stdout.write(f'  • Total Users: {User.objects.count()}')
         self.stdout.write(f'  • Total Jobs: {JobPosting.objects.count()}')
         self.stdout.write(f'  • Total Applications: {Application.objects.count()}')
-        self.stdout.write(self.style.SUCCESS('\n✓ Demo database is ready for your presentation!'))
+        self.stdout.write(self.style.SUCCESS('\n[SUCCESS] Demo database is ready for your presentation!'))
 
