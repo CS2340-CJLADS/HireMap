@@ -125,17 +125,12 @@ def dashboard(request):
     else:
         recommended_jobs = []
 
-    # For map display: load ALL jobs with location data for client-side filtering
-    # This allows the map to filter dynamically when navbar filters change without
-    # page reload. We only load jobs with location data (lat/lon) since those are
-    # the only ones that can be displayed on the map anyway.
-    # Optimized with select_related to reduce database queries.
+    # Unified job list: All jobs (since location is required when creating)
+    # Used for both map display and job details - single source of truth
     all_jobs_for_map = JobPosting.objects.filter(
         is_draft=False, 
-        is_closed=False,
-        location_lat__isnull=False,
-        location_lon__isnull=False
-    ).exclude(location_lat=0).exclude(location_lon=0).select_related('recruiter')
+        is_closed=False
+    ).select_related('recruiter')
     
     # Add pagination
     page = request.GET.get('page', 1)
@@ -171,7 +166,7 @@ def dashboard(request):
     template_data = {
         'title': 'Job Search Dashboard',
         'job_postings': job_postings_page,
-        'all_jobs_for_map': all_jobs_for_map,
+        'all_jobs_for_map': all_jobs_for_map,  # All jobs - used for both map and job details
         'search_term': search_term,
         'applied_job_ids': applied_job_ids,
         'recent_applications': recent_applications,

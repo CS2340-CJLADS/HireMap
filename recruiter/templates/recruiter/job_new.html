@@ -100,7 +100,6 @@
         <!-- Form Actions -->
         <div class="form-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; max-width: 1000px;">
             <button type="submit" name="action" value="publish" class="submit-btn">Publish Job</button>
-            <button type="submit" name="action" value="draft" class="draft-btn">Save as Draft</button>
             <a href="{% url 'recruiter:dashboard' %}" class="cancel-btn">Cancel</a>
         </div>
     </form>
@@ -269,7 +268,6 @@
 }
 
 .submit-btn,
-.draft-btn,
 .cancel-btn {
     padding: 10px 30px;
     border: none;
@@ -289,15 +287,6 @@
 }
 
 .submit-btn:hover {
-    opacity: 0.9;
-}
-
-.draft-btn {
-    background-color: rgba(33, 128, 116, 0.2);
-    color: rgb(33, 128, 116);
-}
-
-.draft-btn:hover {
     opacity: 0.9;
 }
 
@@ -338,7 +327,6 @@
     }
     
     .submit-btn,
-    .draft-btn,
     .cancel-btn {
         width: 100%;
     }

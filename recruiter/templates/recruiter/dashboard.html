@@ -327,7 +327,6 @@
                         <!-- Form Actions -->
                         <div class="edit-form-actions">
                             <button type="submit" name="action" value="publish" class="edit-submit-btn">Publish Job</button>
-                            <button type="button" name="action" value="draft" id="save-draft-btn" class="edit-draft-btn">Save as Draft</button>
                         </div>
                     </form>
                 </div>
@@ -900,13 +899,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    const saveDraftBtn = document.getElementById('save-draft-btn');
-    if (saveDraftBtn) {
-        saveDraftBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            saveJobPost(true); // true = draft
-        });
-    }
     
     // Filter pills event listeners
     const statusFilterPills = document.querySelectorAll('.recruiter-filter-row .status-filter-pill');
@@ -3694,22 +3686,6 @@ margin-top: 0.3rem;
     opacity: 0.9;
 }
 
-.edit-draft-btn {
-    padding: 10px 30px;
-    border: 2px solid rgb(33, 128, 116);
-    border-radius: 9999px;
-    font-size: 18px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    background-color: rgba(33, 128, 116, 0.1);
-    color: rgb(33, 128, 116);
-}
-
-.edit-draft-btn:hover {
-    background-color: rgba(33, 128, 116, 0.2);
-    opacity: 0.9;
-}
 
 @media (max-width: 1024px) {
     .edit-info-blocks-container {

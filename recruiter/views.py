@@ -176,43 +176,22 @@ def job_new(request):
             is_draft=is_draft,
         )
         
-        if (not job.is_draft) and (not job.remote):
-            print("Job is not draft and not remote; geocoding address.")
-            # Ensure location is set for non-remote jobs
-            try:
-                if job.street_address:
-                    # Geocode the address to get coordinates
-                    location = geocode_address(
-                        street_address=job.street_address,
-                        post_code=job.post_code,
-                        city=job.city,
-                        state=job.state,
-                        country=job.country
-                    )
-                    if location:
-                        print("Geocoded location: ", location)
-                        job.location_lat = location.latitude
-                        job.location_lon = location.longitude
-                    else:
-                        print("Geocoding failed: No results returned")
-                else:
-                    print("Street address is missing; cannot geocode full address.")
-                    # Geocode the post code to get coordinates
-                    location = geocode_address(post_code=job.post_code)
-                    if location:
-                        print("Geocoded location: ", location)
-                        job.location_lat = location.latitude
-                        job.location_lon = location.longitude
-                        job.location_lat += random.uniform(-0.0001, 0.0001)
-                        job.location_lon += random.uniform(-0.0001, 0.0001)
-                    else:
-                        print("Post code geocoding failed: No results returned")
-                job.save()  # Save the job with coordinates
-            except Exception as e:
-                print(f"Geocoding error: {e}")
-                job.save()  # Still save the job even if geocoding fails
+        # Geocode all non-draft jobs (including remote) since location is required
+        # Geocoding always succeeds due to fallback strategies in geocode_address
+        if not job.is_draft:
+            print("Geocoding address for job.")
+            location = geocode_address(
+                street_address=job.street_address,
+                post_code=job.post_code,
+                city=job.city,
+                state=job.state,
+                country=job.country
+            )
+            job.location_lat = location.latitude
+            job.location_lon = location.longitude
+            job.save()
         else:
-            job.save()  # Save draft or remote jobs without geocoding
+            job.save()  # Save draft jobs without geocoding (will geocode when published)
         
         return redirect('recruiter:dashboard')
     
@@ -273,39 +252,19 @@ def job_edit(request, job_id):
             job.is_draft = True
         # For 'save' action, keep current draft status
 
-        if (not job.is_draft) and (not job.remote):
-            print("Job is not draft and not remote; geocoding address.")
-            # Ensure location is set for non-remote jobs
-            try:
-                if job.street_address:
-                    # Geocode the address to get coordinates
-                    location = geocode_address(
-                        street_address=job.street_address,
-                        post_code=job.post_code,
-                        city=job.city,
-                        state=job.state,
-                        country=job.country
-                    )
-                    if location:
-                        print("Geocoded location: ", location)
-                        job.location_lat = location.latitude
-                        job.location_lon = location.longitude
-                    else:
-                        print("Geocoding failed: No results returned")
-                else:
-                    print("Street address is missing; cannot geocode full address.")
-                    # Geocode the post code to get coordinates
-                    location = geocode_address(post_code=job.post_code)
-                    if location:
-                        print("Geocoded location: ", location)
-                        job.location_lat = location.latitude
-                        job.location_lon = location.longitude
-                        job.location_lat += random.uniform(-0.0001, 0.0001)
-                        job.location_lon += random.uniform(-0.0001, 0.0001)
-                    else:
-                        print("Post code geocoding failed: No results returned")
-            except Exception as e:
-                print(f"Geocoding error: {e}")
+        # Geocode all non-draft jobs (including remote) since location is required
+        # Geocoding always succeeds due to fallback strategies in geocode_address
+        if not job.is_draft:
+            print("Geocoding address for job.")
+            location = geocode_address(
+                street_address=job.street_address,
+                post_code=job.post_code,
+                city=job.city,
+                state=job.state,
+                country=job.country
+            )
+            job.location_lat = location.latitude
+            job.location_lon = location.longitude
         
         job.save()
         return redirect('recruiter:dashboard')

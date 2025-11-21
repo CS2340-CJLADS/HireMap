@@ -39,6 +39,9 @@ def signup(request):
                 user = user_form.save()
                 recruiter = recruiter_form.save(commit=False)
                 recruiter.user = user
+                # Set default country (required by database)
+                if not recruiter.country:
+                    recruiter.country = 'USA'
                 recruiter.save()
                 return redirect('accounts:login')
                 

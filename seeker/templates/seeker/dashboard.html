@@ -219,16 +219,18 @@
                     <div class="dashboard-section">
                         <div class="section-name">Recommended Based on your skills</div>
                         <div class="recommended-jobs-list">
-                            {% for job in template_data.recommended_jobs %}
+                            {% for job_tuple in template_data.recommended_jobs %}
+                            {% with job=job_tuple.0 %}
                             <div class="recommended-job-tile" onclick="showJobDetails('{{ job.id }}')">
-                                <div class="job-tile-company">{{ job.0.recruiter.company_name|default:"Company" }}</div>
-                                <div class="job-tile-position">{{ job.0.title }}</div>
+                                <div class="job-tile-company">{{ job.recruiter.company_name|default:"Company" }}</div>
+                                <div class="job-tile-position">{{ job.title }}</div>
                                 
                                 <div class="job-tile-separator"></div>
                                 
-                                <div class="job-tile-range">${{ job.0.salary_min|floatformat:0 }} - ${{ job.0.salary_max|floatformat:0 }}</div>
-                                <div class="job-tile-location">{% if job.0.city and job.0.state %}{% if job.0.remote %}{{ job.0.city }}, {{ job.0.state }} (Remote){% else %}{{ job.0.city }}, {{ job.0.state }}{% endif %}{% elif job.0.remote %}Remote{% else %}Location not specified{% endif %}</div>
+                                <div class="job-tile-range">${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}</div>
+                                <div class="job-tile-location">{% if job.city and job.state %}{% if job.remote %}{{ job.city }}, {{ job.state }} (Remote){% else %}{{ job.city }}, {{ job.state }}{% endif %}{% elif job.remote %}Remote{% else %}Location not specified{% endif %}</div>
                             </div>
+                            {% endwith %}
                             {% empty %}
                             <div class="no-recommendations-message">
                                 <p>No job recommendations available at the moment.</p>
@@ -326,7 +328,7 @@
 
 <script src="{% static 'js/job_search_dashboard.js' %}"></script>
 
-<!-- Job data from server -->
+<!-- Job data from server - use all_jobs_for_map (all jobs since location is required) -->
 <script type="application/json" id="job-data">
 {% if template_data.all_jobs_for_map %}
 [
@@ -641,9 +643,9 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endif %}
 
         // Job data for map - include all filterable fields (make globally accessible)
+        // All jobs are included, but only those with lat/lon will show markers on map
         window.allJobs = [
             {% for job in template_data.all_jobs_for_map %}
-            {% if job.location_lat and job.location_lon %}
             {
                 id: '{{ job.id }}',
                 title: '{{ job.title|escapejs }}',
@@ -651,15 +653,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 location: '{% if job.city and job.state %}{{ job.city }}, {{ job.state }}{% else %}Location not specified{% endif %}',
                 city: '{{ job.city|default:""|escapejs }}',
                 state: '{{ job.state|default:""|escapejs }}',
-                lat: {{ job.location_lat }},
-                lon: {{ job.location_lon }},
+                lat: {% if job.location_lat %}{{ job.location_lat }}{% else %}null{% endif %},
+                lon: {% if job.location_lon %}{{ job.location_lon }}{% else %}null{% endif %},
                 remote: {{ job.remote|lower }},
                 salary_min: {{ job.salary_min }},
                 salary_max: {{ job.salary_max }},
                 visa_sponsorship: {{ job.visa_sponsorship|yesno:"true,false" }},
                 skills_required: '{{ job.skills_required|default:""|escapejs }}'
-            },
-            {% endif %}
+            }{% if not forloop.last %},{% endif %}
             {% endfor %}
         ];
 
@@ -783,12 +784,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!hasActiveRadiusFilter) {
                         showMarker = true;
                     } else {
-                        // Check if job is within home radius
-                        const fromHome = homeRadius > 0 && userLat && userLon ?
+                        // Check if job is within home radius (only if job has coordinates)
+                        const fromHome = homeRadius > 0 && userLat && userLon && job.lat !== null && job.lon !== null ?
                             calculateDistance(userLat, userLon, job.lat, job.lon) <= homeRadius : false;
 
-                        // Check if job is within current location radius
-                        const fromCurrent = currentRadius > 0 && currentLocationLat && currentLocationLon ?
+                        // Check if job is within current location radius (only if job has coordinates)
+                        const fromCurrent = currentRadius > 0 && currentLocationLat && currentLocationLon && job.lat !== null && job.lon !== null ?
                             calculateDistance(currentLocationLat, currentLocationLon, job.lat, job.lon) <= currentRadius : false;
 
                         // Show if within the selected radius
@@ -796,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 
-                if (showMarker) {
+                if (showMarker && job.lat !== null && job.lon !== null) {
                     // Modern minimalistic green icon for job markers
                     var marker = L.marker([job.lat, job.lon], {
                         icon: L.divIcon({
