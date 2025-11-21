@@ -439,20 +439,28 @@ class Command(BaseCommand):
                 }
             )
             
-            # Check if recruiter already exists
+            # Check if recruiter already exists, if not create with raw SQL to include country field
             try:
                 recruiter = Recruiter.objects.get(user=user)
                 created = False
             except Recruiter.DoesNotExist:
-                # Use raw SQL to insert with all fields including country
+                # Use raw SQL to insert with all fields including country (exists in DB but not in model)
                 from django.db import connection
+                from django.conf import settings
                 street_addr = random.choice(loc['addresses'])
-                with connection.cursor() as cursor:
-                    # SQLite uses ? placeholders
-                    cursor.execute(
-                        "INSERT INTO accounts_recruiter (user_id, first_name, last_name, company_name, location, street_address, city, state, post_code, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        [user.id, first_name, last_name, company, f"{loc['city']}, {loc['state']}", street_addr, loc['city'], loc['state'], loc['post_code'], 'USA']
-                    )
+                
+                # Temporarily disable SQL debugging to avoid formatting issues
+                old_debug = settings.DEBUG
+                settings.DEBUG = False
+                try:
+                    with connection.cursor() as cursor:
+                        params = [user.id, first_name, last_name, company, f"{loc['city']}, {loc['state']}", 
+                                 street_addr, loc['city'], loc['state'], loc['post_code'], 'USA']
+                        sql = "INSERT INTO accounts_recruiter (user_id, first_name, last_name, company_name, location, street_address, city, state, post_code, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                        cursor.execute(sql, params)
+                finally:
+                    settings.DEBUG = old_debug
+                    
                 recruiter = Recruiter.objects.get(user=user)
                 created = True
             recruiters.append(recruiter)

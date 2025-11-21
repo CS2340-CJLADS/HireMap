@@ -337,6 +337,40 @@
     margin: 0;
 }
 
+/* Modern circular checkbox for visa filter */
+#visa_sponsorship {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+#visa_sponsorship:checked {
+    background: #ffffff;
+    border-color: #ffffff;
+}
+
+#visa_sponsorship:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: #218073;
+    border-radius: 50%;
+}
+
 .salary-filter {
     display: flex;
     align-items: center;
@@ -984,13 +1018,13 @@
 }
 
 .recommended-job-tile {
-    padding: 0.75rem;
+    padding: 1.1rem;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     border-radius: 25px;
-    background: rgba(33, 128, 116, 0.20);
-    box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
+    background: rgb(244, 255, 255);
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
     font-family: var(--font-family-base);
     display: flex;
     flex-direction: column;
