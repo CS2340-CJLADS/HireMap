@@ -445,12 +445,6 @@ def recruiter_profile_edit(request):
         recruiter.first_name = request.POST.get('first_name', '').strip()
         recruiter.last_name = request.POST.get('last_name', '').strip()
         recruiter.company_name = request.POST.get('company_name', '').strip()
-        # Location is now handled by city, state, street_address, post_code fields
-        recruiter.street_address = request.POST.get('street_address', '').strip()
-        recruiter.post_code = request.POST.get('post_code', '').strip()
-        recruiter.city = request.POST.get('city', '').strip()
-        recruiter.state = request.POST.get('state', '').strip()
-        recruiter.country = request.POST.get('country', 'USA').strip()
         recruiter.save()
         return redirect('recruiter:profile')
     

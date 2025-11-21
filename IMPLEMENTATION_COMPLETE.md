@@ -204,7 +204,6 @@ template_data = {
 ## Testing Checklist
 
 - [ ] Address autocomplete works for applicants
-- [ ] Address autocomplete works for recruiters
 - [ ] Coordinates save correctly for applicants
 - [ ] Home radius slider works
 - [ ] Home circle appears on map
