@@ -120,6 +120,7 @@
                 </div>
                 {% endif %}
             </div>
+            
             <!-- Map Display Panel (hidden by default) -->
             <div class="map-display-panel" id="map-display" style="display: none;">
                 <div class="map-container">
@@ -1214,54 +1215,106 @@ function showNotification(message, type = 'info') {
 
 <script>
 // View Toggling Logic (List vs. Map)
+// Make map and related variables globally accessible
+window.map = null;
+window.mapInitialized = false;
+var candidateMarkers = [];
+
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('map-view-btn');
     const candidateListPanel = document.getElementById('candidate-list-panel');
     const mapDisplayPanel = document.getElementById('map-display');
-    let mapInitialized = false;
-    var map;
+
+    // Candidate data for map - make globally accessible
+    window.allCandidates = [
+        {% for candidate_data in template_data.all_candidates_for_map %}
+        {% with applicant=candidate_data.applicant %}
+        {% if applicant.location_lat and applicant.location_lon %}
+        {
+            id: '{{ applicant.user.id }}',
+            name: '{{ applicant.first_name|escapejs }} {{ applicant.last_name|escapejs }}',
+            location: '{% if candidate_data.location %}{{ candidate_data.location|escapejs }}{% else %}Location not specified{% endif %}',
+            lat: {{ applicant.location_lat }},
+            lon: {{ applicant.location_lon }},
+            availability: '{{ applicant.availability|default:"" }}'
+        }{% if not forloop.last %},{% endif %}
+        {% endif %}
+        {% endwith %}
+        {% endfor %}
+    ];
+
+    function updateMapMarkers() {
+        // Clear existing markers
+        candidateMarkers.forEach(marker => {
+            window.map.removeLayer(marker);
+        });
+        candidateMarkers = [];
+
+        // Add markers for all candidates
+        window.allCandidates.forEach(function(candidate) {
+            if (candidate.lat && candidate.lon) {
+                // Modern minimalistic green icon for candidate markers (same as job markers)
+                var marker = L.marker([candidate.lat, candidate.lon], {
+                    icon: L.divIcon({
+                        className: 'custom-candidate-marker',
+                        html: '<div style="width: 16px; height: 16px; background: #218074; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    })
+                })
+                    .addTo(window.map)
+                    .bindPopup('<b>' + candidate.name + '</b><br>' + candidate.location)
+                    .on('click', function() {
+                        showCandidateDetails(candidate.id);
+                    });
+                candidateMarkers.push(marker);
+            }
+        });
+    }
 
     toggleBtn.addEventListener('click', function() {
-        const isMapView = mapDisplayPanel.style.display === 'block';
+        const isMapView = mapDisplayPanel.style.display !== 'none' && mapDisplayPanel.style.display !== '';
 
         if (isMapView) {
             // Switch to List View
-            mapDisplayPanel.style.display = 'none';
             candidateListPanel.style.display = 'block';
+            mapDisplayPanel.style.display = 'none';
             toggleBtn.textContent = 'Map View';
         } else {
             // Switch to Map View
             candidateListPanel.style.display = 'none';
-            mapDisplayPanel.style.display = 'block';
+            mapDisplayPanel.style.display = 'flex';
             toggleBtn.textContent = 'List View';
 
             // Initialize map only once
-            if (!mapInitialized) {
-                map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
+            if (!window.mapInitialized) {
+                window.map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-                mapInitialized = true;
+                }).addTo(window.map);
 
-                {% for candidate_data in template_data.all_candidates_for_map %}
-                {% with applicant=candidate_data.applicant %}
-                {% if applicant.location_lat and applicant.location_lon %}
-                    var marker_{{ applicant.user.id }} = L.marker([{{ applicant.location_lat }}, {{ applicant.location_lon }}])
-                        .addTo(map)
-                        .bindPopup('<b>{{ applicant.first_name }} {{ applicant.last_name }}</b>')
-                        .on('click', function() {
-                            showCandidateDetails('{{ applicant.user.id }}');
-                        });
-                {% endif %}
-                {% endwith %}
-                {% endfor %}
+                window.mapInitialized = true;
+                updateMapMarkers();
+
+                // Center map on candidates if available
+                if (window.allCandidates.length > 0) {
+                    var bounds = [];
+                    window.allCandidates.forEach(function(candidate) {
+                        if (candidate.lat && candidate.lon) {
+                            bounds.push([candidate.lat, candidate.lon]);
+                        }
+                    });
+                    if (bounds.length > 0) {
+                        window.map.fitBounds(bounds, { padding: [50, 50] });
+                    }
+                }
             }
             
             // This is important: it ensures the map tiles render correctly after being un-hidden.
             setTimeout(() => {
-                if (map) {
-                    map.invalidateSize();
+                if (window.map) {
+                    window.map.invalidateSize();
                 }
             }, 10);
         }
@@ -1270,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Add styles for the map panel, copying from seeker dashboard */
+/* Map panel styles - matching seeker dashboard design */
 .map-display-panel {
     height: 100%;
     width: 100%;
@@ -1279,18 +1332,36 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .map-container {
-    height: 90%;
+    flex: 1;
     width: 100%;
-    flex-grow: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 1.2rem 0;
+    align-items: start;
+    justify-content: start;
+    min-height: 0;
+    margin-left: 1.2rem;
 }
 
 #map {
-    height: 100%;
-    width: 90%;
+    height: 95%;
+    width: 95%;
+    border-radius: 15px;
+}
+
+/* Map popup styling to match app font */
+.leaflet-popup-content-wrapper {
+    font-family: 'Montserrat', sans-serif !important;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-content {
+    font-family: 'Montserrat', sans-serif !important;
+    margin: 12px 16px;
+    line-height: 1.5;
+}
+
+.leaflet-popup-tip {
+    background: white;
 }
 </style>
 
