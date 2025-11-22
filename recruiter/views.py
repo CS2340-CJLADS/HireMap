@@ -555,10 +555,60 @@ def search_candidates(request):
     if job_id:
         job = get_object_or_404(JobPosting, pk=job_id, recruiter=recruiter)
         recommended_applicants = get_recommended_applicants(job, min_score=0.05, limit=10)
-    
+
+    # Create map data for JavaScript (all applicants, not just current page)
+    map_applicants = []
+    all_filtered_applicants = applicants  # Use the filtered queryset before pagination
+    for applicant in all_filtered_applicants:
+        projects = Project.objects.filter(applicant=applicant)
+        temp = {
+            'applicant': applicant,
+            'projects': projects
+        }
+        
+        # Always include availability for map functionality
+        temp['availability'] = applicant.availability
+        
+        # Always add location, but handle privacy
+        privacy_settings = applicant.get_privacy_settings()
+        temp['location'] = None  # Default to None
+        if privacy_settings.show_location:
+            # Format location from city and state (preferred)
+            city = str(applicant.city).strip() if applicant.city else ''
+            state = str(applicant.state).strip() if applicant.state else ''
+            street = str(applicant.street_address).strip() if applicant.street_address else ''
+            old_location = str(applicant.location).strip() if applicant.location else ''
+            
+            # Build location string - prioritize city+state, then fallback to individual fields
+            if city and state:
+                temp['location'] = f"{city}, {state}"
+            elif city:
+                temp['location'] = city
+            elif state:
+                temp['location'] = state
+            elif street:
+                temp['location'] = street
+            elif old_location:
+                temp['location'] = old_location
+        
+        # Apply privacy settings for detailed information - only add if visible
+        if privacy_settings.show_skills:
+            temp['skills'] = applicant.skills
+        if privacy_settings.show_education:
+            temp['education'] = applicant.education
+        if privacy_settings.show_experience:
+            temp['experience'] = applicant.experience
+        if privacy_settings.show_links:
+            temp['links'] = applicant.links
+        if privacy_settings.show_phone:
+            temp['phone'] = applicant.phone
+        
+        map_applicants.append(temp)
+
     template_data = {
         'title': 'Search Candidates',
         'applicants_with_projects': applicants_with_projects,
+        'all_candidates_for_map': map_applicants,  # Use the properly structured map data
         'total_candidates': paginator.count,
         'paginator': paginator,
         'current_page': page,
