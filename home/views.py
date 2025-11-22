@@ -266,31 +266,52 @@ def search_candidates(request):
         applicants_with_projects.append(temp)
     
     map_applicants = []
-    for applicant in applicants:  # Use ALL applicants, not just current page
-        # Only include candidates with valid location data for map
-        if applicant.location_lat and applicant.location_lon and applicant.get_privacy_settings().show_location:
-            projects = Project.objects.filter(applicant=applicant)
-            temp = {
-                'applicant': applicant,
-                'projects': projects
-            }
-            # Always include location for map display
-            temp['location'] = applicant.location
-            temp['availability'] = applicant.availability
+    all_filtered_applicants = applicants  # Use the filtered queryset before pagination
+    for applicant in all_filtered_applicants:
+        projects = Project.objects.filter(applicant=applicant)
+        temp = {
+            'applicant': applicant,
+            'projects': projects
+        }
+        
+        # Always include availability for map functionality
+        temp['availability'] = applicant.availability
+        
+        # Always add location, but handle privacy
+        privacy_settings = applicant.get_privacy_settings()
+        temp['location'] = None  # Default to None
+        if privacy_settings.show_location:
+            # Format location from city and state (preferred)
+            city = str(applicant.city).strip() if applicant.city else ''
+            state = str(applicant.state).strip() if applicant.state else ''
+            street = str(applicant.street_address).strip() if applicant.street_address else ''
+            old_location = str(applicant.location).strip() if applicant.location else ''
             
-            # Apply privacy settings for detailed information
-            if applicant.get_privacy_settings().show_skills:
-                temp['skills'] = applicant.skills
-            if applicant.get_privacy_settings().show_education:
-                temp['education'] = applicant.education
-            if applicant.get_privacy_settings().show_experience:
-                temp['experience'] = applicant.experience
-            if applicant.get_privacy_settings().show_links:
-                temp['links'] = applicant.links
-            if applicant.get_privacy_settings().show_phone:
-                temp['phone'] = applicant.phone
-            # Note: we always include availability and location above for map functionality
-            map_applicants.append(temp)
+            # Build location string - prioritize city+state, then fallback to individual fields
+            if city and state:
+                temp['location'] = f"{city}, {state}"
+            elif city:
+                temp['location'] = city
+            elif state:
+                temp['location'] = state
+            elif street:
+                temp['location'] = street
+            elif old_location:
+                temp['location'] = old_location
+        
+        # Apply privacy settings for detailed information
+        if applicant.get_privacy_settings().show_skills:
+            temp['skills'] = applicant.skills
+        if applicant.get_privacy_settings().show_education:
+            temp['education'] = applicant.education
+        if applicant.get_privacy_settings().show_experience:
+            temp['experience'] = applicant.experience
+        if applicant.get_privacy_settings().show_links:
+            temp['links'] = applicant.links
+        if applicant.get_privacy_settings().show_phone:
+            temp['phone'] = applicant.phone
+        
+        map_applicants.append(temp)
             
     template_data = {
         'title': 'Search Candidates',
