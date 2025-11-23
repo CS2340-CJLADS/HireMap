@@ -518,52 +518,117 @@ def manage_projects(request):
     return render(request, 'accounts/manage_projects.html', {'template_data': template_data})
 
 def geocode_address(post_code='', street_address='', city='', state='', country=''):
-    """Geocode an address using OpenStreetMap Nominatim API"""
-    try:
-        url = "https://nominatim.openstreetmap.org/search"
-        
-        # Build query string properly
-        query_parts = []
-        if street_address:
-            query_parts.append(street_address)
-        if post_code:
-            query_parts.append(post_code)
-        if city:
-            query_parts.append(city)
-        if state:
-            query_parts.append(state)
-        if country:
-            query_parts.append(country)
-        
-        query = ", ".join(query_parts)
-        print(f"Geocoding query: {query}")
-        
-        params = {
-            'q': query,
-            'format': 'json',
-            'addressdetails': 1,
-            'limit': 1,
-        }
-        
-        headers = {
-            'User-Agent': 'HireMap-Geocoding/1.0'
-        }
-        
+    """
+    Geocode an address using OpenStreetMap Nominatim API with fallback strategies.
+    Tries multiple approaches to find the closest valid address.
 
-        response = requests.get(url, params=params, headers=headers, timeout=5)
-        print("Geocoding response: ", response)
-        response.raise_for_status()
-        results = response.json()
-        print("Geocoding results: ", results)
-        if results:
-            lat = float(results[0]['lat'])
-            lon = float(results[0]['lon'])
-            class Location:
-                def __init__(self, latitude, longitude):
-                    self.latitude = latitude
-                    self.longitude = longitude
-            return Location(latitude=lat, longitude=lon)
-        else:
+    Returns: Location object with latitude/longitude, or None if all strategies fail
+    """
+    import time
+
+    url = "https://nominatim.openstreetmap.org/search"
+    headers = {'User-Agent': 'HireMap-Geocoding/1.0'}
+
+    class Location:
+        def __init__(self, latitude, longitude, display_name=''):
+            self.latitude = latitude
+            self.longitude = longitude
+            self.display_name = display_name
+
+    def try_geocode(query_string, strategy_name):
+        """Helper function to attempt geocoding with a specific query"""
+        try:
+            print(f"[Geocoding Strategy {strategy_name}] Trying: {query_string}")
+
+            params = {
+                'q': query_string,
+                'format': 'json',
+                'addressdetails': 1,
+                'limit': 1,
+            }
+
+            time.sleep(1)  # Rate limiting - Nominatim requires 1 second between requests
+            response = requests.get(url, params=params, headers=headers, timeout=5)
+            response.raise_for_status()
+            results = response.json()
+
+            if results and len(results) > 0:
+                lat = float(results[0]['lat'])
+                lon = float(results[0]['lon'])
+                display_name = results[0].get('display_name', '')
+                print(f"✅ [Strategy {strategy_name}] SUCCESS: {display_name}")
+                print(f"   Coordinates: {lat}, {lon}")
+                return Location(latitude=lat, longitude=lon, display_name=display_name)
+            else:
+                print(f"❌ [Strategy {strategy_name}] No results found")
+                return None
+
+        except requests.RequestException as e:
+            print(f"❌ [Strategy {strategy_name}] Request failed: {str(e)}")
             return None
-    except requests.RequestException:
-        return None
+        except (ValueError, KeyError) as e:
+            print(f"❌ [Strategy {strategy_name}] Parsing failed: {str(e)}")
+            return None
+
+    # STRATEGY 1: Try exact address as provided
+    query_parts = []
+    if street_address:
+        query_parts.append(street_address)
+    if city:
+        query_parts.append(city)
+    if state:
+        query_parts.append(state)
+    if post_code:
+        query_parts.append(post_code)
+    if country:
+        query_parts.append(country)
+
+    if query_parts:
+        full_query = ", ".join(query_parts)
+        result = try_geocode(full_query, "1: Full Address")
+        if result:
+            return result
+
+    # STRATEGY 2: Try with "USA" explicitly added
+    if query_parts and not country:
+        usa_query = ", ".join(query_parts + ["USA"])
+        result = try_geocode(usa_query, "2: Full Address + USA")
+        if result:
+            return result
+
+    # STRATEGY 3: Try without street address (just city, state, zip)
+    if city or state or post_code:
+        broader_parts = []
+        if city:
+            broader_parts.append(city)
+        if state:
+            broader_parts.append(state)
+        if post_code:
+            broader_parts.append(post_code)
+
+        broader_query = ", ".join(broader_parts)
+        result = try_geocode(broader_query, "3: City/State/Zip Only")
+        if result:
+            return result
+
+    # STRATEGY 4: Try just city and state
+    if city and state:
+        city_state_query = f"{city}, {state}"
+        result = try_geocode(city_state_query, "4: City + State")
+        if result:
+            return result
+
+    # STRATEGY 5: Try just zip code
+    if post_code:
+        result = try_geocode(post_code, "5: Zip Code Only")
+        if result:
+            return result
+
+    # STRATEGY 6: Try state only (last resort - very broad)
+    if state:
+        result = try_geocode(state, "6: State Only (Last Resort)")
+        if result:
+            return result
+
+    print("❌ All geocoding strategies failed")
+    return None
