@@ -240,7 +240,7 @@
                         <div class="section-name">Recommended Based on your skills</div>
                         <div class="recommended-jobs-list">
                             {% for job in template_data.recommended_jobs %}
-                            <div class="recommended-job-tile" onclick="showJobDetails('{{ job.id }}')">
+                            <div class="recommended-job-tile" onclick="showJobDetails('{{ job.0.id }}')">
                                 <div class="job-tile-company">{{ job.0.recruiter.company_name|default:"Company" }}</div>
                                 <div class="job-tile-position">{{ job.0.title }}</div>
                                 

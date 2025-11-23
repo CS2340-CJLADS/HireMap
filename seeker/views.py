@@ -125,7 +125,16 @@ def dashboard(request):
     else:
         recommended_jobs = []
 
-    all_jobs_for_map = job_postings  # For map display of all jobs
+    # Ensure all jobs are available for JavaScript (including recommended jobs)
+    all_jobs_for_map = job_postings  # Start with filtered job postings
+    
+    # Add recommended jobs to the map data if they're not already included
+    if recommended_jobs:
+        recommended_job_ids = {job.id for job in all_jobs_for_map}
+        for job_tuple in recommended_jobs:
+            job_obj = job_tuple[0]  # Extract job from (job, score) tuple
+            if job_obj.id not in recommended_job_ids:
+                all_jobs_for_map = list(all_jobs_for_map) + [job_obj]
     
     # Add pagination
     page = request.GET.get('page', 1)
