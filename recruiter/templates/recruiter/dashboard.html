@@ -423,6 +423,11 @@
                                         </div>
                                         
                                         <div class="candidate-description-section">
+                                            <div class="section-title">Application Note</div>
+                                            <div class="section-content" id="applicant-description-application-note">Application note</div>
+                                        </div>
+                                        
+                                        <div class="candidate-description-section">
                                             <div class="section-title">Skills</div>
                                             <div class="section-content" id="applicant-description-skills">Skills</div>
                                         </div>
@@ -1465,6 +1470,20 @@ function showApplicantDetails(applicantId, applicantName, applicationId) {
                 } else {
                     projectsEl.textContent = 'Projects not provided';
                 }
+            }
+            
+            // Update application note
+            const applicationNoteEl = document.getElementById('applicant-description-application-note');
+            if (applicationNoteEl && applicationId && currentApplicationsData) {
+                // Find the application data using applicationId
+                const applicationData = currentApplicationsData.find(app => app.id == applicationId);
+                if (applicationData && applicationData.message) {
+                    applicationNoteEl.textContent = applicationData.message;
+                } else {
+                    applicationNoteEl.textContent = 'No application note provided';
+                }
+            } else if (applicationNoteEl) {
+                applicationNoteEl.textContent = 'No application note available';
             }
             
             // Hide loading, show content
