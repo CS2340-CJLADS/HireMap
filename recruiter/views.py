@@ -404,21 +404,42 @@ def search_candidates(request):
             )
     
     if location_search:
-        # Location filter - format is "City, State" from the dropdown
-        if ', ' in location_search:
-            city, state = location_search.split(', ', 1)
-            applicants = applicants.filter(
-                city__iexact=city.strip(),
-                state__iexact=state.strip(),
-                privacy_settings__show_location=True  # Only show applicants with visible location
-            )
-        else:
-            # Fallback: try to match city or state
-            applicants = applicants.filter(
-                privacy_settings__show_location=True
-            ).filter(
-                Q(city__icontains=location_search) | Q(state__icontains=location_search)
-            )
+        # Location filter - format is "City, State" from the dropdown/input
+        location_search = location_search.strip()
+        if location_search:  # Only process if not empty
+            if ', ' in location_search:
+                city, state = location_search.split(', ', 1)
+                city = city.strip()
+                state = state.strip()
+                
+                # Optionally save new location to Location model if it doesn't exist
+                from accounts.models import Location
+                location_name = f"{city}, {state}"
+                location_obj, created = Location.objects.get_or_create(
+                    name=location_name,
+                    defaults={
+                        'city': city,
+                        'state_province': state,
+                        'country': 'United States',
+                        'is_major_city': False
+                    }
+                )
+                
+                # Filter by city and state with privacy check
+                applicants = applicants.filter(
+                    privacy_settings__show_location=True
+                ).filter(
+                    Q(city__iexact=city) & Q(state__iexact=state)
+                )
+            else:
+                # Single value - could be city or state
+                # Try to match as city first, then state
+                applicants = applicants.filter(
+                    privacy_settings__show_location=True
+                ).filter(
+                    Q(city__iexact=location_search) | Q(state__iexact=location_search) |
+                    Q(city__icontains=location_search) | Q(state__icontains=location_search)
+                )
     
     if availability_search:
         applicants = applicants.filter(availability=availability_search)
@@ -436,24 +457,60 @@ def search_candidates(request):
             Q(education__icontains='No education specified')
         )
     
-    # Get unique locations from actual applicants
-    # Use city and state from address fields
-    all_applicants = Applicant.objects.exclude(city__isnull=True).exclude(city='').exclude(state__isnull=True).exclude(state='')
-    
-    # Build location strings in "City, State" format
+    # Get unique locations from:
+    # 1. Actual applicants (who have location visible)
+    # 2. Location model (for locations that have been created/imported)
+    from accounts.models import ApplicantPrivacySettings, Location
     all_locations_list = []
     seen_locations = set()
     
     # Filter out invalid/spam locations
     invalid_locations = {'spam', 'SPAM', 'test', 'TEST', 'test location', 'example'}
     
+    # First, get locations from Location model (these are pre-defined/imported locations)
+    location_objects = Location.objects.exclude(is_remote=True).filter(
+        state_province__isnull=False
+    ).exclude(
+        state_province=''
+    ).exclude(
+        city__isnull=True
+    ).exclude(
+        city=''
+    )
+    
+    for loc_obj in location_objects:
+        if loc_obj.city and loc_obj.state_province:
+            location_str = f"{loc_obj.city}, {loc_obj.state_province}"
+            location_lower = location_str.lower()
+            if location_lower not in seen_locations and location_lower not in invalid_locations:
+                all_locations_list.append(location_str)
+                seen_locations.add(location_lower)
+    
+    # Then, get locations from actual applicants (who have location visible)
+    all_applicants = Applicant.objects.filter(
+        privacy_settings__show_location=True
+    ).exclude(
+        city__isnull=True
+    ).exclude(
+        city=''
+    ).exclude(
+        state__isnull=True
+    ).exclude(
+        state=''
+    ).distinct()
+    
     for applicant in all_applicants:
         if applicant.city and applicant.state:
-            location_str = f"{applicant.city}, {applicant.state}"
-            # Check if location is valid and not already seen
-            if location_str not in seen_locations and location_str.lower() not in invalid_locations:
-                all_locations_list.append(location_str)
-                seen_locations.add(location_str)
+            # Normalize city and state (strip whitespace)
+            city = applicant.city.strip() if applicant.city else ''
+            state = applicant.state.strip() if applicant.state else ''
+            if city and state:
+                location_str = f"{city}, {state}"
+                # Check if location is valid and not already seen (case-insensitive)
+                location_lower = location_str.lower()
+                if location_lower not in seen_locations and location_lower not in invalid_locations:
+                    all_locations_list.append(location_str)
+                    seen_locations.add(location_lower)
     
     all_locations_list = sorted(all_locations_list)
     
