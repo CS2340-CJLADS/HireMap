@@ -14,7 +14,7 @@
         <h3>{{ template_data.job.title }}</h3>
         <p class="job-meta">
           <span class="location">
-            {% if template_data.job.remote %}Remote{% else %}{{ template_data.job.location }}{% endif %}
+            {% if template_data.job.city and template_data.job.state %}{% if template_data.job.remote %}{{ template_data.job.city }}, {{ template_data.job.state }} (Remote){% else %}{{ template_data.job.city }}, {{ template_data.job.state }}{% endif %}{% elif template_data.job.remote %}Remote{% else %}Location not specified{% endif %}
           </span>
           <span class="salary">
             ${{ template_data.job.salary_min|floatformat:0 }} -

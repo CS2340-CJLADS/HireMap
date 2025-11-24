@@ -33,46 +33,6 @@
                         {% endif %}
                     </span>
                 </div>
-                <div class="info-block-item">
-                    <span class="info-label">Street Address:</span>
-                    <span class="info-value">
-                        {% if template_data.recruiter.street_address and template_data.recruiter.street_address != 'None' and template_data.recruiter.street_address.strip %}
-                            {{ template_data.recruiter.street_address }}
-                        {% else %}
-                            Not provided
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="info-block-item">
-                    <span class="info-label">City:</span>
-                    <span class="info-value">
-                        {% if template_data.recruiter.city and template_data.recruiter.city != 'None' and template_data.recruiter.city.strip %}
-                            {{ template_data.recruiter.city }}
-                        {% else %}
-                            Not provided
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="info-block-item">
-                    <span class="info-label">State:</span>
-                    <span class="info-value">
-                        {% if template_data.recruiter.state and template_data.recruiter.state != 'None' and template_data.recruiter.state.strip %}
-                            {{ template_data.recruiter.state }}
-                        {% else %}
-                            Not provided
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="info-block-item">
-                    <span class="info-label">Post Code:</span>
-                    <span class="info-value">
-                        {% if template_data.recruiter.post_code and template_data.recruiter.post_code != 'None' and template_data.recruiter.post_code.strip %}
-                            {{ template_data.recruiter.post_code }}
-                        {% else %}
-                            Not provided
-                        {% endif %}
-                    </span>
-                </div>
             </div>
         </div>
     </div>

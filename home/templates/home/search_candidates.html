@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" type="text/css" href="{% static 'css/job_search_dashboard.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'css/applications.css' %}">
 
@@ -23,16 +24,21 @@
                 </div>
                 <div class="search-filters-inline">
                     <div class="filter-item">
-                        <select name="location" id="location">
-                            <option value="">All Locations</option>
+                        <input type="text" 
+                               name="location" 
+                               id="location" 
+                               list="location-options" 
+                               placeholder="Enter Location" 
+                               value="{% if request.GET.location %}{{ request.GET.location }}{% endif %}"
+                               class="location-input"
+                               autocomplete="off">
+                        <datalist id="location-options">
                             {% if template_data.locations %}
                             {% for loc in template_data.locations %}
-                            <option value="{{ loc }}" {% if request.GET.location == loc %}selected{% endif %}>
-                                {{ loc }}
-                            </option>
+                            <option value="{{ loc }}">{{ loc }}</option>
                             {% endfor %}
                             {% endif %}
-                        </select>
+                        </datalist>
                     </div>
                     <div class="filter-item">
                         <select name="availability" id="availability">
@@ -122,6 +128,31 @@
             </div>
             <!-- Map Display Panel (hidden by default) -->
             <div class="map-display-panel" id="map-display" style="display: none;">
+                <div class="panel-header">
+                    <div class="panel-header-left">
+                        <span style="margin-right: .3rem;">Search within:</span>
+                        <div class="slide-container">
+                            <div class="slider-inner-container">
+                                <div class="slider-line"></div>
+                                <input type="range" id="map-commute-radius" min="1" max="100" step="1" value="50" class="slider-input">
+                                <div class="slider-dot"></div>
+                            </div>
+                            <input type="number" id="radius-value-display" value="50" min="1" max="100" style="font-weight: 700; border: none; background: transparent; width: 28px; text-align: left; font-size: inherit; padding: 0; margin: 0; -moz-appearance: textfield; outline: none; font-family: 'Montserrat', sans-serif;" />
+                        </div>
+                        <span>miles</span>
+                        <button type="button" id="clear-radius-filter" class="clear-filter-btn" title="Clear radius filter" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="panel-header-right">
+                        <span>From</span>
+                        <div class="radius-from-indicator">
+                            <div class="radius-option current-option" data-option="current">
+                                <i class="fas fa-crosshairs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="map-container">
                     <div id="map">
                     <!-- Map will be rendered here -->
@@ -303,6 +334,10 @@
     "last_name": "{{ candidate.last_name|escapejs }}",
     "email": "{{ candidate.user.username|escapejs }}",
     "location": {% if candidate_data.location %}"{{ candidate_data.location|escapejs }}"{% else %}null{% endif %},
+    "city": "{{ candidate.city|default:''|escapejs }}",
+    "state": "{{ candidate.state|default:''|escapejs }}",
+    "lat": {% if candidate.location_lat %}{{ candidate.location_lat }}{% else %}null{% endif %},
+    "lon": {% if candidate.location_lon %}{{ candidate.location_lon }}{% else %}null{% endif %},
     "phone": {% if 'phone' in candidate_data %}"{{ candidate_data.phone|escapejs }}"{% else %}null{% endif %},
     "availability": "{{ candidate_data.availability|default:candidate.availability }}",
     "availability_display": "{{ candidate.get_availability_display|escapejs }}",
@@ -585,9 +620,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const locationInput = document.getElementById('location');
     const availabilitySelect = document.getElementById('availability');
     
-    // Auto-submit on filter change (like job dashboard)
+    // Auto-submit on filter change (or update map if in map view)
     function autoSubmit() {
-        form.submit();
+        // Check if map view is currently active
+        const mapDisplayPanel = document.getElementById('map-display');
+        if (!mapDisplayPanel) {
+            form.submit();
+            return;
+        }
+        
+        const mapComputedStyle = window.getComputedStyle(mapDisplayPanel);
+        const isMapView = mapComputedStyle.display !== 'none';
+
+        // Check if map is initialized and updateMapMarkers function exists
+        if (isMapView && window.mapInitialized && typeof window.updateMapMarkers === 'function' && window.map) {
+            // If in map view, filter markers instead of submitting form
+            window.updateMapMarkers();
+        } else {
+            // If in list view, submit form normally
+            form.submit();
+        }
     }
     
     // Search input with debounce
@@ -600,6 +652,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (locationInput) {
+        // Handle both change (when selecting from datalist) and input (when typing)
+        let locationTimeout;
+        locationInput.addEventListener('input', function() {
+            clearTimeout(locationTimeout);
+            locationTimeout = setTimeout(autoSubmit, 800);
+        });
         locationInput.addEventListener('change', autoSubmit);
     }
     
@@ -614,6 +672,48 @@ document.addEventListener('DOMContentLoaded', function() {
 .search-filters-bar {
     max-width: 70% !important;
     gap: 0.3rem !important;
+}
+
+/* Location input styling to match select dropdown */
+.location-input {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-size: var(--text-regular-16-size) !important;
+    font-weight: var(--text-regular-16-weight) !important;
+    outline: none !important;
+    text-align: center !important;
+    width: 125px !important;
+    max-width: 125px !important;
+    cursor: text !important;
+    font-family: var(--font-family-base) !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.location-input:focus {
+    outline: none !important;
+    border: none !important;
+}
+
+.location-input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+    opacity: 1 !important;
+}
+
+.location-input::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+    opacity: 1 !important;
+}
+
+.location-input::-moz-placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+    opacity: 1 !important;
+}
+
+.location-input:-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+    opacity: 1 !important;
 }
 
 /* Bookmark icon button styling */
@@ -648,7 +748,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .availability-badge {
     padding: 0.25rem 0.5rem;
+    width: 129px;
     border-radius: 12px;
+    text-align: center;
     font-size: 0.8rem;
     font-weight: 500;
     text-transform: uppercase;
@@ -1208,16 +1310,280 @@ function showNotification(message, type = 'info') {
 </script>
 
 <script>
-// View Toggling Logic (List vs. Map)
+// View Toggling Logic (List vs. Map) - Similar to seeker's implementation
+// Make map and related variables globally accessible
+window.map = null;
+window.mapInitialized = false;
+var currentLocationMarker, currentLocationCircle;
+var candidateMarkers = [];
+var currentLocationLat = null;
+var currentLocationLon = null;
+var isUsingCurrentLocation = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('map-view-btn');
     const candidateListPanel = document.getElementById('candidate-list-panel');
     const mapDisplayPanel = document.getElementById('map-display');
-    let mapInitialized = false;
-    var map;
+
+    // Candidate data for map - include all filterable fields (make globally accessible)
+    // All candidates are included, but only those with lat/lon will show markers on map
+    window.allCandidates = [
+        {% for candidate_data in template_data.all_candidates_for_map %}
+        {% with candidate=candidate_data.applicant %}
+        {
+            id: '{{ candidate.user.id }}',
+            first_name: '{{ candidate.first_name|escapejs }}',
+            last_name: '{{ candidate.last_name|escapejs }}',
+            location: {% if candidate_data.location %}'{{ candidate_data.location|escapejs }}'{% else %}null{% endif %},
+            city: '{{ candidate.city|default:""|escapejs }}',
+            state: '{{ candidate.state|default:""|escapejs }}',
+            lat: {% if candidate.location_lat %}{{ candidate.location_lat }}{% else %}null{% endif %},
+            lon: {% if candidate.location_lon %}{{ candidate.location_lon }}{% else %}null{% endif %},
+            availability: '{{ candidate_data.availability|default:candidate.availability }}',
+            skills: {% if 'skills' in candidate_data %}'{{ candidate_data.skills|escapejs }}'{% else %}null{% endif %},
+            education: {% if 'education' in candidate_data %}'{{ candidate_data.education|escapejs }}'{% else %}null{% endif %},
+            experience: {% if 'experience' in candidate_data %}'{{ candidate_data.experience|escapejs }}'{% else %}null{% endif %}
+        }{% if not forloop.last %},{% endif %}
+        {% endwith %}
+        {% endfor %}
+    ];
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        // Haversine formula - returns distance in miles
+        var R = 3958.8; // Earth's radius in miles
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // Get current filter values from the form (make globally accessible)
+    window.getCurrentFilters = function() {
+        const searchInput = document.getElementById('search-input');
+        const locationSelect = document.getElementById('location');
+        const availabilitySelect = document.getElementById('availability');
+
+        return {
+            search: searchInput ? searchInput.value.toLowerCase().trim() : '',
+            location: locationSelect ? locationSelect.value : '',
+            availability: availabilitySelect ? availabilitySelect.value : ''
+        };
+    };
+
+    // Check if a candidate matches the current filters (make globally accessible)
+    window.candidateMatchesFilters = function(candidate, filters) {
+        // Search filter (name, skills, education, experience)
+        if (filters.search) {
+            const searchLower = filters.search;
+            const fullName = (candidate.first_name + ' ' + candidate.last_name).toLowerCase();
+            const matchesSearch = 
+                fullName.includes(searchLower) ||
+                (candidate.skills && candidate.skills.toLowerCase().includes(searchLower)) ||
+                (candidate.education && candidate.education.toLowerCase().includes(searchLower)) ||
+                (candidate.experience && candidate.experience.toLowerCase().includes(searchLower));
+            if (!matchesSearch) return false;
+        }
+
+        // Location filter
+        if (filters.location) {
+            const locationStr = candidate.city && candidate.state ? `${candidate.city}, ${candidate.state}` : (candidate.location || '');
+            if (locationStr !== filters.location) return false;
+        }
+
+        // Availability filter
+        if (filters.availability && candidate.availability !== filters.availability) return false;
+
+        return true;
+    };
+
+    window.updateMapMarkers = function() {
+        if (!window.map) return;
+        
+        // Remove all candidate markers
+        candidateMarkers.forEach(marker => window.map.removeLayer(marker));
+        candidateMarkers = [];
+
+        // Get current navbar filters
+        const filters = window.getCurrentFilters();
+
+        // Get the slider value
+        const mapCommuteSlider = document.getElementById('map-commute-radius');
+        const radius = mapCommuteSlider ? parseInt(mapCommuteSlider.value) : 0;
+        const selectedType = window.selectedRadiusType; // Can be 'current' or null
+        
+        let currentRadius = 0;
+        let hasActiveRadiusFilter = false;
+        
+        if (selectedType === 'current' && isUsingCurrentLocation && currentLocationLat && currentLocationLon && radius > 0) {
+            currentRadius = radius;
+            hasActiveRadiusFilter = true;
+        }
+
+        // Add markers for candidates that match filters
+        window.allCandidates.forEach(candidate => {
+            // First check if candidate matches navbar filters
+            if (!window.candidateMatchesFilters(candidate, filters)) {
+                return; // Skip this candidate if it doesn't match filters
+            }
+
+            let showMarker = true;
+
+            // If active radius filter, check if candidate is within radius
+            if (hasActiveRadiusFilter && candidate.lat !== null && candidate.lon !== null) {
+                const fromCurrent = currentRadius > 0 && currentLocationLat && currentLocationLon ?
+                    calculateDistance(currentLocationLat, currentLocationLon, candidate.lat, candidate.lon) <= currentRadius : false;
+                showMarker = fromCurrent;
+            }
+
+            if (showMarker && candidate.lat !== null && candidate.lon !== null) {
+                // Modern minimalistic green icon for candidate markers
+                var marker = L.marker([candidate.lat, candidate.lon], {
+                    icon: L.divIcon({
+                        className: 'custom-candidate-marker',
+                        html: '<div style="width: 16px; height: 16px; background: #218074; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    })
+                })
+                    .addTo(window.map)
+                    .bindPopup('<b>' + candidate.first_name + ' ' + candidate.last_name + '</b><br>' + (candidate.location || 'Location not specified'))
+                    .on('click', function() {
+                        showCandidateDetails(candidate.id);
+                    });
+                candidateMarkers.push(marker);
+            }
+        });
+    };
+
+    function updateCurrentLocationCircle(radius) {
+        if (!window.map) return;
+        if (currentLocationCircle) {
+            window.map.removeLayer(currentLocationCircle);
+        }
+        // Always show current location circle when active
+        if (currentLocationLat && currentLocationLon) {
+            var radiusMeters = radius * 1609.34;
+            currentLocationCircle = L.circle([currentLocationLat, currentLocationLon], {
+                color: '#FF746C',
+                fillColor: '#FF746C',
+                fillOpacity: 0.15,
+                radius: radiusMeters
+            }).addTo(window.map);
+        }
+    }
+
+    function getCurrentLocation() {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser.');
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                currentLocationLat = position.coords.latitude;
+                currentLocationLon = position.coords.longitude;
+                isUsingCurrentLocation = true;
+                
+                // Add current location marker (red)
+                if (currentLocationMarker) {
+                    window.map.removeLayer(currentLocationMarker);
+                }
+                // Modern minimalistic location icon for current location
+                currentLocationMarker = L.marker([currentLocationLat, currentLocationLon], {
+                    icon: L.divIcon({
+                        className: 'custom-location-marker',
+                        html: '<div style="width: 20px; height: 20px; background: #FF4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).addTo(window.map).bindPopup('<b>Your Current Location</b>');
+                
+                // Center map on current location
+                window.map.setView([currentLocationLat, currentLocationLon], 10);
+
+                // Ensure selection state is set to current
+                window.selectedRadiusType = 'current';
+                const currentOption = document.querySelector('.current-option');
+                if (currentOption) {
+                    currentOption.classList.add('selected');
+                }
+                
+                // Apply radius immediately
+                const sliderElement = document.getElementById('map-commute-radius');
+                var initialRadius = parseInt(sliderElement ? sliderElement.value : 50);
+                
+                // Ensure display is updated
+                if (window.updateSliderDot && typeof window.updateSliderDot === 'function') {
+                    window.updateSliderDot();
+                }
+                
+                // Show the radius circle immediately
+                if (window.map && currentLocationLat && currentLocationLon) {
+                    updateCurrentLocationCircle(initialRadius);
+                    window.updateMapMarkers();
+                }
+                
+                // Also call updateRadius
+                if (window.updateRadius && typeof window.updateRadius === 'function') {
+                    window.updateRadius();
+                }
+            },
+            function(error) {
+                let errorMsg = '';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg = '❌ Location access denied';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg = '❌ Location unavailable';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg = '❌ Location request timeout';
+                        break;
+                    default:
+                        errorMsg = '❌ Location error occurred';
+                        break;
+                }
+                alert(errorMsg);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000
+            }
+        );
+    }
+
+    function clearCurrentLocation() {
+        if (!window.map) return;
+        
+        // Remove current location markers and circles
+        if (currentLocationMarker) {
+            window.map.removeLayer(currentLocationMarker);
+            currentLocationMarker = null;
+        }
+        if (currentLocationCircle) {
+            window.map.removeLayer(currentLocationCircle);
+            currentLocationCircle = null;
+        }
+        
+        // Reset variables
+        currentLocationLat = null;
+        currentLocationLon = null;
+        isUsingCurrentLocation = false;
+        
+        // Update map markers (will show all candidates)
+        window.updateMapMarkers();
+        window.map.setView([39.8283, -98.5795], 4);
+    }
 
     toggleBtn.addEventListener('click', function() {
-        const isMapView = mapDisplayPanel.style.display === 'block';
+        // Check if map view is currently active by checking computed style
+        const mapComputedStyle = window.getComputedStyle(mapDisplayPanel);
+        const isMapView = mapComputedStyle.display !== 'none';
 
         if (isMapView) {
             // Switch to List View
@@ -1227,36 +1593,308 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // Switch to Map View
             candidateListPanel.style.display = 'none';
-            mapDisplayPanel.style.display = 'block';
+            mapDisplayPanel.style.display = 'flex'; // Use 'flex' to match CSS, not 'block'
             toggleBtn.textContent = 'List View';
+            
+            // Reset URL to base path (remove query parameters) since map view uses client-side filtering
+            const basePath = window.location.pathname;
+            if (window.location.search) {
+                window.history.pushState({}, '', basePath);
+            }
 
             // Initialize map only once
-            if (!mapInitialized) {
-                map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
+            if (!window.mapInitialized) {
+                window.map = L.map('map').setView([39.8283, -98.5795], 4); // Centered on the US
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-                mapInitialized = true;
+                }).addTo(window.map);
 
-                {% for candidate_data in template_data.all_candidates_for_map %}
-                {% with applicant=candidate_data.applicant %}
-                {% if applicant.location_lat and applicant.location_lon %}
-                    var marker_{{ applicant.user.id }} = L.marker([{{ applicant.location_lat }}, {{ applicant.location_lon }}])
-                        .addTo(map)
-                        .bindPopup('<b>{{ applicant.first_name }} {{ applicant.last_name }}</b>')
-                        .on('click', function() {
-                            showCandidateDetails('{{ applicant.user.id }}');
+                // Radius selection state - make globally accessible
+                window.selectedRadiusType = null; // null means no radius filter
+                
+                // Function to update dot position and display text - make globally accessible
+                window.updateSliderDot = function() {
+                    const sliderEl = document.getElementById('map-commute-radius');
+                    const displayEl = document.getElementById('radius-value-display');
+                    const dotEl = document.querySelector('.slider-inner-container .slider-dot');
+                    
+                    if (sliderEl && dotEl) {
+                        const value = parseInt(sliderEl.value);
+                        const min = parseInt(sliderEl.min);
+                        const max = parseInt(sliderEl.max);
+                        
+                        // Calculate percentage (0-100)
+                        const percentage = ((value - min) / (max - min)) * 100;
+                        
+                        // Map to line width: line is 90% width and centered (5% to 95%)
+                        const lineStart = 5;
+                        const lineEnd = 95;
+                        const lineWidth = lineEnd - lineStart;
+                        const dotPosition = lineStart + (percentage / 100) * lineWidth;
+                        
+                        // Position dot based on slider value
+                        dotEl.style.left = dotPosition + '%';
+                        
+                        // Update display text
+                        if (displayEl) {
+                            if (displayEl.tagName === 'INPUT') {
+                                displayEl.value = value;
+                            } else {
+                                displayEl.textContent = value;
+                            }
+                        }
+                    }
+                };
+                
+                // Function to update radius based on selected type - make globally accessible
+                window.updateRadius = function() {
+                    const sliderEl = document.getElementById('map-commute-radius');
+                    if (!sliderEl) return;
+                    const radius = parseInt(sliderEl.value);
+                    const currentType = window.selectedRadiusType;
+                    
+                    // Ensure display always shows the actual slider value
+                    if (window.updateSliderDot && typeof window.updateSliderDot === 'function') {
+                        window.updateSliderDot();
+                    }
+                    
+                    if (currentType === 'current') {
+                        // Use current location
+                        if (isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                            updateCurrentLocationCircle(radius);
+                        } else {
+                            // Get current location if not already set
+                            getCurrentLocation();
+                            return;
+                        }
+                    } else {
+                        // No radius filter active, remove circles
+                        if (currentLocationCircle) {
+                            window.map.removeLayer(currentLocationCircle);
+                            currentLocationCircle = null;
+                        }
+                    }
+                    window.updateMapMarkers();
+                    
+                    // Show/hide clear filter button based on whether filter is active
+                    updateClearFilterButton();
+                };
+                
+                // Function to update clear filter button visibility
+                function updateClearFilterButton() {
+                    const clearBtn = document.getElementById('clear-radius-filter');
+                    if (!clearBtn) return;
+                    
+                    const currentType = window.selectedRadiusType;
+                    let hasActiveFilter = false;
+                    
+                    if (currentType === 'current' && isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                        hasActiveFilter = true;
+                    }
+                    
+                    clearBtn.style.display = hasActiveFilter ? 'flex' : 'none';
+                }
+                
+                // Function to clear radius filter
+                window.clearRadiusFilter = function() {
+                    // Clear selected radius type
+                    window.selectedRadiusType = null;
+                    
+                    // Remove visual selection from current option
+                    const currentOption = document.querySelector('.current-option');
+                    if (currentOption) currentOption.classList.remove('selected');
+                    
+                    // Hide radius circles
+                    if (currentLocationCircle) {
+                        window.map.removeLayer(currentLocationCircle);
+                        currentLocationCircle = null;
+                    }
+                    
+                    // Update map markers (will show all candidates)
+                    window.updateMapMarkers();
+                    
+                    // Hide clear button
+                    updateClearFilterButton();
+                };
+                
+                // Setup radius option selection
+                const currentOption = document.querySelector('.current-option');
+                
+                function selectRadiusType(type) {
+                    window.selectedRadiusType = type;
+                    
+                    // Update visual selection
+                    if (currentOption) {
+                        if (type === 'current') {
+                            currentOption.classList.add('selected');
+                        } else {
+                            currentOption.classList.remove('selected');
+                        }
+                    }
+                    
+                    // Center map when first selecting a radius type
+                    if (type === 'current') {
+                        if (window.map && isUsingCurrentLocation && currentLocationLat && currentLocationLon) {
+                            window.map.setView([currentLocationLat, currentLocationLon], 10);
+                        }
+                    }
+                    
+                    // Update radius
+                    if (window.updateRadius) {
+                        window.updateRadius();
+                    }
+                    
+                    // Update clear button visibility
+                    updateClearFilterButton();
+                }
+                
+                // Setup clear filter button
+                const clearFilterBtn = document.getElementById('clear-radius-filter');
+                if (clearFilterBtn) {
+                    clearFilterBtn.addEventListener('click', function() {
+                        window.clearRadiusFilter();
+                    });
+                    // Initial visibility check
+                    updateClearFilterButton();
+                }
+                
+                // Add click handler for current location option
+                if (currentOption) {
+                    currentOption.addEventListener('click', function() {
+                        // Immediately update visual selection
+                        currentOption.classList.add('selected');
+                        window.selectedRadiusType = 'current';
+                        
+                        // If location not already set, get it first
+                        if (!isUsingCurrentLocation || !currentLocationLat || !currentLocationLon) {
+                            // Request location permission and get location
+                            getCurrentLocation();
+                        } else {
+                            // Location already set, just update radius
+                            if (typeof window.updateRadius === 'function') {
+                                window.updateRadius();
+                            }
+                        }
+                        
+                        // Update clear button visibility
+                        updateClearFilterButton();
+                    });
+                }
+                
+                const mapCommuteSlider = document.getElementById('map-commute-radius');
+                if (mapCommuteSlider) {
+                    // Initialize dot position and display
+                    if (window.updateSliderDot) {
+                        window.updateSliderDot();
+                    }
+                    
+                    // Slider updates display text, dot position, and map radius
+                    mapCommuteSlider.addEventListener('input', function() {
+                        var radius = parseInt(this.value);
+                        // Update display immediately to show accurate value
+                        if (window.updateSliderDot) {
+                            window.updateSliderDot();
+                        }
+                        // Then update the map radius
+                        if (window.updateRadius) {
+                            window.updateRadius();
+                        }
+                    });
+                    
+                    // Make the display input editable - update slider when user types
+                    const radiusDisplayInput = document.getElementById('radius-value-display');
+                    if (radiusDisplayInput) {
+                        // Update slider when user changes the input value
+                        radiusDisplayInput.addEventListener('input', function() {
+                            var inputValue = this.value.trim();
+                            
+                            // Allow empty value while typing
+                            if (inputValue === '') {
+                                return;
+                            }
+                            
+                            var value = parseInt(inputValue);
+                            
+                            // Only update if value is valid
+                            if (!isNaN(value) && value >= 1 && value <= 100) {
+                                if (mapCommuteSlider) {
+                                    mapCommuteSlider.value = value;
+                                    if (window.updateSliderDot) {
+                                        window.updateSliderDot();
+                                    }
+                                    if (window.updateRadius) {
+                                        window.updateRadius();
+                                    }
+                                }
+                            } else if (!isNaN(value) && value > 100) {
+                                value = 100;
+                                this.value = value;
+                                if (mapCommuteSlider) {
+                                    mapCommuteSlider.value = value;
+                                    if (window.updateSliderDot) {
+                                        window.updateSliderDot();
+                                    }
+                                    if (window.updateRadius) {
+                                        window.updateRadius();
+                                    }
+                                }
+                            }
                         });
-                {% endif %}
-                {% endwith %}
-                {% endfor %}
+                        
+                        // Handle blur (when user finishes editing)
+                        radiusDisplayInput.addEventListener('blur', function() {
+                            var inputValue = this.value.trim();
+                            var value = parseInt(inputValue);
+                            
+                            if (inputValue === '' || isNaN(value) || value < 1) {
+                                value = 1;
+                            } else if (value > 100) {
+                                value = 100;
+                            }
+                            
+                            this.value = value;
+                            
+                            if (mapCommuteSlider) {
+                                mapCommuteSlider.value = value;
+                                if (window.updateSliderDot) {
+                                    window.updateSliderDot();
+                                }
+                                if (window.updateRadius) {
+                                    window.updateRadius();
+                                }
+                            }
+                        });
+                        
+                        // Handle Enter key
+                        radiusDisplayInput.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                this.blur();
+                            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                var currentValue = parseInt(this.value) || 1;
+                                if (e.key === 'ArrowUp') {
+                                    this.value = Math.min(100, currentValue + 1);
+                                } else {
+                                    this.value = Math.max(1, currentValue - 1);
+                                }
+                                this.dispatchEvent(new Event('input'));
+                            }
+                        });
+                    }
+                }
+
+                // Show all candidates initially
+                window.updateMapMarkers();
+
+                window.mapInitialized = true;
             }
             
             // This is important: it ensures the map tiles render correctly after being un-hidden.
             setTimeout(() => {
-                if (map) {
-                    map.invalidateSize();
+                if (window.map) {
+                    window.map.invalidateSize();
                 }
             }, 10);
         }
@@ -1270,22 +1908,193 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 100%;
     width: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Explicitly set to column layout for vertical stacking */
+}
+
+.map-display-panel .panel-header {
+    max-height: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.panel-header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.slide-container {
+    height: 22px;
+    background: white;
+    border-radius: 999px; /* Full rounded */
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: .2rem;
+    padding-right: .4rem;
+    margin-right: .2rem;
+    margin-left: .2rem;
+    width: 230px;
+}
+
+.slider-inner-container {
+    height: 100%;
+    background: #218073;
+    border-radius: 999px; /* Full rounding */
+    min-width: 195px;
+    max-width: 195px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: .2rem;
+}
+
+.slider-line {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.65); /* White 65% opacity */
+    width: 90%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px; /* Rounded ends */
+}
+
+.slider-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+}
+
+.slider-dot {
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 1); /* White 100% opacity */
+    border-radius: 50%;
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+    transition: left 0.1s ease;
+    transform: translateX(-50%);
+    top: 50%;
+    margin-top: -4px;
+}
+
+/* Hide number input spinners */
+#radius-value-display::-webkit-outer-spin-button,
+#radius-value-display::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#radius-value-display:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.clear-filter-btn {
+    background: none;
+    border: none;
+    color: #218073;
+    cursor: pointer;
+    padding-top: 0.2rem;
+    margin-left: 0.5rem;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.clear-filter-btn i {
+    font-size: 18px;
+}
+
+.panel-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 30px;
+}
+
+.radius-from-indicator {
+    height: 100%;
+    background: #ffffff;
+    border-radius: 999px; /* Fully rounded */
+    width: 60px; /* Adjust width to fit one circle */
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.radius-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.radius-option i {
+    font-size: 16px;
+    color: #218073;
+    transition: color 0.2s ease;
+}
+
+/* Selected state */
+.radius-option.selected {
+    background: #218073;
+}
+
+.radius-option.selected i {
+    color: #ffffff;
 }
 
 .map-container {
-    height: 90%;
-    width: 100%;
     flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 1.2rem 0;
+    margin: .5rem 1.5rem 1rem 1.5rem;
 }
 
 #map {
     height: 100%;
-    width: 90%;
+    width: 100%;
+    border-radius: 1rem;
+}
+
+/* Leaflet popup styling with app font */
+.leaflet-popup-content-wrapper {
+    font-family: 'Montserrat', sans-serif !important;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-content {
+    font-family: 'Montserrat', sans-serif !important;
+    margin: 12px 16px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.leaflet-popup-tip {
+    background: white;
 }
 </style>
 

@@ -22,7 +22,7 @@ class CustomUserCreationForm(UserCreationForm):
 class RecruiterForm(ModelForm):
     class Meta:
         model = Recruiter
-        fields = ['first_name', 'last_name', 'company_name', 'street_address', 'post_code', 'city', 'state', 'country']
+        fields = ['first_name', 'last_name', 'company_name']
         error_class = CustomErrorList
        
 

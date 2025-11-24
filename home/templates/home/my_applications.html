@@ -42,10 +42,16 @@
                         <div class="application-company">{{ application.listing.recruiter.company_name }}</div>
                         <div class="application-position">{{ application.listing.title }}</div>
                         <div class="application-location">
-                            {% if application.listing.remote %}
-                                {{ application.listing.location }} (Remote)
+                            {% if application.listing.city and application.listing.state %}
+                                {% if application.listing.remote %}
+                                    {{ application.listing.city }}, {{ application.listing.state }} (Remote)
+                                {% else %}
+                                    {{ application.listing.city }}, {{ application.listing.state }}
+                                {% endif %}
+                            {% elif application.listing.remote %}
+                                Remote
                             {% else %}
-                                {{ application.listing.location }}
+                                Location not specified
                             {% endif %}
                         </div>
                         <div class="application-status status-applied"></div>

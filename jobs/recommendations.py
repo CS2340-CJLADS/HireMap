@@ -127,8 +127,15 @@ def get_recommended_jobs(applicant, min_score=0.15, limit=10, include_drafts=Fal
 
         # Small location/remote bonus (kept within BONUS_WEIGHT cap)
         bonus = 0.0
-        if applicant.location and job.location:
-            if applicant.location.lower() == job.location.lower():
+        # Build job location from city and state
+        job_location = None
+        if job.city and job.state:
+            job_location = f"{job.city}, {job.state}"
+        elif job.location:  # Fallback for old data
+            job_location = job.location
+        
+        if applicant.location and job_location:
+            if applicant.location.lower() == job_location.lower():
                 bonus = 0.05
             elif job.remote:
                 bonus = 0.02
@@ -184,8 +191,15 @@ def get_recommended_applicants(job_posting, min_score=0.15, limit=10):
             score = SKILL_WEIGHT * skill_score + EDU_WEIGHT * edu_score
 
             bonus = 0.0
-            if applicant.location and job_posting.location:
-                if applicant.location.lower() == job_posting.location.lower():
+            # Build job location from city and state
+            job_location = None
+            if job_posting.city and job_posting.state:
+                job_location = f"{job_posting.city}, {job_posting.state}"
+            elif job_posting.location:  # Fallback for old data
+                job_location = job_posting.location
+            
+            if applicant.location and job_location:
+                if applicant.location.lower() == job_location.lower():
                     bonus = 0.05
                     print("Added location match bonus: 0.05")
                 elif job_posting.remote:

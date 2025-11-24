@@ -139,7 +139,7 @@ class Recruiter(models.Model):
     company_name = models.CharField(max_length=50, blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
     
-    # Address fields
+    # Address fields (added via migration)
     street_address = models.CharField(max_length=200, blank=True, null=True, help_text="Street address")
     post_code = models.CharField(max_length=20, blank=True, null=True, help_text="ZIP/Postal code")
     city = models.CharField(max_length=100, blank=True, null=True, help_text="City")

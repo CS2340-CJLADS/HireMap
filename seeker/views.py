@@ -125,16 +125,12 @@ def dashboard(request):
     else:
         recommended_jobs = []
 
-    # Ensure all jobs are available for JavaScript (including recommended jobs)
-    all_jobs_for_map = job_postings  # Start with filtered job postings
-    
-    # Add recommended jobs to the map data if they're not already included
-    if recommended_jobs:
-        recommended_job_ids = {job.id for job in all_jobs_for_map}
-        for job_tuple in recommended_jobs:
-            job_obj = job_tuple[0]  # Extract job from (job, score) tuple
-            if job_obj.id not in recommended_job_ids:
-                all_jobs_for_map = list(all_jobs_for_map) + [job_obj]
+    # Unified job list: All jobs (since location is required when creating)
+    # Used for both map display and job details - single source of truth
+    all_jobs_for_map = JobPosting.objects.filter(
+        is_draft=False, 
+        is_closed=False
+    ).select_related('recruiter')
     
     # Add pagination
     page = request.GET.get('page', 1)
@@ -170,7 +166,7 @@ def dashboard(request):
     template_data = {
         'title': 'Job Search Dashboard',
         'job_postings': job_postings_page,
-        'all_jobs_for_map': all_jobs_for_map,
+        'all_jobs_for_map': all_jobs_for_map,  # All jobs - used for both map and job details
         'search_term': search_term,
         'applied_job_ids': applied_job_ids,
         'recent_applications': recent_applications,
