@@ -88,8 +88,7 @@
 						<!-- Public Navigation -->
 						<a href="{% url 'home:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">Home</a>
 						<a href="{% url 'home:job_search_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'job_search_dashboard' %}active{% endif %}">Find Jobs</a>
-						<a href="{% url 'accounts:login' %}" class="nav-link">Login</a>
-						<a href="{% url 'accounts:signup' %}" class="nav-link">Sign Up</a>
+						<a href="{% url 'accounts:index' %}" class="nav-link">Login / Sign Up</a>
 					{% endif %}
 				</div>
 			</div>

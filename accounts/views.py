@@ -13,7 +13,27 @@ from .decorators import applicant_required, recruiter_required
 # Create your views here.
 def index(request):
     template_data = {}
-    template_data['title'] = 'HireMap - Accounts'
+    template_data['title'] = 'HireMap - Welcome'
+    
+    # Handle login POST requests on landing page
+    if request.method == 'POST' and 'email' in request.POST:
+        # This is a login attempt
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, username=email, password=password)
+        if user is None:
+            template_data['error'] = 'The email or password is incorrect.'
+            template_data['active_tab'] = 'login'
+        else: 
+            auth_login(request, user)
+            # Determine user type by checking which profile exists
+            if hasattr(user, 'recruiter'):
+                return redirect('recruiter:dashboard')
+            elif hasattr(user, 'applicant'):
+                return redirect('seeker:dashboard')
+            else:
+                return redirect('home:index')
+    
     return render(request, 'accounts/index.html', {'template_data': template_data})
         
 def signup(request):

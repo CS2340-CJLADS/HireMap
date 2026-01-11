@@ -279,6 +279,9 @@ body.kanban-view-active .search-form {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .application-bar {
@@ -321,7 +324,7 @@ body.kanban-view-active .search-form {
   align-items: center;
   justify-content: flex-start;
   margin: 0;
-  padding: 0;
+  padding: 1rem 0;
   height: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -355,6 +358,7 @@ body.kanban-view-active .search-form {
   height: auto;
   border-radius: 0;
   flex-shrink: 0;
+  padding: 2rem;
 }
 
 /* Seeker applications specific - status is a colored circle */
